@@ -1,0 +1,18 @@
+{
+    "keys": {
+        "maps": "<your maps key>",
+        "routing": "<your routing key>",
+        "search": "<your search key>",
+        "trafficIncidents": "<your traffic incidents key>",
+        "trafficFlow": "<your traffic flow key>"
+    },
+    "cdn": {
+        "web-sdk-maps": "https://api.tomtom.com/maps-sdk-for-web/cdn/5.x/5.39.0/maps",
+        "web-sdk-services": "https://api.tomtom.com/maps-sdk-for-web/cdn/5.x/5.39.0/services",
+        "web-sdk-examples-ui-components": "https://cdn.jsdelivr.net/npm/@tomtom-international/web-sdk-examples-ui-components@1.0.22/dist",
+        "web-sdk-plugin-searchbox": "https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/SearchBox/1.0.6/",
+        "web-sdk-plugin-pancontrols": "https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/PanControls/1.0.8/",
+        "web-sdk-plugin-zoomcontrols": "https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/ZoomControls/1.0.8/",
+        "web-sdk-plugin-minimap": "https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/Minimap/1.0.1/"
+    }
+}
