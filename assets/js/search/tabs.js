@@ -4,9 +4,8 @@
  */
 function Tabs(selector) {
     this.container = document.querySelector(selector);
-    this.tabs = this.container.querySelectorAll('[role="tab"]');
-    this.panels = this.container.querySelectorAll('[role="tabpanel"]');
-
+    this.tabs = Array.prototype.slice.call(this.container.querySelectorAll('[role="tab"]'));
+    this.panels = Array.prototype.slice.call(this.container.querySelectorAll('[role="tabpanel"]'));
     this.bindEvents = this.bindEvents.bind(this);
     this.clickTab = this.clickTab.bind(this);
 

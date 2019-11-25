@@ -7,7 +7,7 @@
     <meta name='viewport'
           content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
     <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
-    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-examples-ui-components/index.css'/>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
 </head>
 <body>
     <div id='map' class='map'></div>
@@ -15,7 +15,7 @@
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
     <script>
-        var round = Formatters.roundLatLng;
+        var roundLatLng = Formatters.roundLatLng;
         var center = [4.890659, 52.373154];
         var popup = new tt.Popup({
             offset: 35
@@ -37,7 +37,9 @@
 
         function onDragEnd() {
             var lngLat = marker.getLngLat();
-            popup.setHTML('<b>Longitude:</b> ' + round(lngLat.lng) + '<br><b>Latitude:</b> ' + round(lngLat.lat));
+            lngLat = new tt.LngLat(roundLatLng(lngLat.lng), roundLatLng(lngLat.lat));
+
+            popup.setHTML(lngLat.toString());
             popup.setLngLat(lngLat);
             marker.setPopup(popup);
             marker.togglePopup();

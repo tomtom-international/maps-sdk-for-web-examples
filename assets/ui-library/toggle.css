@@ -1,0 +1,41 @@
+.tt-toggle{
+    display:none;
+}
+.tt-toggle:checked + .tt-label{
+    background-color:#000000;
+}
+.tt-toggle:checked + .tt-label:after{
+        left:21px;
+    }
+.tt-toggle[disabled] + .tt-label{
+    background-color:#ededed;
+    cursor:default;
+}
+.tt-toggle[disabled][checked] + .tt-label{
+    background-color:#ededed;
+}
+.tt-toggle + .tt-label{
+    background-color:#cccccc;
+    border-radius:18px;
+    cursor:pointer;
+    display:block;
+    font-family:Gotham, Helvetica, Arial, sans-serif;
+    height:20px;
+    left:0;
+    position:relative;
+    top:0;
+    transition:background-color .2s ease;
+    width:38px;
+}
+.tt-toggle + .tt-label:after{
+        background-color:#ffffff;
+        border-radius:200px;
+        box-shadow:0 0 8px rgba(0, 0, 0, .15);
+        content:"";
+        height:14px;
+        left:3px;
+        position:absolute;
+        top:3px;
+        transition:left .2s ease;
+        width:14px;
+    }

@@ -7,7 +7,7 @@ function formatAsMetricDistance(distanceMeters) {
 }
 
 function roundLatLng(num) {
-    return Math.round(num*10000000)/10000000;
+    return Math.round(num * 1000000) / 1000000;
 }
 
 var Formatters = {

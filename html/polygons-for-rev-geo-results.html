@@ -7,7 +7,7 @@
     <meta name='viewport'
           content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
     <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
-    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-examples-ui-components/index.css'/>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
 </head>
 <body>
 <script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
@@ -16,6 +16,7 @@
 <script data-showable type='text/javascript' src='../assets/js/polygons-for-reverse-geocode/layer-manager.js'></script>
 <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
 <script data-showable type='text/javascript' src='../assets/js/buttons-group.js'></script>
+<script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
 <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
 <script src='/cdn.web-sdk-services/services-web.min.js'></script>
 <div id='map' class='map'>
@@ -54,12 +55,18 @@
         zoom: 3,
         dragPan: !window.isMobileOrTablet()
     });
+    var roundLatLng = window.Formatters.roundLatLng;
 
     map
         .addControl(new tt.FullscreenControl())
         .addControl(new tt.NavigationControl())
         .on('click', function (event) {
-            state.coordinates = event.lngLat;
+            var coordinates = {
+                lng: roundLatLng(event.lngLat.lng),
+                lat: roundLatLng(event.lngLat.lat)
+            };
+
+            state.coordinates = coordinates;
             update(state.coordinates, form.geometryZoom(), form.entityType());
         });
 

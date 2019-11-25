@@ -1,0 +1,11 @@
+.tt-label{
+    display:block;
+    font-family:Gotham, Helvetica, Arial, sans-serif;
+}
+
+    .tt-checkbox + .tt-label,
+    .tt-radio + .tt-label,
+    .tt-toggle + .tt-label,
+    .tt-label + .tt-label{
+        margin-top:16px;
+    }

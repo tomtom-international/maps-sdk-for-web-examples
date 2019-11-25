@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html class='use-all-space'>
+
 <head>
     <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
     <meta charset='UTF-8'>
@@ -7,9 +8,10 @@
     <meta name='viewport'
           content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
           <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
-          <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-examples-ui-components/index.css'/>
+          <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
           <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/css-styles/poi.css'/>
 </head>
+
 <body>
     <div class='map-view'>
         <form class='tt-side-panel js-form'>
@@ -21,8 +23,10 @@
             </header>
             <div class='tt-tabs js-tabs'>
                 <div class='tt-tabs__tabslist' role='tablist'>
-                    <button role='tab' aria-selected='true' aria-controls='options' class='tt-tabs__tab' type='button'>Options</button>
-                    <button role='tab' aria-selected='false' aria-controls='results' class='tt-tabs__tab' type='button'>Results</button>
+                    <button role='tab' aria-selected='true' aria-controls='options' class='tt-tabs__tab'
+                        type='button'>Options</button>
+                    <button role='tab' aria-selected='false' aria-controls='results' class='tt-tabs__tab'
+                        type='button'>Results</button>
                 </div>
                 <div role='tabpanel' class='tt-tabs__panel' id='options'>
                     <div class='tt-params-box'>
@@ -55,13 +59,16 @@
                                         Geobias
                                     </div>
                                     <div class='tt-controls-group__toggle'>
-                                        <input id='toggle1' class='tt-toggle js-bias-toggle' type='checkbox' checked='true'>
+                                        <input id='toggle1' class='tt-toggle js-bias-toggle' type='checkbox'
+                                            checked='true'>
                                         <label for='toggle1' class='tt-label'></label>
                                     </div>
 
                                     <div class='js-bias-controls'>
-                                        <label class='tt-form-label js-slider'>Radius (<span class='js-counter'>0</span>m)
-                                            <input class='tt-slider' name='radius' type='range' min='0' max='10000' value='0'>
+                                        <label class='tt-form-label js-slider'>Radius (<span
+                                                class='js-counter'>0</span>m)
+                                            <input class='tt-slider' name='radius' type='range' min='0' max='10000'
+                                                value='0'>
                                         </label>
                                         <label class='tt-form-label'>Latitude
                                             <input class='tt-input' name='latitude' placeholder='e.g. 37.9717162'>
@@ -74,7 +81,8 @@
                             </div>
 
                             <div class='tt-spacing-top-24'>
-                                <input type='submit' class='tt-button -primary tt-spacing-top-24' name='submit' title='Submit'>
+                                <input type='submit' class='tt-button -primary tt-spacing-top-24' name='submit'
+                                    title='Submit'>
                             </div>
                         </div>
                     </div>
@@ -108,6 +116,7 @@
     <script src='/cdn.web-sdk-services/services-web.min.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search-markers/search-marker.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+
     <script>
         tt.setProductInfo('<your-product-name>', '<your-product-version>');
 
@@ -119,12 +128,13 @@
             zoom: 6,
             dragPan: !window.isMobileOrTablet()
         });
-        map.addControl(new tt.FullscreenControl({container: document.querySelector('body')}));
+        map.addControl(new tt.FullscreenControl({ container: document.querySelector('body') }));
         map.addControl(new tt.NavigationControl());
 
         new SidePanel('.tt-side-panel', map);
         var tabs = new Tabs('.js-tabs');
-        document.querySelectorAll('.js-slider').forEach(function(slider) {
+        Array.prototype.slice.call(document.querySelectorAll('.js-slider'))
+        .forEach(function (slider) {
             new Slider(slider);
         });
 
@@ -139,6 +149,10 @@
         var typeSelect = new window.TailSelector(types, '.js-type-select', 'fuzzySearch');
         var languageSelector = new window.TailSelector(window.searchLanguages, '.js-language-select', 'en-GB');
         var geopolSelector = new window.TailSelector(window.searchGeopoliticalViews, '.js-geo-view-select', 'Unified');
+
+        geopolSelector.getElement().on('change', function (selected) {
+            this.map.setGeopoliticalView(selected.key);
+        }.bind(this));
 
         function Search() {
             this.domHelpers = DomHelpers;
@@ -158,8 +172,8 @@
                 geobiasToggle: document.querySelector('.js-bias-toggle'),
                 form: document.querySelector('.js-form')
             };
-
-            document.querySelectorAll('input').forEach(function(input) {
+            Array.prototype.slice.call(document.querySelectorAll('input'))
+            .forEach(function (input) {
                 this.elements[input.name] = input;
             }.bind(this));
 
@@ -182,17 +196,17 @@
             this.bindEvents();
         }
 
-        Search.prototype.bindEvents = function() {
+        Search.prototype.bindEvents = function () {
             this.elements.language.on('change', this.updateSelectValue.bind(this, 'language'));
             this.elements.view.on('change', this.updateSelectValue.bind(this, 'view'));
             this.elements.type.on('change', this.updateSelectValue.bind(this, 'type'));
             this.elements.query.addEventListener('change', this.updateInputValue.bind(this, 'query'));
             this.elements.minFuzzyLevel.addEventListener('change', this.updateInputValue.bind(this, 'minFuzzyLevel'));
-            this.elements.maxFuzzyLevel.addEventListener('change',this.updateInputValue.bind(this, 'maxFuzzyLevel'))
-            this.elements.latitude.addEventListener('change',this.updateInputValue.bind(this, 'latitude'))
-            this.elements.longitude.addEventListener('change',this.updateInputValue.bind(this, 'longitude'))
-            this.elements.limit.addEventListener('change',this.updateInputValue.bind(this, 'limit'))
-            this.elements.radius.addEventListener('change',this.updateInputValue.bind(this, 'radius'))
+            this.elements.maxFuzzyLevel.addEventListener('change', this.updateInputValue.bind(this, 'maxFuzzyLevel'))
+            this.elements.latitude.addEventListener('change', this.updateInputValue.bind(this, 'latitude'))
+            this.elements.longitude.addEventListener('change', this.updateInputValue.bind(this, 'longitude'))
+            this.elements.limit.addEventListener('change', this.updateInputValue.bind(this, 'limit'))
+            this.elements.radius.addEventListener('change', this.updateInputValue.bind(this, 'radius'))
             this.elements.geobiasToggle.addEventListener('click', this.toggleGeoBias.bind(this));
             this.elements.submit.addEventListener('click', this.handleSubmit.bind(this));
             this.elements.form.addEventListener('submit', this.handleSubmit.bind(this));
@@ -201,7 +215,7 @@
             map.on('moveend', this.updateBiasPosition.bind(this));
         };
 
-        Search.prototype.updateBiasPosition = function() {
+        Search.prototype.updateBiasPosition = function () {
             var lat = map.getCenter().lat.toFixed(6);
             var lng = map.getCenter().lng.toFixed(6);
             this.elements.latitude.value = lat;
@@ -212,14 +226,22 @@
         };
 
         Search.prototype.updateInputValue = function(property, event) {
-            this.state[property] = event.target.value;
-
             if (property === 'minFuzzyLevel' || property === 'maxFuzzyLevel') {
                 this.validateMinMaxFuzzy();
             }
+
+            if (property === 'latitude' || property === 'longitude') {
+                var value = this.formatters.roundLatLng(event.target.value);
+                this.state[property] = value;
+                this.elements[property].value = value;
+                return;
+            }
+
+            this.state[property] = event.target.value;
+
         };
 
-        Search.prototype.updateSelectValue = function(property, selected) {
+        Search.prototype.updateSelectValue = function (property, selected) {
             var selectedKey = selected.key;
 
             if (property === 'type') {
@@ -229,7 +251,7 @@
             this.state[property] = selectedKey;
         };
 
-        Search.prototype.handleUiForService = function(serviceType) {
+        Search.prototype.handleUiForService = function (serviceType) {
             var header = document.querySelector('.tt-side-panel__header');
 
             this.elements.biasContainer.removeAttribute('hidden');
@@ -257,11 +279,12 @@
             }
         };
 
-        Search.prototype.toggleGeoBias = function() {
+        Search.prototype.toggleGeoBias = function () {
             var isGeobiasActive = !this.state.isGeobiasActive
             this.state.isGeobiasActive = isGeobiasActive;
 
-            this.elements.biasControls.querySelectorAll('label, input').forEach(function(label) {
+            Array.prototype.slice.call(this.elements.biasControls.querySelectorAll('label, input'))
+            .forEach(function (label) {
                 if (isGeobiasActive) {
                     label.removeAttribute('disabled');
                 } else {
@@ -270,7 +293,7 @@
             });
         };
 
-        Search.prototype.getSearchAreaVertices = function() {
+        Search.prototype.getSearchAreaVertices = function () {
             var mapBounds = map.getBounds();
 
             return [
@@ -281,8 +304,9 @@
             ];
         };
 
-        Search.prototype.handleSubmit = function(event) {
-            event.preventDefault();
+        Search.prototype.handleSubmit = function (event) {
+
+                event.preventDefault();
 
             var callParameters = {
                 key: '${api.key.search}',
@@ -360,24 +384,25 @@
                 .catch(this.handleError.bind(this));
         };
 
-        Search.prototype.removeMarkers = function() {
+        Search.prototype.removeMarkers = function () {
             for (var marker in this.state.markers) {
                 this.state.markers[marker].remove();
             }
             this.state.markers = {};
         };
 
-        Search.prototype.handleResponse = function(response) {
-            var resultsDocumentFragment = new DocumentFragment();
+        Search.prototype.handleResponse = function (response) {
+            var resultsDocumentFragment = document.createDocumentFragment();
+
             if (response.results && response.results.length > 0) {
                 this.resultsManager.success();
 
-                response.results.forEach(function(result) {
+                Array.prototype.slice.call(response.results).forEach(function (result) {
                     var distance = this.searchResultsParser.getResultDistance(result);
                     var searchResult = this.domHelpers.createSearchResult(
                         this.searchResultsParser.getResultName(result),
                         this.searchResultsParser.getResultAddress(result),
-                        distance ? this.formatters.formatAsMetricDistance(distance) : null
+                        distance ? this.formatters.formatAsMetricDistance(distance) : ''
                     );
 
                     var resultItem = this.domHelpers.createResultItem();
@@ -405,11 +430,11 @@
             }
         };
 
-        Search.prototype.handleError = function(error) {
+        Search.prototype.handleError = function (error) {
             this.errorHint.setMessage(error.message);
         };
 
-        Search.prototype.getMarkersBounds = function() {
+        Search.prototype.getMarkersBounds = function () {
             var bounds = new tt.LngLatBounds();
 
             for (var marker in this.state.markers) {
@@ -419,14 +444,15 @@
             return bounds;
         };
 
-        Search.prototype.selectResultItem = function(resultItem) {
-            document.querySelectorAll('.tt-results-list__item').forEach(function(item) {
+        Search.prototype.selectResultItem = function (resultItem) {
+            Array.prototype.slice.call(document.querySelectorAll('.tt-results-list__item'))
+            .forEach(function (item) {
                 item.classList.remove('-selected');
             });
             resultItem.classList.add('-selected');
         };
 
-        Search.prototype.handleSearchResultItemClick = function(event) {
+        Search.prototype.handleSearchResultItemClick = function (event) {
             var id = event.currentTarget.getAttribute('data-id');
 
             for (var marker in this.state.markers) {
@@ -440,7 +466,7 @@
             map.jumpTo({ center: this.state.markers[id].getLngLat(), zoom: 16 });
         };
 
-        Search.prototype.validateMinMaxFuzzy = function() {
+        Search.prototype.validateMinMaxFuzzy = function () {
             var maxFuzzyLevelValue = this.elements.maxFuzzyLevel.value;
             if (this.elements.minFuzzyLevel.value > maxFuzzyLevelValue) {
                 this.elements.minFuzzyLevel.value = maxFuzzyLevelValue;
@@ -448,7 +474,7 @@
             }
         };
 
-        Search.prototype.createMarker = function(result) {
+        Search.prototype.createMarker = function (result) {
             var newMarker = new SearchMarker({
                 name: result.poi && result.poi.name || undefined,
                 address: result.address.freeformAddress + ', ' + result.address.countryCodeISO3,
@@ -457,8 +483,8 @@
                 position: result.position
             });
 
-            newMarker.getPopup().on('open', function() {
-                this.selectResultItem(document.querySelector('li[data-id="'+ result.id +'"]'));
+            newMarker.getPopup().on('open', function () {
+                this.selectResultItem(document.querySelector('li[data-id="' + result.id + '"]'));
             }.bind(this));
 
             newMarker.addTo(map);
@@ -469,4 +495,5 @@
         new Search();
     </script>
 </body>
+
 </html>

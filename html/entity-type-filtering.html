@@ -7,7 +7,7 @@
     <meta name='viewport'
           content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
     <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
-    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-examples-ui-components/index.css'/>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
 </head>
 <body>
     <script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
@@ -15,6 +15,7 @@
     <script data-showable type='text/javascript' src='../assets/js/validators.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/languages.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
     <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/tail-selector.js'></script>
     <div id='map' class='map'>
@@ -62,7 +63,7 @@
 
         map.addControl(new tt.FullscreenControl());
         map.addControl(new tt.NavigationControl());
-
+        var roundLatLng = window.Formatters.roundLatLng;
 
         var entities = {
             CountrySecondarySubdivision: 'CountrySecondarySubdivision',
@@ -138,7 +139,9 @@
 
             try {
                 validators.checkLongitude(longitude);
+                longitude = roundLatLng(longitude);
                 this.state.position.longitude = longitude;
+                this.elements.longitudeInput.value = longitude;
             } catch (error) {
                 this.errorHint.setMessage(error.message);
                 this.removePopup();
@@ -148,7 +151,9 @@
 
             try {
                 validators.checkLatitude(latitude);
+                latitude = roundLatLng(latitude);
                 this.state.position.latitude = latitude;
+                this.elements.latitudeInput.value = latitude;
             } catch (error) {
                 this.errorHint.setMessage(error.message);
                 this.removePopup();
@@ -261,10 +266,7 @@
             }
 
             var lngLat = event.lngLat.toArray();
-            this.elements.latitudeInput.value = parseFloat(lngLat[1]).toFixed(6);
-            this.elements.longitudeInput.value = parseFloat(lngLat[0]).toFixed(6);
-
-            this.updatePosition([lngLat[0], lngLat[1]]);
+            this.updatePosition(lngLat);
         }
 
         EntityTypeFiltering.prototype.handleRequest = function() {

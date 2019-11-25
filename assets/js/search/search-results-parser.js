@@ -43,7 +43,7 @@ function getResultDistance(result) {
 var SearchResultsParser = {
     getResultName: getResultName,
     getResultAddress: getResultAddress,
-    getResultDistance
+    getResultDistance: getResultDistance
 };
 
 window.SearchResultsParser = window.SearchResultsParser || SearchResultsParser;

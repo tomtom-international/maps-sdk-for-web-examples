@@ -1,0 +1,72 @@
+.tt-buttons-group{
+    display:flex;
+}
+
+    .tt-buttons-group__button{
+        background-color:#ffffff;
+        border:1px solid #e5e5e5;
+        color:#666666;
+        cursor:pointer;
+        font-family:Gotham, Helvetica, Arial, sans-serif;
+        font-size:13px;
+        font-weight:bold;
+        line-height:1.5;
+        margin:0;
+        padding:12px 24px;
+        text-overflow:ellipsis;
+        transition:background-color .2s ease, border-color .2s ease;
+        overflow:hidden;
+    }
+
+    .tt-buttons-group__button:disabled{
+            border-color:#e5e5e5;
+            cursor:default;
+            pointer-events:none;
+            -webkit-user-select:none;
+               -moz-user-select:none;
+                -ms-user-select:none;
+                    user-select:none;
+        }
+
+    .tt-buttons-group__button:disabled.-active{
+                background-color:#e5e5e5;
+                border-color:#e5e5e5;
+                color:#666666;
+            }
+
+    .tt-buttons-group__button:disabled:hover{
+                background-color:transparent;
+            }
+
+    .tt-buttons-group__button:disabled:hover.-active{
+                    background-color:#e5e5e5;
+                    border-color:#e5e5e5;
+                    color:#666666;
+                }
+
+    .tt-buttons-group__button:first-child{
+            border-radius:0 0 0 0;
+        }
+
+    .tt-buttons-group__button:last-child{
+            border-radius:0 0 0 0;
+        }
+
+    .tt-buttons-group__button:hover{
+            background-color:#b1110e !important;
+            border:1px solid #b1110e !important;
+            color:#ffffff;
+        }
+
+    .tt-buttons-group__button.-active{
+            background-color:#e5e5e5;
+            border:1px solid #e5e5e5;
+        }
+
+    .tt-buttons-group__button:-moz-focus-inner{
+            border:0;
+        }
+
+    .tt-buttons-group__button:focus{
+            outline:none;
+        }

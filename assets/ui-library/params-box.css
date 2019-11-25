@@ -1,0 +1,22 @@
+.tt-params-box{
+    background-color:#ffffff;
+    border-radius:0;
+    box-shadow:0 2px 8px 0 rgba(0, 0, 0, .11);
+    width:100%;
+}
+
+    .tt-params-box__header{
+        border-bottom:1px solid #e5e5e5;
+        font-size:15px;
+        font-weight:bold;
+        padding:16px;
+    }
+
+    .tt-params-box__content{
+        font-size:14px;
+        padding:24px 16px;
+    }
+
+    .tt-params-box + .tt-params-box{
+        margin-top:10px;
+    }

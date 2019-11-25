@@ -7,7 +7,7 @@
     <meta name='viewport'
           content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
     <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
-    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-examples-ui-components/index.css'/>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
     <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-plugin-searchbox/SearchBox.css'/>
     <style>
         #foldable {
@@ -40,12 +40,14 @@
 <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
 <script data-showable type='text/javascript' src='../assets/js/antimeridian-handler.js'></script>
 <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+<script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
 <script src='/cdn.web-sdk-plugin-searchbox/SearchBox-web.js'></script>
 <script>
     var NO_POLYGON_MESSAGE = 'For the given result there is no polygon attached.';
     var POLYGON_ID = 'searchResultPolygon';
 
     new Foldable('#foldable', 'top-right');
+    var roundLatLng = window.Formatters.roundLatLng;
 
     var map = tt.map({
         key: '${api.key.maps}',
@@ -116,11 +118,14 @@
 
     function showPopup(searchResult) {
         var resultName = searchResult.address && searchResult.address.freeformAddress;
-        var resultPosition = searchResult.position;
-
-        if (!resultPosition) {
+        if (!searchResult.position) {
             return;
         }
+
+        var resultPosition = {
+            lng: roundLatLng(searchResult.position.lng),
+            lat: roundLatLng(searchResult.position.lat)
+        };
 
         var popupResultName = '<strong>' + resultName + '</strong>';
         var popupLatLon = '<div>' + resultPosition.lat + ', ' + resultPosition.lng + '</div>';

@@ -11,7 +11,7 @@ ResultsManager.prototype.loading = function() {
     this.resultsLoader.removeAttribute('hidden');
     this.resultsElement.setAttribute('hidden', 'hidden');
     this.resultsPlaceholder.setAttribute('hidden', 'hidden');
-    this.resultsElement.innerHTML = null;
+    this.resultsElement.innerHTML = '';
 };
 
 ResultsManager.prototype.success = function() {

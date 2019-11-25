@@ -1,0 +1,19 @@
+.tt-legend-label{
+    align-items:center;
+    display:flex;
+    font-family:Gotham, Helvetica, Arial, sans-serif;
+    height:24px;
+}
+
+    .tt-legend-label:before{
+        background-color:#cccccc;
+        content:"";
+        display:inline-block;
+        height:100%;
+        margin-right:8px;
+        width:5px;
+    }
+
+    .tt-legend-label + .tt-legend-label{
+        margin-top:24px;
+    }

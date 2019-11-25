@@ -17,7 +17,7 @@ var tt = window.tt;
  * This Class can be used to generate the default Tomtom search result markers.
  * Make sure you include:
  * - search-markers.css (included in our examples)
- * - poi-icons.css (shipped with the SDK)
+ * - poi-icons.css (shipped with the SDK and also available via CDN - check our downloads page)
  */
 function SearchMarker(poiData, options) {
     this._poiData = poiData;
@@ -112,7 +112,7 @@ function renderMarkerElem() {
     }
 
     var innerElem = document.createElement('div');
-    innerElem.className = `marker-inner ${getIcon.call(this, 'white')}`;
+    innerElem.className = 'marker-inner ' + getIcon.call(this, 'white');
 
     elem.appendChild(innerElem);
 
@@ -155,10 +155,10 @@ function getIcon(color) {
 
     var modifier = getIconClassModifier(iconClass);
     if (modifier && isColorModifier(modifier)) {
-        return `tt-icon-${getIconClassWithoutModifier(iconClass)}-${color}`;
+        return 'tt-icon-' + getIconClassWithoutModifier(iconClass) + '-' + color;
     }
 
-    return `tt-icon-${iconClass}`;
+    return 'tt-icon-' + iconClass;
 }
 
 // utilities
