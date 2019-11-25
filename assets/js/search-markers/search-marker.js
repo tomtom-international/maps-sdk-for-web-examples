@@ -1,5 +1,15 @@
 var tt = window.tt;
 
+var ENTRY_POINTS_CONNECTORS_SOURCE_NAME = 'entry-points-connectors';
+
+function createGeoJsonFeaturesCollection() {
+    return {
+        "type": "FeatureCollection",
+        "features": []
+    }
+}
+
+
 /**
  * @class SearchMarker
  * @param {Object} [poiData] Data used to render the marker.
@@ -8,7 +18,9 @@ var tt = window.tt;
  * @param {Integer} [poiData.dist] Optional - Distance of the poi to the center of the search.
  * @param {String} [poiData.classification] Classification of the poi - e.g., RESTAURANT.
  * @param {Object} [poiData.position] Position of the poi - latitude, longitude object.
+ * @param {Array} [poiData.entryPoints] Optional - An array of entry points
  * @param {Object} [options] Options to make customization to the elements rendered.
+ * @param {Boolean=false} [options.entryPoints] Optional - Enables/disables entry points support.
  * @param {String} [options.markerClassName] Optional - CSS class name to customize marker styles.
  * @param {String} [options.popupClassName] Optional - CSS class name to customize marker styles.
  * @param {Function} [options.customMarkerCallback] Optional - Custom callback to render a different element for markers.
@@ -23,7 +35,7 @@ function SearchMarker(poiData, options) {
     this._poiData = poiData;
     this._options = options || {};
     this._marker = new tt.Marker({
-        element: renderMarkerElem.call(this),
+        element: renderSearchMarkerElem.call(this),
         anchor: 'bottom'
     });
     this._marker.setLngLat([
@@ -36,11 +48,15 @@ function SearchMarker(poiData, options) {
 // public methods
 SearchMarker.prototype.addTo = function(map) {
     this._marker.addTo(map);
+    this._map = map;
     return this;
 };
 
 SearchMarker.prototype.remove = function() {
     this._marker.remove();
+    this.clearEntryPoints();
+    this._map = null;
+    this._onClickCallback = null;
 };
 
 SearchMarker.prototype.getLngLat = function() {
@@ -55,43 +71,66 @@ SearchMarker.prototype.togglePopup = function() {
     return this._marker.togglePopup();
 };
 
+SearchMarker.prototype.onClick = function(callback) {
+    this._onClickCallback = callback;
+};
+
+SearchMarker.prototype.clearEntryPoints = function() {
+    if (this._entryPointsMarkers && this._entryPointsMarkers.length > 0) {
+        for (var entryPointsMarker of this._entryPointsMarkers) {
+            entryPointsMarker.remove();
+        }
+        this._entryPointsMarkers = null;
+        this._map.getSource(ENTRY_POINTS_CONNECTORS_SOURCE_NAME).setData(createGeoJsonFeaturesCollection());
+    }
+};
+
 // private methods
-function setPopup() {
-    var popup = new tt.Popup({
+function getPopup(poiData, options) {
+    return  new tt.Popup({
         offset: [0, -38]
-    }).setDOMContent(createPopup.call(this));
-    this._marker.setPopup(popup);
+    }).setDOMContent(createPopupContent(poiData, options));
 }
 
-function createPopup() {
-    if (this._options.customPopupCallback) {
-        return renderCustomElement.call(this, this._options.customPopupCallback);
+function setPopup() {
+    this._marker.setPopup(getPopup(this._poiData, this._options));
+}
+
+function createPopupContent(poiData, options) {
+    if (options.customPopupCallback) {
+        return renderCustomElement.call(this, options.customPopupCallback);
     }
 
     var popupParentElem = document.createElement('div');
     popupParentElem.className = 'tt-pop-up-container';
 
-    if (this._options.popupClassName) {
-        popupParentElem.className += ' ' + this._options.popupClassName;
+    if (options.popupClassName) {
+        popupParentElem.className += ' ' + options.popupClassName;
     }
 
     var popupIconContainer = document.createElement('div');
     popupIconContainer.className = 'pop-up-icon';
     var iconElem = document.createElement('div');
-    iconElem.className = getIcon.call(this, 'black');
+    iconElem.className = getIcon('black', poiData);
     popupIconContainer.appendChild(iconElem);
 
     var popupContentElem = document.createElement('div');
     popupContentElem.className = 'pop-up-content';
 
-    if (this._poiData.name) {
-        createDivWithContent('pop-up-result-name', this._poiData.name, popupContentElem);
+    if (poiData.name) {
+        createDivWithContent('pop-up-result-name', poiData.name, popupContentElem);
     }
 
-    createDivWithContent('pop-up-result-address', this._poiData.address, popupContentElem);
+    createDivWithContent('pop-up-result-address', poiData.address, popupContentElem);
 
-    if (this._poiData.distance) {
-        createDivWithContent('pop-up-result-distance', convertDistance(this._poiData.distance), popupContentElem);
+    if (poiData.distance) {
+        createDivWithContent('pop-up-result-distance', convertDistance(poiData.distance), popupContentElem);
+    }
+
+    createDivWithContent('pop-up-result-position', `${poiData.position.lat}, ${poiData.position.lon ? poiData.position.lon : poiData.position.lng}`, popupContentElem);
+
+    if (poiData.type) {
+        createDivWithContent('pop-up-result-type', `${poiData.type} entry`, popupContentElem);
     }
 
     popupParentElem.appendChild(popupIconContainer);
@@ -100,7 +139,102 @@ function createPopup() {
     return popupParentElem;
 }
 
-function renderMarkerElem() {
+function createGeoJsonLine(from, to) {
+    return {
+        "type": "Feature",
+        "geometry": {
+            "type": "LineString",
+            "coordinates": [from, to]
+        }
+    };
+}
+
+function createEntryPointMarker(entryPoint, parentPoiData, options) {
+    var entryPointsMarker = new tt.Marker({
+        element: renderEntryPointMarkerElem.call(this),
+        anchor: 'bottom'
+    });
+    var poiData = {
+        name: parentPoiData.name,
+        address: entryPoint.address.freeformAddress + ', ' + entryPoint.address.countryCodeISO3,
+        classification: parentPoiData.classification,
+        position: entryPoint.position,
+        type: entryPoint.type
+    };
+    entryPointsMarker.setPopup(getPopup(poiData, options));
+    entryPointsMarker.setLngLat(entryPoint.position);
+    return entryPointsMarker;
+}
+
+function renderEntryPoints(entryPointsMarkers, poiData, options, map) {
+    var parentMarkerPosition = [poiData.position.lng, poiData.position.lat];
+    var featuresCollection = createGeoJsonFeaturesCollection();
+    if (entryPointsMarkers.length === 0) {
+        poiData.entryPoints.forEach(function(entryPoint) {
+            var entryPointMarker = createEntryPointMarker(entryPoint, poiData, options);
+            featuresCollection.features.push(createGeoJsonLine(parentMarkerPosition, [
+                entryPoint.position.lon,
+                entryPoint.position.lat
+            ]));
+            entryPointMarker.addTo(map);
+            entryPointsMarkers.push(entryPointMarker);
+        });
+    } else {
+        for (var entryPointsMarker of entryPointsMarkers) {
+            entryPointsMarker.remove();
+        }
+        entryPointsMarkers.splice(0);
+    }
+    map.getSource(ENTRY_POINTS_CONNECTORS_SOURCE_NAME).setData(featuresCollection);
+}
+
+function renderEntryPointMarkerElem() {
+    var elem = document.createElement('div');
+    elem.className = 'tt-entry-point-marker';
+
+    var icon = document.createElement('div');
+    icon.className = 'icon tt-icon-ic_entry_point';
+    elem.append(icon);
+
+    var pointer = document.createElement('div');
+    pointer.className = 'pointer';
+    icon.append(pointer);
+
+    return elem;
+}
+
+function enableSupportForEntryPointsIfNecessary(elem) {
+    if (this._options.entryPoints && this._poiData.entryPoints) {
+        var entryPointsCounter = document.createElement('div');
+        entryPointsCounter.className = 'entry-points-counter';
+        entryPointsCounter.innerText = '' + this._poiData.entryPoints.length;
+        elem.appendChild(entryPointsCounter);
+        elem.addEventListener('click', function() {
+            if (this._onClickCallback) {
+                this._onClickCallback(this);
+            }
+            if (this._options.reverseGeocodeService) {
+                var batchItems = this._poiData.entryPoints.map(function(entryPoint) {
+                    return { position: `${entryPoint.position.lon},${entryPoint.position.lat}`};
+                });
+                var that = this;
+                this._options.reverseGeocodeService({
+                    batchItems: batchItems
+                }).go().then(function(addresses) {
+                    for (var i = 0; i < addresses.length; i++) {
+                        that._poiData.entryPoints[i].address = addresses[i].addresses[0].address;
+                    }
+                    if(!that._entryPointsMarkers) {
+                        that._entryPointsMarkers = [];
+                    }
+                    renderEntryPoints(that._entryPointsMarkers, that._poiData, that._options, that._map);
+                });
+            }
+        }.bind(this));
+    }
+}
+
+function renderSearchMarkerElem() {
     if (this._options.customMarkerCallback) {
         return renderCustomElement.call(this, this._options.customMarkerCallback);
     }
@@ -112,10 +246,10 @@ function renderMarkerElem() {
     }
 
     var innerElem = document.createElement('div');
-    innerElem.className = 'marker-inner ' + getIcon.call(this, 'white');
+    innerElem.className = 'marker-inner ' + getIcon('white', this._poiData);
 
     elem.appendChild(innerElem);
-
+    enableSupportForEntryPointsIfNecessary.call(this, elem);
     return elem;
 }
 
@@ -143,11 +277,11 @@ function isColorModifier(modifier) {
     return ['white', 'black'].indexOf(modifier) > -1;
 }
 
-function getIcon(color) {
+function getIcon(color, poiData) {
     var iconClass = availableIcons['fallback'];
 
-    if (this._poiData.classification) {
-        var icon = availableIcons[this._poiData.classification];
+    if (poiData.classification) {
+        var icon = availableIcons[poiData.classification];
         if (icon) {
             iconClass = icon;
         }
