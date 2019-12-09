@@ -1,9 +1,11 @@
 # Maps SDK for Web Examples
 
-## Documentation
+## Resources
 
-Please refer to *https://developer.tomtom.com* for detailed documentation with examples.
-Also latest version of the SDK can be found there.
+Please refer to:
+* [Functional examples](https://developer.tomtom.com/maps-sdk-web-js/functional-examples) - live version of examples included in this repository.
+* [Documentation](https://developer.tomtom.com/maps-sdk-web-js/documentation) - detailed SDK API reference.
+* [Downloads](https://developer.tomtom.com/maps-sdk-web-js/downloads) - the latest version of the SDK.
 
 ## Getting started
 

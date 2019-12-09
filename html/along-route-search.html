@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Along route search</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/css-styles/routing.css'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-plugin-searchbox/SearchBox.css'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/css-styles/poi.css'/>
+</head>
+<style>
+    .tt-search-box-result-list-container {
+        position: relative !important;
+    }
+
+    .icon {
+        background-size: cover;
+        height: 30px;
+        width: 30px;
+    }
+
+    .tt-icon.-finish {
+        height: 16px !important;
+        width: 16px !important;
+    }
+
+    .icon-spacing {
+        float: left;
+        margin-right: 14px;
+        margin-top: 24px;
+    }
+
+    .searchbox {
+        float: left;
+    }
+</style>
+<body>
+    <div class='map-view'>
+        <form class='tt-side-panel js-form'>
+                <header class='tt-side-panel__header'>
+                    <div>
+                        <div class='tt-icon icon-spacing -start -black'></div>
+                        <div id='startSearchBox' class='tt-form-label searchbox'></div>
+                    </div>
+                    <div>
+                        <div class='tt-icon icon-spacing -finish -black'></div>
+                        <div id='endSearchBox' class='tt-form-label searchbox'></div>
+                    </div>
+                </header>
+                <div class='tt-tabs js-tabs'>
+                    <div class='tt-tabs__tabslist' role='tablist'>
+                        <button role='tab' aria-selected='true' aria-controls='options' class='tt-tabs__tab' type='button'>Options</button>
+                        <button role='tab' aria-selected='false' aria-controls='results' class='tt-tabs__tab' type='button'>Results</button>
+                    </div>
+                    <div role='tabpanel' class='tt-tabs__panel' id='options'>
+                        <div class='tt-params-box'>
+                            <header class='tt-params-box__header'>
+                                Search along route parameters
+                            </header>
+                            <div class='tt-params-box__content'>
+                                <label class='tt-form-label'>Query
+                                    <input id='query' class='tt-input' name='query' placeholder='Query eg. pizza'>
+                                </label>
+                                <label class='tt-form-label js-slider'>Max detour time in seconds (<span id='maxDetourTimeLabel' class='js-counter'>900</span>)
+                                    <input class='tt-slider' id='maxDetourTime' type='range' min='1' max='3600' value='900'>
+                                </label>
+                                <div class='tt-form-label'>
+                                    Spreading mode
+                                    <div id='spreadingMode' class='tt-buttons-group'>
+                                        <button class='tt-buttons-group__button -active' data-id='none' value='none'>None</button>
+                                        <button class='tt-buttons-group__button' data-id='auto' value='auto'>Auto</button>
+                                    </div>
+                                </div>
+                                <label class='tt-form-label js-slider'>Limit (<span id='limitLabel' class='js-counter'>10</span>)
+                                    <input class='tt-slider' id='limit' type='range' min='1' max='20' value='10'>
+                                </label>
+                                <div class='tt-spacing-top-24'>
+                                    <input id='submit' type='submit' class='tt-button -primary tt-spacing-top-24' name='submit' title='Submit'>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div role='tabpanel' class='tt-tabs__panel' hidden='hidden' id='results'>
+                        <div class='js-results' hidden='hidden'></div>
+                        <div class='js-results-loader' hidden='hidden'>
+                            <div class='loader-center'><span class='loader'></span></div>
+                        </div>
+                        <div class='tt-tabs__placeholder js-results-placeholder'>
+                            NO RESULTS
+                        </div>
+                    </div>
+                </div>
+        </form>
+    <div id='map' class='full-map'></div>
+    </div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/side-panel.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search-markers/search-marker.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/search-results-parser.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/dom-helpers.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
+
+    <script data-showable type='text/javascript' src='../assets/js/buttons-group.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/tabs.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/results-manager.js'></script>
+    <script src='/cdn.web-sdk-plugin-searchbox/SearchBox-web.js'></script>
+    <script>
+        var state = {
+            startMarker: undefined,
+            endMarker: undefined,
+            routeId: undefined,
+            routePoints: [],
+            markers: {}
+        };
+
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            style: 'tomtom://vector/1/basic-main',
+            dragPan: !window.isMobileOrTablet()
+        });
+
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        new SidePanel('.tt-side-panel', map);
+        var tabs = new Tabs('.js-tabs');
+        var spreadingMode = new window.ButtonsGroup(document.getElementById('spreadingMode'));
+        var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
+        var loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
+        var resultsManager = new ResultsManager();
+        var domHelpers = window.DomHelpers;
+        var searchResultsParser = window.SearchResultsParser;
+        var formatters = window.Formatters;
+
+        var maxDetourTime = document.getElementById('maxDetourTime');
+        maxDetourTime.onchange = sliderOnChange;
+
+        var limit = document.getElementById('limit');
+        limit.onchange = sliderOnChange;
+
+        var query = document.getElementById('query');
+
+        function sliderOnChange(event) {
+            var label = document.getElementById(event.srcElement.id + 'Label');
+            label.textContent = event.srcElement.value;
+        }
+
+        function createSearchBox(type) {
+            var searchBox = new tt.plugins.SearchBox(tt.services.fuzzySearch, {
+                showSearchIcon: false,
+                searchOptions: {
+                    key: '${api.key.search}'
+                },
+                placeholder: 'Search for a place...'
+            });
+            document.getElementById(type + 'SearchBox').appendChild(searchBox.getSearchBoxHTML());
+            searchBox.on('tomtom.searchbox.resultselected', onResultSelected.bind(undefined, type));
+        }
+
+        function createMarkerElement(type) {
+            var element = document.createElement('div');
+            element.className = 'icon tt-icon-shield';
+            var innerElement = document.createElement('div');
+            innerElement.className = 'icon tt-icon-' + type;
+            element.appendChild(innerElement);
+            return element;
+        }
+
+        function clearMarkers() {
+            for(var marker in state.markers) {
+                state.markers[marker].remove();
+            }
+        }
+
+        function onResultSelected(type, event) {
+            clearMarkers();
+            focusTab('options');
+            var currentMarker = this.state[type + 'Marker'];
+            if (currentMarker) {
+                currentMarker.remove();
+            }
+            searchResult = event.data.result;
+            this.state[type + 'Marker'] = new tt.Marker({element: createMarkerElement(type)}).setLngLat(searchResult.position).addTo(map);
+            updateRouteIfNeeded();
+        }
+        
+        function getRoute() {
+            var startPointLngLat = state.startMarker.getLngLat();
+            var endPointLngLat = state.endMarker.getLngLat();
+            return tt.services.calculateRoute({
+                key: '${api.key.routing}',
+                traffic: false,
+                locations: [startPointLngLat, endPointLngLat]
+            }).go();
+        }
+
+        function updateRouteIfNeeded() {
+            if (state.routeId) {
+                map.removeLayer(state.routeId);
+                map.removeSource(state.routeId);
+                state.routeId = undefined;
+            }
+
+            if (!state.startMarker || !state.endMarker) {
+                return;
+            }
+            loadingHint.setMessage('Loading...');
+            getRoute().then(function(response) {
+                var geojson = response.toGeoJson();
+                map.addLayer({
+                    'id': 'route',
+                    'type': 'line',
+                    'source': {
+                        'type': 'geojson',
+                        'data': geojson
+                    },
+                    'paint': {
+                        'line-color': '#00d7ff',
+                        'line-width': 8
+                    }
+                });
+                state.routeId = 'route';
+                state.routePoints = geojson.features[0].geometry.coordinates;
+                var bounds = new tt.LngLatBounds();
+                geojson.features[0].geometry.coordinates.forEach(function(point) {
+                    bounds.extend(tt.LngLat.convert(point));
+                });
+                map.fitBounds(bounds, { duration: 0, padding: 100 });
+                loadingHint.hide();
+            }).catch(function(err) {
+                loadingHint.hide();
+                debugger;
+                errorHint.setMessage(err.data.error.description);
+            });
+        }
+
+        function getSpreadingMode() {
+            var activeButton = spreadingMode.getActive();
+            return activeButton.value === 'auto' ? 'auto' : undefined;
+        }
+
+        function selectResultItem (resultItem) {
+            Array.prototype.slice.call(document.querySelectorAll('.tt-results-list__item'))
+            .forEach(function (item) {
+                item.classList.remove('-selected');
+            });
+            resultItem.classList.add('-selected');
+        };
+
+        function createMarker(result) {
+            var newMarker = new SearchMarker({
+                name: result.poi && result.poi.name || undefined,
+                address: result.address.freeformAddress + ', ' + result.address.countryCodeISO3,
+                distance: result.dist,
+                classification: result.poi ? result.poi.classifications[0].code : undefined,
+                position: result.position
+            });
+
+            newMarker.getPopup().on('open', function() {
+                selectResultItem(document.querySelector('li[data-id="' + result.id + '"]'));
+            });
+
+            newMarker.addTo(map);
+
+            return newMarker;
+        };
+
+        function handleSearchResultItemClick(event) {
+            var id = event.currentTarget.getAttribute('data-id');
+
+            for (var marker in state.markers) {
+                var current = state.markers[marker];
+                if (current.getPopup().isOpen()) {
+                    current.togglePopup();
+                }
+            }
+
+            state.markers[id].togglePopup();
+            map.jumpTo({ center: state.markers[id].getLngLat(), zoom: 16 });
+        };
+
+        function createResultList(response) {
+            var resultsDocumentFragment = document.createDocumentFragment();
+            Array.prototype.slice.call(response.results)
+                .forEach(function(result) {
+                var distance = this.searchResultsParser.getResultDistance(result);
+                var searchResult = this.domHelpers.createSearchResult(
+                    this.searchResultsParser.getResultName(result),
+                    this.searchResultsParser.getResultAddress(result),
+                    distance ? this.formatters.formatAsMetricDistance(distance) : ''
+                );
+
+                var resultItem = domHelpers.createResultItem();
+                resultItem.appendChild(searchResult);
+                resultItem.setAttribute('data-id', result.id);
+                resultItem.addEventListener('click', handleSearchResultItemClick);
+
+                resultsDocumentFragment.appendChild(resultItem);
+
+                state.markers[result.id] = createMarker(result);
+            });
+
+            var resultList = domHelpers.createResultList();
+            resultList.appendChild(resultsDocumentFragment);
+            return resultList;
+        }
+
+        function focusTab(type) {
+            tabs.clickTab(document.querySelector('[aria-controls="' + type + '"]'));
+        }
+
+        function fitBoundsResults(results) {
+            console.log(results);
+            var bounds = new tt.LngLatBounds();
+            results.forEach(function(result) {
+                bounds.extend(tt.LngLat.convert(result.position));
+            });
+            map.fitBounds(bounds, { duration: 0, padding: 100 });
+        }
+
+        createSearchBox('start');
+        createSearchBox('end');
+        var submitBtn = document.getElementById('submit');
+        submitBtn.onclick = function(event) {
+            event.preventDefault();
+            resultsManager.loading();
+            clearMarkers();
+            loadingHint.setMessage('Loading...');
+            tt.services.alongRouteSearch({
+                key: '${api.key.search}',
+                query: query.value,
+                maxDetourTime: maxDetourTime.value,
+                limit: limit.value,
+                route: state.routePoints,
+                spreadingMode: getSpreadingMode()
+            }).go().then(function(response) {
+                loadingHint.hide();
+                focusTab('results');
+                if (response.results && response.results.length > 0) {
+                    resultsManager.success();
+                    var resultList = createResultList(response);
+                    resultsManager.append(resultList);
+                    fitBoundsResults(response.results);
+                } else {
+                    resultsManager.resultsNotFound();
+                    errorHint.setMessage('No results found for given parameters');
+                }
+            }).catch(function(error) {
+                loadingHint.hide();
+                errorHint.setMessage(error);
+            });
+        }
+
+    </script>
+</body>
+</html>

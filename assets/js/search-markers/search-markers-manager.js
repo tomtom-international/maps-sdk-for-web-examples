@@ -10,10 +10,10 @@ function checkDependencyAvailability() {
 function addEntryPointsMapLayersIfNecessary(map, options) {
     if (options.entryPoints) {
         map.addSource('entry-points-connectors', {
-            "type": "geojson",
-            "data": {
-                "type": "FeatureCollection",
-                "features": []
+            'type': 'geojson',
+            'data': {
+                'type': 'FeatureCollection',
+                'features': []
             }
         });
 
@@ -28,7 +28,7 @@ function addEntryPointsMapLayersIfNecessary(map, options) {
             paint: {
                 'line-color': '#000',
                 'line-width': 0.5,
-                'line-dasharray': [10,10]
+                'line-dasharray': [10, 10]
             },
             filter: ['in', '$type', 'LineString']
         });
@@ -72,16 +72,16 @@ function SearchMarkersManager(map, options) {
  * @param {Array} [poiList] List of Tomtom Search Service results
  */
 SearchMarkersManager.prototype.draw = function(poiList) {
-    if(!(poiList && Array.isArray(poiList))) {
+    if (!(poiList && Array.isArray(poiList))) {
         throw new Error('Poi list(poiList) must be an array');
     }
     this._poiList = poiList;
 
     this.clear();
 
-    this._poiList.forEach((poi) => {
+    this._poiList.forEach(function (poi) {
         var poiOpts = {
-            name: poi.poi ? poi.poi.name: undefined,
+            name: poi.poi ? poi.poi.name : undefined,
             address: poi.address.freeformAddress + ', ' + poi.address.countryCodeISO3,
             distance: poi.dist,
             classification: poi.poi ? poi.poi.classifications[0].code : undefined,
@@ -97,11 +97,13 @@ SearchMarkersManager.prototype.draw = function(poiList) {
         }.bind(this));
         marker.addTo(this.map);
         this.markers.push(marker);
-    });
+    }.bind(this));
 };
 
 SearchMarkersManager.prototype.clear = function() {
-    this.markers.forEach(marker => marker.remove());
+    this.markers.forEach(function(marker) { 
+        marker.remove();
+    });
     this.markers = [];
     this._lastClickedMarker = null;
 };

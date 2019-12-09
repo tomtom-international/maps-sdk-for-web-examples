@@ -45,5 +45,5 @@ window.searchLanguages = window.searchLanguages || {
     'uk-UA': 'Ukrainian',
     'vi-VN': 'Vietnamese (Viet Nam)',
     'pt-BR': 'Portuguese (BR)',
-    'pt-PT': 'Portuguese',
+    'pt-PT': 'Portuguese'
 };

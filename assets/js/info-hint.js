@@ -31,11 +31,17 @@ InfoHint.prototype.setMessage = function(message) {
     this.show();
     this.element.innerText = message;
 
+    if (!this.duration) {
+        return;
+    }
+
     if (this.timeout) {
         window.clearTimeout(this.timeout);
     }
 
-    this.timeout = window.setTimeout(this.hide.bind(this), this.duration);
+    if (this.duration) {
+        this.timeout = window.setTimeout(this.hide.bind(this), this.duration);
+    }
 };
 
 InfoHint.prototype._createElement = function() {

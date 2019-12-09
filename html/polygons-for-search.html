@@ -176,12 +176,12 @@
             renderPolygon(searchResult, additionalDataResult);
             showPopup(searchResult);
         }).catch(function(error) {
-            console.log(error);
+            console.error(error);
             clearPopup();
             if (error.message) {
                 errorHint.setMessage(error.message);
             }
-        })
+        });
     }
 
     var ttSearchBox = new tt.plugins.SearchBox(tt.services.fuzzySearch, {

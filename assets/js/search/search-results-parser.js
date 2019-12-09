@@ -6,7 +6,7 @@ function getResultName(result) {
         return result.poi.name;
     }
     return '';
-};
+}
 
 /*
 * Get the result address from the response.
@@ -26,8 +26,7 @@ function getResultAddress(result) {
         return address.join(', ');
     }
     return '';
-};
-
+}
 
 /**
  * Get the result distance from the search center.
@@ -38,7 +37,7 @@ function getResultDistance(result) {
     }
 
     return '';
-};
+}
 
 var SearchResultsParser = {
     getResultName: getResultName,

@@ -71,7 +71,7 @@
         });
 
     function update(coordinates, geometryZoom, selectedEntityType) {
-        if (!Boolean(coordinates && geometryZoom && selectedEntityType)) {
+        if (!(coordinates && geometryZoom && selectedEntityType)) {
             return;
         }
 
@@ -121,7 +121,7 @@
                     message = message.data;
                     var re = /<h1>(.*?)<\/h1>/;
                     if (re.test(error.data)) {
-                        message = re.exec(message)[1]
+                        message = re.exec(message)[1];
                     }
                 } else if (error.message) {
                     message = message.message;
@@ -191,7 +191,7 @@
     var layerManager = new LayerManager(map);
     var form = {
         geometryZoom: function () {
-            return sliderElement.value
+            return sliderElement.value;
         },
         entityType: function () {
             return document.querySelector('.tt-buttons-group__button.-active').innerText;

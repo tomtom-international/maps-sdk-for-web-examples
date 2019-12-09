@@ -4,11 +4,10 @@ var ENTRY_POINTS_CONNECTORS_SOURCE_NAME = 'entry-points-connectors';
 
 function createGeoJsonFeaturesCollection() {
     return {
-        "type": "FeatureCollection",
-        "features": []
-    }
+        'type': 'FeatureCollection',
+        'features': []
+    };
 }
-
 
 /**
  * @class SearchMarker
@@ -38,8 +37,9 @@ function SearchMarker(poiData, options) {
         element: renderSearchMarkerElem.call(this),
         anchor: 'bottom'
     });
+    var lon = this._poiData.position.lng || this._poiData.position.lon;
     this._marker.setLngLat([
-        this._poiData.position.lng,
+        lon,
         this._poiData.position.lat
     ]);
     setPopup.call(this);
@@ -77,8 +77,9 @@ SearchMarker.prototype.onClick = function(callback) {
 
 SearchMarker.prototype.clearEntryPoints = function() {
     if (this._entryPointsMarkers && this._entryPointsMarkers.length > 0) {
-        for (var entryPointsMarker of this._entryPointsMarkers) {
-            entryPointsMarker.remove();
+        for (var entryPointsMarker in this._entryPointsMarkers) {
+            var marker = this._entryPointsMarkers[entryPointsMarker];
+            marker.remove();
         }
         this._entryPointsMarkers = null;
         this._map.getSource(ENTRY_POINTS_CONNECTORS_SOURCE_NAME).setData(createGeoJsonFeaturesCollection());
@@ -87,7 +88,7 @@ SearchMarker.prototype.clearEntryPoints = function() {
 
 // private methods
 function getPopup(poiData, options) {
-    return  new tt.Popup({
+    return new tt.Popup({
         offset: [0, -38]
     }).setDOMContent(createPopupContent(poiData, options));
 }
@@ -127,10 +128,11 @@ function createPopupContent(poiData, options) {
         createDivWithContent('pop-up-result-distance', convertDistance(poiData.distance), popupContentElem);
     }
 
-    createDivWithContent('pop-up-result-position', `${poiData.position.lat}, ${poiData.position.lon ? poiData.position.lon : poiData.position.lng}`, popupContentElem);
+    var longitude = poiData.position.lon ? poiData.position.lon : poiData.position.lng;
+    createDivWithContent('pop-up-result-position', poiData.position.lat + ', ' + longitude, popupContentElem);
 
     if (poiData.type) {
-        createDivWithContent('pop-up-result-type', `${poiData.type} entry`, popupContentElem);
+        createDivWithContent('pop-up-result-type', poiData.type + ' entry', popupContentElem);
     }
 
     popupParentElem.appendChild(popupIconContainer);
@@ -141,10 +143,10 @@ function createPopupContent(poiData, options) {
 
 function createGeoJsonLine(from, to) {
     return {
-        "type": "Feature",
-        "geometry": {
-            "type": "LineString",
-            "coordinates": [from, to]
+        'type': 'Feature',
+        'geometry': {
+            'type': 'LineString',
+            'coordinates': [from, to]
         }
     };
 }
@@ -180,8 +182,9 @@ function renderEntryPoints(entryPointsMarkers, poiData, options, map) {
             entryPointsMarkers.push(entryPointMarker);
         });
     } else {
-        for (var entryPointsMarker of entryPointsMarkers) {
-            entryPointsMarker.remove();
+        for (var entryPointsMarker in entryPointsMarkers) {
+            var marker = entryPointsMarkers[entryPointsMarker];
+            marker.remove();
         }
         entryPointsMarkers.splice(0);
     }
@@ -194,11 +197,11 @@ function renderEntryPointMarkerElem() {
 
     var icon = document.createElement('div');
     icon.className = 'icon tt-icon-ic_entry_point';
-    elem.append(icon);
+    elem.appendChild(icon);
 
     var pointer = document.createElement('div');
     pointer.className = 'pointer';
-    icon.append(pointer);
+    icon.appendChild(pointer);
 
     return elem;
 }
@@ -207,7 +210,7 @@ function enableSupportForEntryPointsIfNecessary(elem) {
     if (this._options.entryPoints && this._poiData.entryPoints) {
         var entryPointsCounter = document.createElement('div');
         entryPointsCounter.className = 'entry-points-counter';
-        entryPointsCounter.innerText = '' + this._poiData.entryPoints.length;
+        entryPointsCounter.innerText = String(this._poiData.entryPoints.length);
         elem.appendChild(entryPointsCounter);
         elem.addEventListener('click', function() {
             if (this._onClickCallback) {
@@ -215,7 +218,7 @@ function enableSupportForEntryPointsIfNecessary(elem) {
             }
             if (this._options.reverseGeocodeService) {
                 var batchItems = this._poiData.entryPoints.map(function(entryPoint) {
-                    return { position: `${entryPoint.position.lon},${entryPoint.position.lat}`};
+                    return { position: entryPoint.position.lon + ',' + entryPoint.position.lat };
                 });
                 var that = this;
                 this._options.reverseGeocodeService({
@@ -224,7 +227,7 @@ function enableSupportForEntryPointsIfNecessary(elem) {
                     for (var i = 0; i < addresses.length; i++) {
                         that._poiData.entryPoints[i].address = addresses[i].addresses[0].address;
                     }
-                    if(!that._entryPointsMarkers) {
+                    if (!that._entryPointsMarkers) {
                         that._entryPointsMarkers = [];
                     }
                     renderEntryPoints(that._entryPointsMarkers, that._poiData, that._options, that._map);
@@ -278,10 +281,21 @@ function isColorModifier(modifier) {
 }
 
 function getIcon(color, poiData) {
-    var iconClass = availableIcons['fallback'];
+    var classification = poiData.classification, 
+        iconClass = availableIcons.fallback;
 
     if (poiData.classification) {
-        var icon = availableIcons[poiData.classification];
+        var icon;
+
+        if (Array.isArray(classification)) {
+            var iconName = classification.indexOf('hospital/polyclinic') > -1 ?
+                'HOSPITAL_POLYCLINIC' : classification.length > 1 ? 
+                classification[1].toUpperCase() : classification[0].toUpperCase();
+
+            icon = availableIcons[iconName];
+        } else {
+            icon = availableIcons[classification];
+        }
         if (icon) {
             iconClass = icon;
         }
@@ -425,4 +439,3 @@ var availableIcons = {
 };
 
 window.SearchMarker = window.SearchMarker || SearchMarker;
-

@@ -6,7 +6,7 @@ function AntimeridianHandler() {};
  * @param {LngLatBounds} lngLatBounds
  * @return {LngLatBounds}
  */
-AntimeridianHandler.prototype.normalizeBoundingBox = function (lngLatBounds) {
+AntimeridianHandler.prototype.normalizeBoundingBox = function(lngLatBounds) {
     var south = lngLatBounds.getSouth(),
         west = lngLatBounds.getWest(),
         north = lngLatBounds.getNorth(),
@@ -24,6 +24,6 @@ AntimeridianHandler.prototype.normalizeBoundingBox = function (lngLatBounds) {
  * @param {number} b
  * @return {number}
  */
-AntimeridianHandler.prototype._difference = function (a, b) {
+AntimeridianHandler.prototype._difference = function(a, b) {
     return 180 - Math.abs(Math.abs(a - b) - 180);
 };

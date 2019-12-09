@@ -33,7 +33,7 @@ var TailSelector = (function() {
     function TailSelector(selectOptions, selector, defaultKey, options) {
         this.selectOptions = selectOptions;
         this.defaultKey = defaultKey;
-        this.options = options;
+        this.options = options || {};
 
         this.selectorElem = createSelectElement.call(this);
         appendOptions.call(this, this.selectorElem);
@@ -42,11 +42,19 @@ var TailSelector = (function() {
         this.element.replaceWith(this.selectorElem);
 
         this.tailElem = convertToTail.call(this);
+
+        this.tailElem.on('change', closeMultipleSelector.bind(this));
     }
 
     TailSelector.prototype.getElement = function() {
         return this.tailElem;
     };
+
+    function closeMultipleSelector() {
+        if (this.options.multiple) {
+            this.tailElem.close();
+        }
+    }
 
     function createSelectElement() {
         var selectorElem = document.createElement('select');

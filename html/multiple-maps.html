@@ -14,9 +14,9 @@
         display: flex;
     }
     .map-container {
+        height: 100vh;
         position: relative;
         width: 50%;
-        height: 100vh;
     }
 </style>
 <body>
@@ -48,7 +48,7 @@
             dragPan: !window.isMobileOrTablet(),
             center: [4.899431, 52.379189],
             zoom: 12
-        })
+        });
         firstMap.addControl(new tt.FullscreenControl({container: document.querySelector('body')}));
         secondMap.addControl(new tt.FullscreenControl({container: document.querySelector('body')}));
         firstMap.addControl(new tt.NavigationControl());

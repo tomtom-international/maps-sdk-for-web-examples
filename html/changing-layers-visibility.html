@@ -12,8 +12,8 @@
 <body>
     <style>
         .tt-checkbox + .tt-label {
-            width: 100%;
             height: initial;
+            width: 100%;
         }
     </style>
     <div class='map-view'>
@@ -58,7 +58,7 @@
                     changeLayerVisibility(checkbox.id, checkbox.checked);
                 });
                 isChecked = !isChecked;
-            }
+            };
         }
 
         map.on('load', function() {

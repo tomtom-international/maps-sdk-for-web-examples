@@ -1,18 +1,19 @@
-function DomHelpers() {}
-
-function elementFactory(type, className) {
+function elementFactory(type, className, content) {
     var element = document.createElement(type);
     element.setAttribute('class', className);
+    if (typeof content !== 'undefined') {
+        element.textContent = content;
+    }
     return element;
-};
+}
 
 function createResultItem() {
     return elementFactory('li', 'tt-results-list__item');
-};
+}
 
 function createResultList() {
     return elementFactory('ul', 'tt-results-list');
-};
+}
 
 function createSearchResult(name, address, distance) {
     var resultName = elementFactory('div', 'tt-search-result__name');
@@ -32,13 +33,12 @@ function createSearchResult(name, address, distance) {
     }
 
     return element;
-};
+}
 
 var DomHelpers = {
     createResultItem: createResultItem,
     createResultList: createResultList,
     createSearchResult: createSearchResult
 };
-
 
 window.DomHelpers = window.DomHelpers || DomHelpers;

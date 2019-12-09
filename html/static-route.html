@@ -53,8 +53,8 @@
                 endPoint = feature.geometry.coordinates.slice(-1)[0];
             }
 
-            new tt.Marker({element: createMarkerElement('start')}).setLngLat(startPoint).addTo(map)
-            new tt.Marker({element: createMarkerElement('end')}).setLngLat(endPoint).addTo(map)
+            new tt.Marker({element: createMarkerElement('start')}).setLngLat(startPoint).addTo(map);
+            new tt.Marker({element: createMarkerElement('end')}).setLngLat(endPoint).addTo(map);
         }
 
         function findFirstBuildingLayerId() {

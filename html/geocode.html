@@ -175,10 +175,10 @@
         Geocode.prototype.bindEvents = function() {
             this.elements.language.on('change', this.updateSelectValue.bind(this, 'language'));
             this.elements.query.addEventListener('change', this.updateInputValue.bind(this, 'query'));
-            this.elements.latitude.addEventListener('change', this.updateInputValue.bind(this, 'latitude'))
-            this.elements.longitude.addEventListener('change', this.updateInputValue.bind(this, 'longitude'))
-            this.elements.limit.addEventListener('change', this.updateInputValue.bind(this, 'limit'))
-            this.elements.radius.addEventListener('change', this.updateInputValue.bind(this, 'radius'))
+            this.elements.latitude.addEventListener('change', this.updateInputValue.bind(this, 'latitude'));
+            this.elements.longitude.addEventListener('change', this.updateInputValue.bind(this, 'longitude'));
+            this.elements.limit.addEventListener('change', this.updateInputValue.bind(this, 'limit'));
+            this.elements.radius.addEventListener('change', this.updateInputValue.bind(this, 'radius'));
             this.elements.geobiasToggle.addEventListener('click', this.toggleGeoBias.bind(this));
             this.elements.submit.addEventListener('click', this.handleSubmit.bind(this));
             this.elements.form.addEventListener('submit', this.handleSubmit.bind(this));
@@ -210,7 +210,7 @@
         };
 
         Geocode.prototype.toggleGeoBias = function() {
-            var isGeobiasActive = !this.state.isGeobiasActive
+            var isGeobiasActive = !this.state.isGeobiasActive;
             this.state.isGeobiasActive = isGeobiasActive;
 
             Array.prototype.slice.call(this.elements.biasControls.querySelectorAll('label, input'))

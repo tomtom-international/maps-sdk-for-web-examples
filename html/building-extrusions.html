@@ -40,13 +40,13 @@
         var showBuildingsGroup = new window.ButtonsGroup(document.getElementById('showBuildings'));
 
         showBuildingsGroup.onSelect(function(element) {
-            var selectedValue = element.innerText
+            var selectedValue = element.innerText;
             if (buildingsVisible === selectedValue) {
                 return;
             }
             buildingsVisible = selectedValue;
             var opacity = buildingsVisible === 'On' ? 1 : 0;
-            var layers = map.getStyle().layers.filter(function (layer) {
+            var layers = map.getStyle().layers.filter(function(layer) {
                 return layer.type === 'fill-extrusion';
             });
             layers.forEach(function(layer) {

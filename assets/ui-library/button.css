@@ -17,6 +17,20 @@
         color:#ffffff;
     }
 
+    .tt-button.-toggle{
+        align-items:center;
+        display:flex;
+        justify-content:center;
+        height:24px;
+        padding:0;
+        position:absolute;
+        right:16px;
+        top:50%;
+        -webkit-transform:translateY(-50%);
+                transform:translateY(-50%);
+        width:24px;
+    }
+
     .tt-button.-big{
         padding:8px 40px;
     }

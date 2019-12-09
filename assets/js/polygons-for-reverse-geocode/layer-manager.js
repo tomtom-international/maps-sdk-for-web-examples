@@ -8,22 +8,22 @@ function LayerManager(mapInstance) {
     this._previousLayer = null;
 }
 
-LayerManager.prototype.getPreviousLayer = function () {
+LayerManager.prototype.getPreviousLayer = function() {
     return this._previousLayer;
 };
 
-LayerManager.prototype.removeLayer = function (layer) {
+LayerManager.prototype.removeLayer = function(layer) {
     this._mapInstance.removeLayer(layer.id);
     this._mapInstance.removeSource(layer.id);
 };
 
-LayerManager.prototype.hasLayer = function (layer) {
+LayerManager.prototype.hasLayer = function(layer) {
     return this._mapInstance.getSource(layer && layer.id) && this._mapInstance.getLayer(layer && layer.id);
 };
 
-LayerManager.prototype.updateLayer = function (layer) {
-    var executor = function (resolve, reject) {
-        var onStyleData = function () {
+LayerManager.prototype.updateLayer = function(layer) {
+    var executor = function(resolve, reject) {
+        var onStyleData = function() {
             try {
                 if (this._previousLayer && this._previousLayer.id !== layer.id) {
                     if (this.hasLayer(this._previousLayer)) {

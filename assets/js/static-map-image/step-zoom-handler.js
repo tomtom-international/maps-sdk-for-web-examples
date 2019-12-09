@@ -1,17 +1,17 @@
 //FIXME: replace with lodash when LNS-38231 is done
 function debounce(callback, delayInMillis) {
     var timeoutHandler;
-    return function () {
+    return function() {
         if (timeoutHandler) {
             clearTimeout(timeoutHandler);
         }
 
         var args = Array.prototype.slice.call(arguments);
-        timeoutHandler = setTimeout(function () {
+        timeoutHandler = setTimeout(function() {
             callback.apply(null, args);
             timeoutHandler = null;
         }, delayInMillis);
-    }
+    };
 }
 
 var stepZoomHandler = (function() {

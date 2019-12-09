@@ -29,7 +29,7 @@ const values = {...config.cdn, ...config.keys};
     await replaceInFile({
         files: path.resolve(__dirname, '../', 'dist/**/*.html'),
         from: placeholdersToReplace,
-        to: valuesForReplacement,
+        to: valuesForReplacement
     });
 
     console.log('Replace placeholders finished!'); //eslint-disable-line

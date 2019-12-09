@@ -43,8 +43,8 @@
                     <select class='js-entity-type-select tt-select'></select>
                 </label>
                 <div class='tt-spacing-top-12'>
-                        <div class='js-filters-container tt-filters-container'></div>
-                    </div>
+                    <div class='js-filters-container tt-filters-container'></div>
+                </div>
             </form>
         </div>
     </div>
@@ -170,7 +170,7 @@
             this.state.searchLanguage = selected.key;
 
             this.handleRequest();
-        }
+        };
 
         EntityTypeFiltering.prototype.updateSelectedEntities = function(selected) {
             var value = selected.value;
@@ -232,7 +232,7 @@
             }
 
             this.popup.setHTML(popupContent || 'No data found for given parameters.');
-        }
+        };
 
         EntityTypeFiltering.prototype.setPopup = function(lngLat) {
             this.popup = new tt.Popup({ className: 'tt-popup' })
@@ -245,7 +245,7 @@
             markerElement.setAttribute('class', 'tt-marker -start');
 
             this.marker = new tt.Marker(markerElement)
-                .setLngLat(new tt.LngLat(this.state.position.longitude, this.state.position.latitude))
+                .setLngLat(new tt.LngLat(this.state.position.longitude, this.state.position.latitude));
 
             this.marker.addTo(map);
         };
@@ -267,7 +267,7 @@
 
             var lngLat = event.lngLat.toArray();
             this.updatePosition(lngLat);
-        }
+        };
 
         EntityTypeFiltering.prototype.handleRequest = function() {
             if (!this.state.position.latitude || !this.state.position.longitude) {

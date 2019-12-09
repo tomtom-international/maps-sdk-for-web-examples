@@ -31,7 +31,7 @@ ButtonsGroup.prototype._bindEvents = function(element) {
 
 ButtonsGroup.prototype._setup = function(element) {
     var children = element.children;
-    for (var i=0; i < children.length; i++) {
+    for (var i = 0; i < children.length; i++) {
         var id = children[i].getAttribute('data-id');
 
         this.buttons[id] = children[i];
@@ -68,6 +68,15 @@ ButtonsGroup.prototype.enable = function(element) {
 ButtonsGroup.prototype.select = function(element) {
     this.buttons[element].classList.add('-active');
     this.buttons[element].click();
+};
+
+ButtonsGroup.prototype.getActive = function() {
+    for(var buttonName in this.buttons) {
+        var btn = this.buttons[buttonName];
+        if (btn.classList.contains('-active')) {
+            return btn;
+        }
+    }
 };
 
 window.ButtonsGroup = window.ButtonsGroup || ButtonsGroup;

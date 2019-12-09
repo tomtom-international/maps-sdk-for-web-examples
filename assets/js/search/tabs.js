@@ -40,7 +40,11 @@ Tabs.prototype._activateTab = function(tab) {
     tab.setAttribute('aria-selected', 'true');
 
     var controls = tab.getAttribute('aria-controls');
-    this.container.querySelector('#' + controls).removeAttribute('hidden');
+    var tabContainer = this.container.querySelector('#' + controls);
+
+    if (tabContainer) {
+        tabContainer.removeAttribute('hidden');
+    }
 
 };
 

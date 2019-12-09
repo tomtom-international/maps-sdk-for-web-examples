@@ -179,7 +179,7 @@
     }));
 
     map.on('zoomend', function() {
-        var zoom = Math.round(map.getZoom()) + 1
+        var zoom = Math.round(map.getZoom()) + 1;
         document.querySelector('.js-zoom-level').innerText = zoom > 22 ? 22 : zoom;
     });
 
@@ -229,7 +229,7 @@
 
     elements.layer.onSelect(layerChangeHandler);
 
-    elements.formats.forEach(function(input) {
+    [].slice.call(elements.formats).forEach(function(input) {
         input.addEventListener('click', formatChangeHandler);
     });
     elements.form.addEventListener('submit', submitHandler);
@@ -279,8 +279,8 @@
         tt.services.staticImage(options)
         .go()
         .then(function(result) {
-            var url = result.replace(/&/g, '&amp;')
-            var publicUrl = url.replace('${api.key}', '&lt;your-api-key&gt;')
+            var url = result.replace(/&/g, '&amp;');
+            var publicUrl = url.replace('${api.key}', '&lt;your-api-key&gt;');
 
             var content =
                 '<div class="static-image-result">' +
