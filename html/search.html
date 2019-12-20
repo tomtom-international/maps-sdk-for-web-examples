@@ -115,6 +115,7 @@
     <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
     <script src='/cdn.web-sdk-services/services-web.min.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search-markers/search-marker.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search-markers/search-markers-manager.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
 
     <script>
@@ -133,6 +134,7 @@
 
         new SidePanel('.tt-side-panel', map);
         var tabs = new Tabs('.js-tabs');
+        var searchMarkersManager = new SearchMarkersManager(map);
         Array.prototype.slice.call(document.querySelectorAll('.js-slider'))
         .forEach(function (slider) {
             new Slider(slider);
@@ -186,8 +188,7 @@
                 limit: this.elements.limit.value,
                 radius: this.elements.radius.value,
                 type: 'fuzzySearch',
-                isGeobiasActive: true,
-                markers: {},
+                isGeobiasActive: true
             };
 
             this.updateInputValue = this.updateInputValue.bind(this);
@@ -333,7 +334,7 @@
 
             this.resultsManager.loading();
             tabs.clickTab(document.querySelector('[aria-controls="results"]'));
-            this.removeMarkers();
+            searchMarkersManager.clear();
 
             var areaLayerId = 'geometrySearchArea';
 
@@ -384,13 +385,6 @@
                 .catch(this.handleError.bind(this));
         };
 
-        Search.prototype.removeMarkers = function () {
-            for (var marker in this.state.markers) {
-                this.state.markers[marker].remove();
-            }
-            this.state.markers = {};
-        };
-
         Search.prototype.handleResponse = function (response) {
             var resultList = this.domHelpers.createResultList();
 
@@ -412,14 +406,16 @@
 
                     resultList.appendChild(resultItem);
 
-                    this.state.markers[result.id] = this.createMarker(result);
-                }.bind(this));
-
+                }, this);
+                
+                searchMarkersManager.draw(response.results);
+                
                 if (this.state.type === 'geometrySearch') {
                     map.setZoom(map.getZoom() - 0.2);
                 } else {
-                    map.fitBounds(this.getMarkersBounds(), { padding: 50 });
+                    map.fitBounds(searchMarkersManager.getMarkersBounds(), { padding: 50 });
                 }
+                
                 this.resultsManager.append(resultList);
             } else {
                 this.resultsManager.resultsNotFound();
@@ -429,16 +425,6 @@
 
         Search.prototype.handleError = function (error) {
             this.errorHint.setMessage(error.message);
-        };
-
-        Search.prototype.getMarkersBounds = function () {
-            var bounds = new tt.LngLatBounds();
-
-            for (var marker in this.state.markers) {
-                bounds.extend(this.state.markers[marker].getLngLat());
-            }
-
-            return bounds;
         };
 
         Search.prototype.selectResultItem = function (resultItem) {
@@ -454,16 +440,8 @@
 
         Search.prototype.handleSearchResultItemClick = function (event) {
             var id = event.currentTarget.getAttribute('data-id');
-
-            for (var marker in this.state.markers) {
-                var current = this.state.markers[marker];
-                if (current.getPopup().isOpen()) {
-                    current.togglePopup();
-                }
-            }
-
-            this.state.markers[id].togglePopup();
-            map.jumpTo({ center: this.state.markers[id].getLngLat(), zoom: 16 });
+            searchMarkersManager.openPopup(id);
+            searchMarkersManager.jumpToMarker(id);
         };
 
         Search.prototype.validateMinMaxFuzzy = function () {
@@ -472,24 +450,6 @@
                 this.elements.minFuzzyLevel.value = maxFuzzyLevelValue;
                 this.elements.minFuzzyLevel.dispatchEvent(new Event('change'));
             }
-        };
-
-        Search.prototype.createMarker = function (result) {
-            var newMarker = new SearchMarker({
-                name: result.poi && result.poi.name || undefined,
-                address: result.address.freeformAddress + ', ' + result.address.countryCodeISO3,
-                distance: result.dist,
-                classification: result.poi ? result.poi.classifications[0].code : undefined,
-                position: result.position
-            });
-
-            newMarker.getPopup().on('open', function () {
-                this.selectResultItem(document.querySelector('li[data-id="' + result.id + '"]'));
-            }.bind(this));
-
-            newMarker.addTo(map);
-
-            return newMarker;
         };
 
         new Search();

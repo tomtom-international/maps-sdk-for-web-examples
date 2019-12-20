@@ -93,10 +93,10 @@
         map.addControl(new tt.NavigationControl());
 
         var availableHospitals = {
-            'Spaarne Ziekenhuis Lokatie Heemstede': [52.35494, 4.6337],
-            'Ziekenhuis Amstelland': [52.29391, 4.87438],
-            'BovenIJ Ziekenhuis': [52.4047, 4.92248],
-            'Sint Lucas Andreas Ziekenhuis': [52.37091, 4.83989]
+            'Spaarne Ziekenhuis Lokatie Heemstede': [4.6337, 52.35494],
+            'Ziekenhuis Amstelland': [4.87438, 52.29391],
+            'BovenIJ Ziekenhuis': [4.92248, 52.4047],
+            'Sint Lucas Andreas Ziekenhuis': [4.83989, 52.37091]
         };
 
         var hospitalSelector = new window.TailSelector(Object.keys(availableHospitals), '#hospital-select', undefined, {
@@ -248,7 +248,7 @@
                 layersOnTheMap[locationName] = polygonLayers;
 
                 // creates marker to identify each layer/hospital group
-                var polygonMarker = new tt.Marker().setLngLat(availableHospitals[locationName].slice().reverse()).addTo(map);
+                var polygonMarker = new tt.Marker().setLngLat(availableHospitals[locationName]).addTo(map);
                 polygonMarker.setPopup(new tt.Popup({ offset: 30 }).setText(locationName));
                 polygonMarker.getElement().addEventListener('click', function() {
                     changeActivePolygonGroup(locationName);

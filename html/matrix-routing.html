@@ -90,17 +90,16 @@
 
         function createMarker(searchCategoryResult) {
             var newMarker = new window.SearchMarker({
-                    name: searchCategoryResult.poi.name,
-                    address: searchCategoryResult.address.freeformAddress + ', ' + searchCategoryResult.address.countryCodeISO3,
-                    distance: searchCategoryResult.dist,
-                    classification: searchCategoryResult.poi.categories,
-                    position: searchCategoryResult.position
-                }),
-                selectedResultItemElement = document.querySelector('div[data-id="' + searchCategoryResult.id + '"]');
+                name: searchCategoryResult.poi.name,
+                address: searchCategoryResult.address.freeformAddress + ', ' + searchCategoryResult.address.countryCodeISO3,
+                distance: searchCategoryResult.dist,
+                classification: searchCategoryResult.poi.categories,
+                position: searchCategoryResult.position
+            });
 
             newMarker
                 .getPopup()
-                .on('open', makeResultItemSelected.bind(null, selectedResultItemElement, searchCategoryResult.id));
+                .on('open', makeResultItemSelected.bind(null, searchCategoryResult.id));
             newMarker.addTo(map);
             return newMarker;
         }
@@ -271,15 +270,14 @@
                         searchResults = createSearchResults(matrixAPIResults, searchCategoryAPIResults),
                         resultsElement = searchResults.resultsElement,
                         resultsWrapper = searchResults.resultsWrapper;
-
                     removeCenterMarker();
                     marker.className = 'tt-icon -location';
                     centerMarker = new tt.Marker({ element: marker })
                         .setPopup(new tt.Popup({ offset: 30 })
                             .setHTML('<div class="tt-pop-up-container">' +
-                                        '<div class="pop-up-content">' + 
+                                        '<div class="pop-up-content">' +
                                             '<div class="pop-up-result-name">Search Center</div>' +
-                                            '<div class="pop-up-result-position">' + 
+                                            '<div class="pop-up-result-position">' +
                                                 center.lat.toFixed(5) + ', ' + center.lng.toFixed(5) +
                                             '</div>' +
                                         '</div>' +
@@ -298,14 +296,21 @@
                     map.fitBounds(getMarkersBounds(), { padding: 50 });
                     trafficButton.addEventListener('click', trafficButtonHandler.bind(null, headerElementNoPoiName, resultsElement));
                 })
-                .catch(handleError)
+                .catch(handleCategorySearchError)
                 .finally(function() {
                     loadingHint.hide();
                 });
         }
 
-        function handleError() {
+        function handleCategorySearchError() {
             resultsManager.resultsNotFound();
+            removeCenterMarker();
+            clearMapData();
+        }
+
+        function handleMatrixRoutingError(error) {
+            var displayedError = error.error ? error.error.description : error;
+            errorHint.setMessage(displayedError);
         }
 
         function handleSearchResultItemClick(event) {
@@ -328,8 +333,9 @@
             createRoute(dataAttribute);
         }
 
-        function makeResultItemSelected(selectedResultItemElement, searchCategoryResultId) {
+        function makeResultItemSelected(searchCategoryResultId) {
             var selectedClass = '-selected',
+                selectedResultItemElement = document.querySelector('div[data-id="' + searchCategoryResultId + '"]'),
                 selectedResultItemClassList = selectedResultItemElement.classList;
 
             if (selectedResultItemClassList.contains(selectedClass)) {
@@ -340,7 +346,10 @@
                     DOMElement.classList.remove(selectedClass);
                 });
             selectedResultItemElement.classList.add(selectedClass);
-            document.querySelector('.' + selectedClass).scrollIntoView({ behavior: 'smooth' });
+            var selectedElement = document.querySelector('.' + selectedClass),
+                selectedElementWrapper = document.querySelector('.tt-results-wrapper__overflow');
+
+            selectedElementWrapper.scrollTop = selectedElement.offsetTop - selectedElementWrapper.offsetTop;
             createRoute(searchCategoryResultId);
         }
 
@@ -392,7 +401,7 @@
                         searchCategoryAPIResults: searchCategoryAPIResults.results
                     };
                 })
-                .catch(errorHint);
+                .catch(handleMatrixRoutingError);
         }
 
         function removeLayer() {

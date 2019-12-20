@@ -105,6 +105,7 @@
     <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
     <script src='/cdn.web-sdk-services/services-web.min.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search-markers/search-marker.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search-markers/search-markers-manager.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
     <script>
         tt.setProductInfo('<your-product-name>', '<your-product-version>');
@@ -121,6 +122,7 @@
         map.addControl(new tt.NavigationControl());
 
         new SidePanel('.tt-side-panel', map);
+        var searchMarkersManager = new SearchMarkersManager(map);
         var tabs = new Tabs('.js-tabs');
         Array.prototype.slice.call(document.querySelectorAll('.js-slider'))
             .forEach(function(slider) {
@@ -240,7 +242,7 @@
 
             this.resultsManager.loading();
             tabs.clickTab(document.querySelector('[aria-controls="results"]'));
-            this.removeMarkers();
+            searchMarkersManager.clear();
 
             if (this.state.isGeobiasActive) {
                 callParameters.radius = this.state.radius;
@@ -251,13 +253,6 @@
                 .go()
                 .then(this.handleResponse.bind(this))
                 .catch(this.handleError.bind(this));
-        };
-
-        Geocode.prototype.removeMarkers = function() {
-            for (var marker in this.state.markers) {
-                this.state.markers[marker].remove();
-            }
-            this.state.markers = {};
         };
 
         Geocode.prototype.handleResponse = function(response) {
@@ -279,11 +274,11 @@
                     resultItem.addEventListener('click', this.handleSearchResultItemClick.bind(this));
 
                     resultsDocumentFragment.appendChild(resultItem);
+                }, this);
 
-                    this.state.markers[result.id] = this.createMarker(result);
-                }.bind(this));
+                searchMarkersManager.draw(response.results);
 
-                map.fitBounds(this.getMarkersBounds(), { padding: 50 });
+                map.fitBounds(searchMarkersManager.getMarkersBounds(), { padding: 50 });
 
                 var resultList = this.domHelpers.createResultList();
                 resultList.appendChild(resultsDocumentFragment);
@@ -298,16 +293,6 @@
             this.errorHint.setMessage(error.message);
         };
 
-        Geocode.prototype.getMarkersBounds = function() {
-            var bounds = new tt.LngLatBounds();
-
-            for (var marker in this.state.markers) {
-                bounds.extend(this.state.markers[marker].getLngLat());
-            }
-
-            return bounds;
-        };
-
         Geocode.prototype.selectResultItem = function(resultItem) {
             Array.prototype.slice.call(document.querySelectorAll('.tt-results-list__item'))
             .forEach(function (item) {
@@ -318,32 +303,8 @@
 
         Geocode.prototype.handleSearchResultItemClick = function(event) {
             var id = event.currentTarget.getAttribute('data-id');
-
-            for (var marker in this.state.markers) {
-                var current = this.state.markers[marker];
-                if (current.getPopup().isOpen()) {
-                    current.togglePopup();
-                }
-            }
-
-            this.state.markers[id].togglePopup();
-            map.jumpTo({ center: this.state.markers[id].getLngLat(), zoom: 16 });
-        };
-
-        Geocode.prototype.createMarker = function(result) {
-            var newMarker = new SearchMarker({
-                address: result.address.freeformAddress + ', ' + result.address.countryCodeISO3,
-                distance: result.dist,
-                position: result.position
-            });
-
-            newMarker.getPopup().on('open', function() {
-                this.selectResultItem(document.querySelector('li[data-id="' + result.id + '"]'));
-            }.bind(this));
-
-            newMarker.addTo(map);
-
-            return newMarker;
+            searchMarkersManager.openPopup(id);
+            searchMarkersManager.jumpToMarker(id);
         };
 
         new Geocode();

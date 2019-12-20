@@ -51,6 +51,7 @@
 
     <script src='/cdn.web-sdk-services/services-web.min.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search-markers/search-marker.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search-markers/search-markers-manager.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
     <script>
         tt.setProductInfo('<your-product-name>', '<your-product-version>');
@@ -66,6 +67,7 @@
         map.addControl(new tt.FullscreenControl({ container: document.querySelector('body') }));
         map.addControl(new tt.NavigationControl());
         new SidePanel('.tt-side-panel', map);
+        var searchMarkersManager = new SearchMarkersManager(map);
 
         var documentFragment = document.createDocumentFragment();
 
@@ -89,11 +91,12 @@
             Object.keys(locations),
             '.js-locations-select',
             undefined, {
-            multiple: true,
-            placeholder: 'Add locations from the list',
-            multiShowCount: false,
-            multiContainer: '.js-locations-container'
-        });
+                multiple: true,
+                placeholder: 'Add locations from the list',
+                multiShowCount: false,
+                multiContainer: '.js-locations-container'
+            }
+        );
 
         Object.keys(categories).forEach(function(key) {
             var input = document.createElement('input');
@@ -140,11 +143,13 @@
         BatchSearch.prototype.bindEvents = function() {
             map.on('data', function(e) {
                 if (map.getSource('point-source')) {
-                    if (e.sourceId !== 'point-source' || !map.getSource('point-source').loaded()) return;
+                    if (e.sourceId !== 'point-source' || !e.isSourceLoaded || e.sourceDataType === 'metadata') {
+                        return;
+                    }
+
                     this.refreshMarkers();
 
                     if (!this.state.eventListenersAdded) {
-                        map.on('move', this.refreshMarkers.bind(this));
                         map.on('moveend', this.refreshMarkers.bind(this));
                         this.state.eventListenersAdded = true;
                     }
@@ -155,7 +160,9 @@
                 var features = map.queryRenderedFeatures(e.point, { layers: ['clusters'] });
                 var clusterId = features[0].properties.cluster_id;
                 map.getSource('point-source').getClusterExpansionZoom(clusterId, function(err, zoom) {
-                    if (err) return;
+                    if (err) {
+                        return;
+                    }
                     map.easeTo({
                         center: features[0].geometry.coordinates,
                         zoom: zoom + 0.5
@@ -170,33 +177,26 @@
             map.on('mouseleave', 'clusters', function() {
                 map.getCanvas().style.cursor = '';
             });
-            
+
             this.elements.submit.addEventListener('click', this.handleSubmit.bind(this));
             this.elements.form.addEventListener('submit', this.handleSubmit.bind(this));
         };
 
         BatchSearch.prototype.refreshMarkers = function() {
-            Object.keys(this.state.markers).forEach(function(id) {
-                this.state.markers[id].remove();
-                delete this.state.markers[id];
-            }.bind(this));
-
+            searchMarkersManager.clear();
+            var poiList = [];
+            var duplicatesDetector = {};
             map.querySourceFeatures('point-source').forEach(function(feature) {
                 if (feature.properties && !feature.properties.cluster) {
-                    var id = feature.properties.id;
-                    if (!this.state.markers[id]) {
-                        var newMarker = new SearchMarker({
-                            name: feature.properties.name,
-                            address: feature.properties.address,
-                            classification: feature.properties.classification,
-                            position: new tt.LngLat.convert(feature.geometry.coordinates)
-                        });
-                        newMarker.addTo(map);
-                        this.state.markers[id] = newMarker;
+                    var result = JSON.parse(feature.properties.result);
+                    if (!duplicatesDetector[result.id]) {
+                        poiList.push(result);
+                        duplicatesDetector[result.id] = result.id;
                     }
                 }
-            }.bind(this));
-        }
+            });
+            searchMarkersManager.draw(poiList);
+        };
 
         BatchSearch.prototype.showLoadingPopup = function() {
             this.elements.loadingPopup.setHTML('<strong>Loading...</strong>');
@@ -204,7 +204,7 @@
                 this.elements.loadingPopup.setLngLat(map.getCenter());
                 this.elements.loadingPopup.addTo(map);
             }
-        }
+        };
 
         BatchSearch.prototype.handleSubmit = function(event) {
             event.preventDefault();
@@ -226,14 +226,14 @@
                             return {
                                 center: [location.lon, location.lat],
                                 query: input.id,
-                                limit: 20,
+                                limit: 20
                             };
                         });
                     }).reduce(function(acc, curr) {
                         return acc.concat(curr);
                     }, []);
 
-                this.removeMarkers();
+                searchMarkersManager.clear();
 
                 tt.services.categorySearch({
                     batchMode: 'sync',
@@ -246,21 +246,16 @@
             }
         };
 
-        BatchSearch.prototype.removeMarkers = function() {
-            for (var marker in this.state.markers) {
-                this.state.markers[marker].remove();
-            }
-            this.state.markers = {};
-        };
-
         BatchSearch.prototype.handleResponse = function(response) {
             this.elements.loadingPopup.remove();
-            this.removeMarkers();
+            searchMarkersManager.clear();
             var results = [];
-
+            this.poiList = [];
+            var that = this;
             if (response.length > 0) {
                 response.forEach(function(chunk) {
                     chunk.results.forEach(function(result) {
+                        that.poiList.push(result);
                         results.push({
                             type: 'Feature',
                             geometry: {
@@ -268,18 +263,13 @@
                                 coordinates: [result.position.lng, result.position.lat]
                             },
                             properties: {
-                                id: result.id,
-                                name: result.poi.name,
-                                address: result.address.freeformAddress,
-                                classification: result.poi.classifications[0].code,
-                                position: result.position
+                                result: JSON.stringify(result)
                             }
-                        })
+                        });
                     });
                 });
                 map.fitBounds(this.getMarkersBounds(results), {padding: 50});
                 this.updateMarkersLayer(results);
-
             } else {
                 this.errorHint.setMessage('No results found for this query.');
                 this.removeMarkersLayer();
@@ -292,9 +282,9 @@
             results.forEach(function(result) {
                 var lnglat = result.geometry.coordinates;
                 bounds.extend(new tt.LngLat(lnglat[0], lnglat[1]));
-            })
+            });
             return bounds;
-        }
+        };
 
         BatchSearch.prototype.handleError = function(error) {
             this.errorHint.setMessage(error.message);
@@ -304,7 +294,7 @@
             map.removeLayer('clusters');
             map.removeLayer('cluster-count');
             map.removeSource('point-source');
-        }
+        };
 
         BatchSearch.prototype.updateMarkersLayer = function(results) {
             if (map.getSource('point-source')) {
@@ -366,7 +356,7 @@
                     'text-color': 'white'
                 }
             });
-        }
+        };
         new BatchSearch();
 
     </script>

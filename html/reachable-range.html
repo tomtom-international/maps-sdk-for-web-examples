@@ -16,7 +16,7 @@
         width: 100%;
     }
     .scenarios > div {
-        color: #7A7E80;
+        color: #7a7e80;
         cursor: pointer;
         display: inline-flex;
         font-weight: bold;
@@ -44,7 +44,7 @@
         width: 100%;
     }
     .start-marker {
-        background-color: #1692E4;
+        background-color: #1692e4;
         border: 2px solid #ffffff;
         border-radius: 50%;
         height: 30px;
@@ -252,7 +252,7 @@
                 (uiState.isEV ? 'energyBudgetInkWh' : 'fuelBudgetInLiters');
             var params = {
                 key: '${api.key.routing}',
-                origin: origin.slice().reverse().join(',')
+                origin: origin
             };
             params[constantSpeedConsumptionParam] = getConsumptionPairs();
             params[budgetParam] = getBudget();
@@ -273,7 +273,7 @@
             pois.forEach(function(poi) {
                 var element = document.createElement('div');
                 var icon = document.createElement('div');
-                element.classList.add('tt-marker')
+                element.classList.add('tt-marker');
                 icon.classList.add('marker-inner');
                 icon.classList.add(uiState.isEV ? 'tt-icon-ic_map_poi_073-white' : 'tt-icon-ic_map_poi_004-white');
                 element.appendChild(icon);
@@ -314,7 +314,7 @@
                         default:
                             return;
                     }
-                })
+                });
             });
         }
         function createLabel(name) {
@@ -356,8 +356,8 @@
         function createLabels() {
             [].slice.call(document.querySelectorAll('.js-label')).forEach(function(label) {
                 label.innerHTML = '';
-                label.appendChild(createLabel(label.getAttribute('data-name')))
-            })
+                label.appendChild(createLabel(label.getAttribute('data-name')));
+            });
         }
         function createInput(name, value) {
             var label = document.createElement('label');
@@ -392,7 +392,7 @@
         }
         function toggleRemoveRowButton() {
             if (pairs.children.length === 2) {
-                removeRowButton.removeAttribute('hidden')
+                removeRowButton.removeAttribute('hidden');
             } else if (pairs.children.length === 1) {
                 removeRowButton.setAttribute('hidden', 'true');
             }
@@ -409,7 +409,7 @@
                 createScenarios();
                 createScenarioDetails();
                 toggleRemoveRowButton();
-            }
+            };
         }
         function populateControls() {
             createLabels();

@@ -7,6 +7,12 @@ function convertToPoint(position) {
     };
 }
 
+function convertToSpeedFormat(speedValue, unit) {
+    var speedUnit = unit || 'km/h';
+
+    return speedValue + speedUnit;
+}
+
 function convertToTimeFormat(secondsValue) {
     if (secondsValue === 0) {
         return 'No delay';
@@ -32,6 +38,7 @@ function roundLatLng(num) {
 
 var Formatters = {
     convertToPoint: convertToPoint,
+    convertToSpeedFormat: convertToSpeedFormat,
     convertToTimeFormat: convertToTimeFormat,
     formatAsMetricDistance: formatAsMetricDistance,
     roundLatLng: roundLatLng

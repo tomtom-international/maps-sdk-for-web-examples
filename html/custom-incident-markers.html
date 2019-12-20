@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Custom incident markers</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/css-styles/traffic-incidents.css'/>
+</head>
+<body>
+    <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
+    <div id='map' class='map'>
+        <div class='tt-overlay-panel -left-top -medium js-foldable'>
+            <div class='tt-form'>
+                <label class='tt-form-label tt-spacing-top-24'>Markers customization
+                    <select class='js-style-select tt-select'>
+                        <option value='html'>Custom HTML element</option>
+                        <option value='options'>Size and opacity options</option>
+                        <option value='css'>CSS classes</option>
+                    </select>
+                </label>
+            </div>
+        </div>
+    </div>
+    <style>
+        .custom-inner-class {
+            height: 30px !important;
+            width: 30px !important;
+        }
+        
+        .custom-outer-class {
+            border-radius: 0px;
+            height: 30px;
+            width: 30px;
+        }
+
+        .custom-html {
+            border: 3px solid white;
+            border-radius: 50%;
+            width: 64px;
+        }
+    </style>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script>
+        var photosMapping = {
+            'Default': 'default.png',
+            'Jam': 'jam.png',
+            'Road Works': 'road_works.png',
+            'Road Closed': 'road_closed.png'
+        };
+        
+        var markerOptions = {
+            options: {
+                size: 40,
+                opacity: 0.7
+            },
+            css: {
+                innerClass: 'custom-inner-class',
+                outerClass: 'custom-outer-class'
+            },
+            html: {
+                markerContentFactory: function(data) {
+                    /**
+                     * Here we are only mapping 3 categories to given icons. For full list of supported incident
+                     * categories, please refer to: 
+                     * https://developer.tomtom.com/traffic-api/traffic-api-documentation-traffic-incidents/traffic-incident-details
+                     **/
+                    var photo = photosMapping[data.properties.incidentCategory] || photosMapping.Default;
+                    var img = document.createElement('img');
+                    img.className = 'custom-html';
+                    img.src = '../assets/images/custom-incident-markers/' + photo;
+                    return img;
+                }
+            }
+        };
+
+        var incidentConfig = {
+            key: '${api.key.trafficIncidents}',
+            incidentDetails:  {
+                style: 's1',
+                markerOptions: markerOptions.html
+            },
+            incidentTiles: {
+                style: 'tomtom://vector/1/s1'
+            },
+            refresh: 30000
+        };
+
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            style: 'tomtom://vector/1/basic-main',
+            center: [-0.12634, 51.50276],
+            zoom: 15,
+            dragPan: !window.isMobileOrTablet()
+        });
+
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+        new Foldable('.js-foldable', 'top-right');
+
+        var styleSelect = tail.select('.js-style-select', {
+            classNames: 'tt-fake-select',
+            hideSelected: true
+        });
+
+        function updateLayer() {
+            return map.addTier(new tt.TrafficIncidentTier(incidentConfig));
+        }
+
+        map.once('load', function() {
+            styleSelect.on('change', function(event) {
+                incidentConfig.incidentDetails.markerOptions = markerOptions[event.key];
+                map.removeTier('trafficIncidents').then(updateLayer);
+            });
+            updateLayer();
+        });
+
+    </script>
+</body>
+</html>

@@ -107,7 +107,8 @@
                 }
 
                 if (state.selectedAddress === address.address.freeformAddress) {
-                    map.fitBounds(new AntimeridianHandler().normalizeBoundingBox(toLngLatBounds(boundingBox)),
+                    const bBox = new tt.LngLatBounds(boundingBox.southWest, boundingBox.northEast);
+                    map.fitBounds(new AntimeridianHandler().normalizeBoundingBox(bBox),
                     { padding: 100, linear: true });
                     return layerManager.updateLayer(layer)
                         .then(function () {
@@ -151,18 +152,6 @@
             geometries: [ geometry ],
             geometriesZoom: geometryZoom
         }).go();
-    };
-
-    //-- Helpers
-    /**
-     * toLngLatBounds
-     * @param bbox
-     * @return {LngLatBounds}
-     */
-    var toLngLatBounds = function (bbox) {
-        var ne = bbox.northEast.split(',').reverse(),
-            sw = bbox.southWest.split(',').reverse();
-        return new tt.LngLatBounds(sw, ne);
     };
 
     /**

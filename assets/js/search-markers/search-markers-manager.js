@@ -42,8 +42,6 @@ function addEntryPointsMapLayersIfNecessary(map, options) {
  * @param {String} [options.popupClassName] Optional - CSS class name to customize marker styles.
  * @param {Boolean=false} [options.entryPoints] Optional - A flag indicating if entry points should be supported.
  * @param {Function} [options.reverseGeocodeService] Optional - A service used to fetch an address of an entry point
- * @param {Function} [options.customMarkerCallback] Optional - Custom callback to render a different element for markers.
- * @param {Function} [options.customPopupCallback] Optional - Custom callback to render a different element for popups.
  *
  * This class draws markers on the map for a group of search results originating from the Tomtom Search service.
  * tt (tomtom object) needs to be available globally to use this Class.
@@ -63,7 +61,7 @@ function SearchMarkersManager(map, options) {
     this.map = map;
     this._options = options || {};
     this._poiList = undefined;
-    this.markers = [];
+    this.markers = {};
     addEntryPointsMapLayersIfNecessary(map, this._options);
 }
 
@@ -79,7 +77,9 @@ SearchMarkersManager.prototype.draw = function(poiList) {
 
     this.clear();
 
-    this._poiList.forEach(function (poi) {
+    this._poiList.forEach(function(poi) {
+        var markerId = poi.id;
+
         var poiOpts = {
             name: poi.poi ? poi.poi.name : undefined,
             address: poi.address.freeformAddress + ', ' + poi.address.countryCodeISO3,
@@ -96,15 +96,47 @@ SearchMarkersManager.prototype.draw = function(poiList) {
             this._lastClickedMarker = clickedMarker;
         }.bind(this));
         marker.addTo(this.map);
-        this.markers.push(marker);
-    }.bind(this));
+        this.markers[markerId] = marker;
+    }, this);
+};
+
+SearchMarkersManager.prototype.getMarkers = function() {
+    return this.markers;
+};
+
+SearchMarkersManager.prototype.openPopup = function(markerId) {
+    //this ensures, that only one popup is opened at the time
+    for (var marker in this.markers) {
+        var current = this.markers[marker];
+        if (current.getPopup().isOpen()) {
+            current.togglePopup();
+        }
+    }
+
+    this.markers[markerId].togglePopup();
+};
+
+SearchMarkersManager.prototype.jumpToMarker = function(markerId) {
+    this.map.jumpTo({ center: this.markers[markerId].getLngLat(), zoom: 16 });
+};
+
+SearchMarkersManager.prototype.getMarkersBounds = function() {
+    var bounds = new tt.LngLatBounds();
+
+    for (var marker in this.markers) {
+        bounds.extend(this.markers[marker].getLngLat());
+    }
+
+    return bounds;
 };
 
 SearchMarkersManager.prototype.clear = function() {
-    this.markers.forEach(function(marker) { 
+    for (var markerId in this.markers) {
+        var marker = this.markers[markerId];
         marker.remove();
-    });
-    this.markers = [];
+    }
+
+    this.markers = {};
     this._lastClickedMarker = null;
 };
 

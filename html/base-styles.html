@@ -68,7 +68,7 @@
             var group = element.getAttribute('data-group');
             styleOptions[group] = element.innerText;
             map.setStyle(getCurrentStyleUrl());
-        };
+        }
 
         var layerTypeGroup = new window.ButtonsGroup(document.getElementById('layers-type'));
         layerTypeGroup.onSelect(buttonsGroupChange);

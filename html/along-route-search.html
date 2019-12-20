@@ -102,10 +102,10 @@
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/side-panel.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search-markers/search-marker.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search-markers/search-markers-manager.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/search-results-parser.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/dom-helpers.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
-
     <script data-showable type='text/javascript' src='../assets/js/buttons-group.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/tabs.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
@@ -116,8 +116,7 @@
             startMarker: undefined,
             endMarker: undefined,
             routeId: undefined,
-            routePoints: [],
-            markers: {}
+            routePoints: []
         };
 
         var map = tt.map({
@@ -132,6 +131,7 @@
 
         new SidePanel('.tt-side-panel', map);
         var tabs = new Tabs('.js-tabs');
+        var searchMarkersManager = new SearchMarkersManager(map);
         var spreadingMode = new window.ButtonsGroup(document.getElementById('spreadingMode'));
         var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
         var loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
@@ -174,20 +174,14 @@
             return element;
         }
 
-        function clearMarkers() {
-            for(var marker in state.markers) {
-                state.markers[marker].remove();
-            }
-        }
-
         function onResultSelected(type, event) {
-            clearMarkers();
+            searchMarkersManager.clear();
             focusTab('options');
             var currentMarker = this.state[type + 'Marker'];
             if (currentMarker) {
                 currentMarker.remove();
             }
-            searchResult = event.data.result;
+            var searchResult = event.data.result;
             this.state[type + 'Marker'] = new tt.Marker({element: createMarkerElement(type)}).setLngLat(searchResult.position).addTo(map);
             updateRouteIfNeeded();
         }
@@ -237,7 +231,6 @@
                 loadingHint.hide();
             }).catch(function(err) {
                 loadingHint.hide();
-                debugger;
                 errorHint.setMessage(err.data.error.description);
             });
         }
@@ -247,66 +240,31 @@
             return activeButton.value === 'auto' ? 'auto' : undefined;
         }
 
-        function selectResultItem (resultItem) {
-            Array.prototype.slice.call(document.querySelectorAll('.tt-results-list__item'))
-            .forEach(function (item) {
-                item.classList.remove('-selected');
-            });
-            resultItem.classList.add('-selected');
-        };
-
-        function createMarker(result) {
-            var newMarker = new SearchMarker({
-                name: result.poi && result.poi.name || undefined,
-                address: result.address.freeformAddress + ', ' + result.address.countryCodeISO3,
-                distance: result.dist,
-                classification: result.poi ? result.poi.classifications[0].code : undefined,
-                position: result.position
-            });
-
-            newMarker.getPopup().on('open', function() {
-                selectResultItem(document.querySelector('li[data-id="' + result.id + '"]'));
-            });
-
-            newMarker.addTo(map);
-
-            return newMarker;
-        };
-
         function handleSearchResultItemClick(event) {
             var id = event.currentTarget.getAttribute('data-id');
-
-            for (var marker in state.markers) {
-                var current = state.markers[marker];
-                if (current.getPopup().isOpen()) {
-                    current.togglePopup();
-                }
-            }
-
-            state.markers[id].togglePopup();
-            map.jumpTo({ center: state.markers[id].getLngLat(), zoom: 16 });
-        };
+            searchMarkersManager.openPopup(id);
+            searchMarkersManager.jumpToMarker(id);
+        }
 
         function createResultList(response) {
             var resultsDocumentFragment = document.createDocumentFragment();
             Array.prototype.slice.call(response.results)
                 .forEach(function(result) {
-                var distance = this.searchResultsParser.getResultDistance(result);
-                var searchResult = this.domHelpers.createSearchResult(
-                    this.searchResultsParser.getResultName(result),
-                    this.searchResultsParser.getResultAddress(result),
-                    distance ? this.formatters.formatAsMetricDistance(distance) : ''
-                );
+                    var distance = searchResultsParser.getResultDistance(result);
+                    var searchResult = this.domHelpers.createSearchResult(
+                        searchResultsParser.getResultName(result),
+                        searchResultsParser.getResultAddress(result),
+                        distance ? formatters.formatAsMetricDistance(distance) : ''
+                    );
 
-                var resultItem = domHelpers.createResultItem();
-                resultItem.appendChild(searchResult);
-                resultItem.setAttribute('data-id', result.id);
-                resultItem.addEventListener('click', handleSearchResultItemClick);
+                    var resultItem = domHelpers.createResultItem();
+                    resultItem.appendChild(searchResult);
+                    resultItem.setAttribute('data-id', result.id);
+                    resultItem.addEventListener('click', handleSearchResultItemClick);
 
-                resultsDocumentFragment.appendChild(resultItem);
-
-                state.markers[result.id] = createMarker(result);
-            });
+                    resultsDocumentFragment.appendChild(resultItem);
+                });
+            searchMarkersManager.draw(response.results);
 
             var resultList = domHelpers.createResultList();
             resultList.appendChild(resultsDocumentFragment);
@@ -318,7 +276,6 @@
         }
 
         function fitBoundsResults(results) {
-            console.log(results);
             var bounds = new tt.LngLatBounds();
             results.forEach(function(result) {
                 bounds.extend(tt.LngLat.convert(result.position));
@@ -332,7 +289,7 @@
         submitBtn.onclick = function(event) {
             event.preventDefault();
             resultsManager.loading();
-            clearMarkers();
+            searchMarkersManager.clear();
             loadingHint.setMessage('Loading...');
             tt.services.alongRouteSearch({
                 key: '${api.key.search}',
@@ -357,7 +314,7 @@
                 loadingHint.hide();
                 errorHint.setMessage(error);
             });
-        }
+        };
 
     </script>
 </body>

@@ -1,14 +1,5 @@
 var tt = window.tt;
 
-var ENTRY_POINTS_CONNECTORS_SOURCE_NAME = 'entry-points-connectors';
-
-function createGeoJsonFeaturesCollection() {
-    return {
-        'type': 'FeatureCollection',
-        'features': []
-    };
-}
-
 /**
  * @class SearchMarker
  * @param {Object} [poiData] Data used to render the marker.
@@ -22,8 +13,6 @@ function createGeoJsonFeaturesCollection() {
  * @param {Boolean=false} [options.entryPoints] Optional - Enables/disables entry points support.
  * @param {String} [options.markerClassName] Optional - CSS class name to customize marker styles.
  * @param {String} [options.popupClassName] Optional - CSS class name to customize marker styles.
- * @param {Function} [options.customMarkerCallback] Optional - Custom callback to render a different element for markers.
- * @param {Function} [options.customPopupCallback] Optional - Custom callback to render a different element for popups.
  *
  * This Class can be used to generate the default Tomtom search result markers.
  * Make sure you include:
@@ -31,303 +20,193 @@ function createGeoJsonFeaturesCollection() {
  * - poi-icons.css (shipped with the SDK and also available via CDN - check our downloads page)
  */
 function SearchMarker(poiData, options) {
-    this._poiData = poiData;
-    this._options = options || {};
-    this._marker = new tt.Marker({
-        element: renderSearchMarkerElem.call(this),
+    this.poiData = poiData;
+    this.options = options || {};
+    this.marker = new tt.Marker({
+        element: this.createMarker(),
         anchor: 'bottom'
     });
-    var lon = this._poiData.position.lng || this._poiData.position.lon;
-    this._marker.setLngLat([
+    var lon = this.poiData.position.lng || this.poiData.position.lon;
+    this.marker.setLngLat([
         lon,
-        this._poiData.position.lat
+        this.poiData.position.lat
     ]);
-    setPopup.call(this);
+    this.marker.setPopup(new SearchMarkerPopup(this.poiData, this.options));
 }
 
 // public methods
 SearchMarker.prototype.addTo = function(map) {
-    this._marker.addTo(map);
+    this.marker.addTo(map);
+    if (this.entryPoints) {
+        this.entryPoints.bindMap(map);
+    }
     this._map = map;
     return this;
 };
 
 SearchMarker.prototype.remove = function() {
-    this._marker.remove();
-    this.clearEntryPoints();
+    this.marker.remove();
+    if (this.entryPoints) {
+        this.entryPoints.clearEntryPoints();
+    }
     this._map = null;
     this._onClickCallback = null;
 };
 
 SearchMarker.prototype.getLngLat = function() {
-    return this._marker.getLngLat();
+    return this.marker.getLngLat();
 };
 
 SearchMarker.prototype.getPopup = function() {
-    return this._marker.getPopup();
+    return this.marker.getPopup();
 };
 
 SearchMarker.prototype.togglePopup = function() {
-    return this._marker.togglePopup();
+    return this.marker.togglePopup();
 };
 
 SearchMarker.prototype.onClick = function(callback) {
     this._onClickCallback = callback;
 };
 
-SearchMarker.prototype.clearEntryPoints = function() {
-    if (this._entryPointsMarkers && this._entryPointsMarkers.length > 0) {
-        for (var entryPointsMarker in this._entryPointsMarkers) {
-            var marker = this._entryPointsMarkers[entryPointsMarker];
-            marker.remove();
-        }
-        this._entryPointsMarkers = null;
-        this._map.getSource(ENTRY_POINTS_CONNECTORS_SOURCE_NAME).setData(createGeoJsonFeaturesCollection());
+SearchMarker.prototype.createMarker = function() {
+    var elem = document.createElement('div');
+    elem.className = 'tt-icon-marker-black tt-search-marker';
+    if (this.options.markerClassName) {
+        elem.className += ' ' + this.options.markerClassName;
+    }
+
+    var innerElem = document.createElement('div');
+    var icon = new SearchIconCreator('white', this.poiData).getIcon();
+    innerElem.className = 'marker-inner ' + icon;
+
+    elem.appendChild(innerElem);
+    this.drawEntryPoints(elem);
+    return elem;
+};
+
+SearchMarker.prototype.drawEntryPoints = function(elem) {
+    if (this.options.entryPoints && this.poiData.entryPoints) {
+        this.entryPoints = new window.EntryPoints(this.poiData, elem, this.options);
     }
 };
 
-// private methods
-function getPopup(poiData, options) {
+function SearchMarkerPopup(poiData, options) {
+    this.poiData = poiData;
+    this.options = options;
+    return this.createPopup();
+}
+
+SearchMarkerPopup.prototype.createPopup = function() {
     return new tt.Popup({
         offset: [0, -38]
-    }).setDOMContent(createPopupContent(poiData, options));
-}
+    }).setDOMContent(this.createPopupContent(this.poiData, this.options));
+};
 
-function setPopup() {
-    this._marker.setPopup(getPopup(this._poiData, this._options));
-}
-
-function createPopupContent(poiData, options) {
-    if (options.customPopupCallback) {
-        return renderCustomElement.call(this, options.customPopupCallback);
-    }
-
+SearchMarkerPopup.prototype.createPopupContent = function() {
     var popupParentElem = document.createElement('div');
     popupParentElem.className = 'tt-pop-up-container';
 
-    if (options.popupClassName) {
-        popupParentElem.className += ' ' + options.popupClassName;
+    if (this.options.popupClassName) {
+        popupParentElem.className += ' ' + this.options.popupClassName;
     }
 
     var popupIconContainer = document.createElement('div');
     popupIconContainer.className = 'pop-up-icon';
     var iconElem = document.createElement('div');
-    iconElem.className = getIcon('black', poiData);
+    iconElem.className = new SearchIconCreator('black', this.poiData).getIcon();
     popupIconContainer.appendChild(iconElem);
 
     var popupContentElem = document.createElement('div');
     popupContentElem.className = 'pop-up-content';
 
-    if (poiData.name) {
-        createDivWithContent('pop-up-result-name', poiData.name, popupContentElem);
+    if (this.poiData.name) {
+        this.createDivWithContent('pop-up-result-name', this.poiData.name, popupContentElem);
     }
 
-    createDivWithContent('pop-up-result-address', poiData.address, popupContentElem);
+    this.createDivWithContent('pop-up-result-address', this.poiData.address, popupContentElem);
 
-    if (poiData.distance) {
-        createDivWithContent('pop-up-result-distance', convertDistance(poiData.distance), popupContentElem);
+    if (this.poiData.distance) {
+        this.createDivWithContent('pop-up-result-distance', this.convertDistance(this.poiData.distance), popupContentElem);
     }
 
-    var longitude = poiData.position.lon ? poiData.position.lon : poiData.position.lng;
-    createDivWithContent('pop-up-result-position', poiData.position.lat + ', ' + longitude, popupContentElem);
+    var longitude = this.poiData.position.lon ? this.poiData.position.lon : this.poiData.position.lng;
+    this.createDivWithContent('pop-up-result-position', this.poiData.position.lat + ', ' + longitude, popupContentElem);
 
-    if (poiData.type) {
-        createDivWithContent('pop-up-result-type', poiData.type + ' entry', popupContentElem);
+    if (this.poiData.type) {
+        this.createDivWithContent('pop-up-result-type', this.poiData.type + ' entry', popupContentElem);
     }
 
     popupParentElem.appendChild(popupIconContainer);
     popupParentElem.appendChild(popupContentElem);
 
     return popupParentElem;
-}
+};
 
-function createGeoJsonLine(from, to) {
-    return {
-        'type': 'Feature',
-        'geometry': {
-            'type': 'LineString',
-            'coordinates': [from, to]
-        }
-    };
-}
-
-function createEntryPointMarker(entryPoint, parentPoiData, options) {
-    var entryPointsMarker = new tt.Marker({
-        element: renderEntryPointMarkerElem.call(this),
-        anchor: 'bottom'
-    });
-    var poiData = {
-        name: parentPoiData.name,
-        address: entryPoint.address.freeformAddress + ', ' + entryPoint.address.countryCodeISO3,
-        classification: parentPoiData.classification,
-        position: entryPoint.position,
-        type: entryPoint.type
-    };
-    entryPointsMarker.setPopup(getPopup(poiData, options));
-    entryPointsMarker.setLngLat(entryPoint.position);
-    return entryPointsMarker;
-}
-
-function renderEntryPoints(entryPointsMarkers, poiData, options, map) {
-    var parentMarkerPosition = [poiData.position.lng, poiData.position.lat];
-    var featuresCollection = createGeoJsonFeaturesCollection();
-    if (entryPointsMarkers.length === 0) {
-        poiData.entryPoints.forEach(function(entryPoint) {
-            var entryPointMarker = createEntryPointMarker(entryPoint, poiData, options);
-            featuresCollection.features.push(createGeoJsonLine(parentMarkerPosition, [
-                entryPoint.position.lon,
-                entryPoint.position.lat
-            ]));
-            entryPointMarker.addTo(map);
-            entryPointsMarkers.push(entryPointMarker);
-        });
-    } else {
-        for (var entryPointsMarker in entryPointsMarkers) {
-            var marker = entryPointsMarkers[entryPointsMarker];
-            marker.remove();
-        }
-        entryPointsMarkers.splice(0);
+SearchMarkerPopup.prototype.convertDistance = function(distanceMeters) {
+    if (distanceMeters < 1000) {
+        return Math.ceil(distanceMeters) + ' m';
     }
-    map.getSource(ENTRY_POINTS_CONNECTORS_SOURCE_NAME).setData(featuresCollection);
-}
+    return Math.ceil(distanceMeters / 1000) + ' km';
+};
 
-function renderEntryPointMarkerElem() {
+SearchMarkerPopup.prototype.createDivWithContent = function(className, content, parent) {
     var elem = document.createElement('div');
-    elem.className = 'tt-entry-point-marker';
-
-    var icon = document.createElement('div');
-    icon.className = 'icon tt-icon-ic_entry_point';
-    elem.appendChild(icon);
-
-    var pointer = document.createElement('div');
-    pointer.className = 'pointer';
-    icon.appendChild(pointer);
-
-    return elem;
+    elem.className = className;
+    elem.appendChild(document.createTextNode(content));
+    parent.appendChild(elem);
+};
+function SearchIconCreator(color, poiData) {
+    this.color = color;
+    this.poiData = poiData;
 }
 
-function enableSupportForEntryPointsIfNecessary(elem) {
-    if (this._options.entryPoints && this._poiData.entryPoints) {
-        var entryPointsCounter = document.createElement('div');
-        entryPointsCounter.className = 'entry-points-counter';
-        entryPointsCounter.innerText = String(this._poiData.entryPoints.length);
-        elem.appendChild(entryPointsCounter);
-        elem.addEventListener('click', function() {
-            if (this._onClickCallback) {
-                this._onClickCallback(this);
-            }
-            if (this._options.reverseGeocodeService) {
-                var batchItems = this._poiData.entryPoints.map(function(entryPoint) {
-                    return { position: entryPoint.position.lon + ',' + entryPoint.position.lat };
-                });
-                var that = this;
-                this._options.reverseGeocodeService({
-                    batchItems: batchItems
-                }).go().then(function(addresses) {
-                    for (var i = 0; i < addresses.length; i++) {
-                        that._poiData.entryPoints[i].address = addresses[i].addresses[0].address;
-                    }
-                    if (!that._entryPointsMarkers) {
-                        that._entryPointsMarkers = [];
-                    }
-                    renderEntryPoints(that._entryPointsMarkers, that._poiData, that._options, that._map);
-                });
-            }
-        }.bind(this));
-    }
-}
+SearchIconCreator.prototype.getIcon = function() {
+    var classification = this.poiData.classification;
+    var iconClass = this.availableIcons.fallback;
 
-function renderSearchMarkerElem() {
-    if (this._options.customMarkerCallback) {
-        return renderCustomElement.call(this, this._options.customMarkerCallback);
-    }
-
-    var elem = document.createElement('div');
-    elem.className = 'tt-icon-marker-black tt-search-marker';
-    if (this._options.markerClassName) {
-        elem.className += ' ' + this._options.markerClassName;
-    }
-
-    var innerElem = document.createElement('div');
-    innerElem.className = 'marker-inner ' + getIcon('white', this._poiData);
-
-    elem.appendChild(innerElem);
-    enableSupportForEntryPointsIfNecessary.call(this, elem);
-    return elem;
-}
-
-function renderCustomElement(customElemCallback) {
-    if (typeof customElemCallback !== 'function') {
-        throw new Error('customElemCallback must be a function');
-    }
-    var customElem = customElemCallback(this._poiData);
-    if (!(customElem instanceof window.HTMLElement)) {
-        throw new Error('customElemCallback must return a HTML element');
-    }
-    return customElem;
-}
-
-function getIconClassModifier(iconClass) {
-    var classParts = iconClass.split('-');
-    return classParts.length > -1 ? classParts.slice(-1)[0] : undefined;
-}
-
-function getIconClassWithoutModifier(iconClass) {
-    return iconClass.split('-').slice(0, -1).join('-');
-}
-
-function isColorModifier(modifier) {
-    return ['white', 'black'].indexOf(modifier) > -1;
-}
-
-function getIcon(color, poiData) {
-    var classification = poiData.classification, 
-        iconClass = availableIcons.fallback;
-
-    if (poiData.classification) {
+    if (this.poiData.classification) {
         var icon;
 
         if (Array.isArray(classification)) {
             var iconName = classification.indexOf('hospital/polyclinic') > -1 ?
-                'HOSPITAL_POLYCLINIC' : classification.length > 1 ? 
-                classification[1].toUpperCase() : classification[0].toUpperCase();
+                'HOSPITAL_POLYCLINIC' : classification.length > 1 ?
+                    classification[1].toUpperCase() : classification[0].toUpperCase();
 
-            icon = availableIcons[iconName];
+            icon = this.availableIcons[iconName];
         } else {
-            icon = availableIcons[classification];
+            icon = this.availableIcons[classification];
         }
         if (icon) {
             iconClass = icon;
         }
     }
 
-    var modifier = getIconClassModifier(iconClass);
-    if (modifier && isColorModifier(modifier)) {
-        return 'tt-icon-' + getIconClassWithoutModifier(iconClass) + '-' + color;
+    var modifier = this.getIconClassModifier(iconClass);
+    if (modifier && this.isColorModifier(modifier)) {
+        return 'tt-icon-' + this.getIconClassWithoutModifier(iconClass) + '-' + this.color;
     }
 
     return 'tt-icon-' + iconClass;
-}
+};
 
-// utilities
-function convertDistance(distanceMeters) {
-    if (distanceMeters < 1000) {
-        return Math.ceil(distanceMeters) + ' m';
-    }
-    return Math.ceil(distanceMeters / 1000) + ' km';
-}
+SearchIconCreator.prototype.getIconClassModifier = function(iconClass) {
+    var classParts = iconClass.split('-');
+    return classParts.length > -1 ? classParts.slice(-1)[0] : undefined;
+};
 
-function createDivWithContent(className, content, parent) {
-    var elem = document.createElement('div');
-    elem.className = className;
-    elem.appendChild(document.createTextNode(content));
-    parent.appendChild(elem);
-}
+SearchIconCreator.prototype.getIconClassWithoutModifier = function(iconClass) {
+    return iconClass.split('-').slice(0, -1).join('-');
+};
+
+SearchIconCreator.prototype.isColorModifier = function(modifier) {
+    return ['white', 'black'].indexOf(modifier) > -1;
+};
 
 // default tomtom icons - css mappings
 // To use these icons make sure you include the file 'poi-icons.css' that is shipped with our SDK
 // Please refer to the getIcon function to see how they are used
-var availableIcons = {
+SearchIconCreator.prototype.availableIcons = {
     fallback: 'flag-white',
     ACCESS_GATEWAY: 'ic_map_poi_110-white',
     ADMINISTRATIVE_DIVISION: 'ic_map_poi_133-white',
@@ -437,5 +316,5 @@ var availableIcons = {
     WINERY: 'ic_map_poi_057-white',
     ZOOS_ARBORETA_BOTANICAL_GARDEN: 'ic_map_poi_037'
 };
-
+window.SearchMarkerPopup = window.SearchMarkerPopup || SearchMarkerPopup;
 window.SearchMarker = window.SearchMarker || SearchMarker;
