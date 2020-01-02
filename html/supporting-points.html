@@ -28,9 +28,7 @@
         .map-view .searchbox {
             float: left;
         }
-        .map-view .tt-search-box {
-            transform: none;
-        }
+
         .map-view .tt-results-list {
             display: none;
             max-height: 100%;
@@ -346,8 +344,8 @@
                 resultItemSelected.classList.remove('-selected');
             }
             resultItem.classList.add('-selected');
-            if (scroll) {
-                resultItem.scrollIntoView({ behavior: 'smooth' });
+            if (scroll && resultItem && resultItem.parentNode) {
+                resultItem.parentNode.scrollTop = resultItem.offsetTop - resultItem.parentNode.offsetTop;
             }
             resultItemSelected = resultItem;
         }

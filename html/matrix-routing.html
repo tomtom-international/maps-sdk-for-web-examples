@@ -73,7 +73,7 @@
             placeholderChange = false,
             resultsManager = new window.ResultsManager(),
             selectedRouteId = '';
-        
+
         new window.SidePanel('.tt-side-panel', map);
         map.once('load', function() {
             categorySelect.on('change', handleCategoryChange);
@@ -103,9 +103,9 @@
             newMarker.addTo(map);
             return newMarker;
         }
-        
+
         function createRoute(dataAttribute) {
-            var destination = markers[dataAttribute]._poiData.position;
+            var destination = markers[dataAttribute].poiData.position;
 
             if (dataAttribute === selectedRouteId) {
                 return;

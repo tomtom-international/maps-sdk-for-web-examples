@@ -15,6 +15,7 @@
     <script src='/cdn.web-sdk-services/services-web.min.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
     <script>
+        var tt = window.tt;
         var map = tt.map({
             key: '${api.key.maps}',
             container: 'map',
@@ -24,32 +25,34 @@
         });
         map.addControl(new tt.FullscreenControl());
         map.addControl(new tt.NavigationControl());
+        map.on('load', handleServiceRequest);
 
-        tt.services.incidentDetails({
-            key: '${api.key.trafficIncidents}',
-            boundingBox: map.getBounds(),
-            style: 's3',
-            zoomLevel: 10,
-            trafficModelID: '-1',
-            expandCluster: true
-        })
-            .go()
-            .then(function(response) {
-                var points = [];
+        function handleServiceRequest() {
+            tt.services.incidentDetails({
+                key: '${api.key.trafficIncidents}',
+                boundingBox: map.getBounds(),
+                style: 's3',
+                zoomLevel: 10,
+                trafficModelID: '-1',
+                expandCluster: true
+            })
+                .go()
+                .then(function(response) {
+                    var points = [];
 
-                response.tm.poi.forEach(function(poi) {
-                    if (poi.id.indexOf('CLUSTER') > -1) {
-                        poi.cpoi.forEach(function(cpoi) {
-                            points.push([cpoi.p.lng, cpoi.p.lat]);
-                        });
-                    } else {
-                        points.push([poi.p.lng, poi.p.lat]);
-                    }
+                    response.tm.poi.forEach(function(poi) {
+                        if (poi.id.indexOf('CLUSTER') > -1) {
+                            poi.cpoi.forEach(function(cpoi) {
+                                points.push([cpoi.p.lng, cpoi.p.lat]);
+                            });
+                        } else {
+                            points.push([poi.p.lng, poi.p.lat]);
+                        }
+                    });
+                    map.addLayer(createHeatmapLayer(pointsToGeoJson(points)));
+                    map.setZoom(6);
                 });
-
-                map.addLayer(createHeatmapLayer(pointsToGeoJson(points)));
-                map.setZoom(6);
-            });
+        }
 
         function pointsToGeoJson(points) {
             return {

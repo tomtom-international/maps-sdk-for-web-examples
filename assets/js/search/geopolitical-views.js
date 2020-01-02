@@ -1,5 +1,6 @@
 window.searchGeopoliticalViews = window.searchGeopoliticalViews || {
     Unified: 'Unified',
+    AR: 'Argentina',
     IN: 'India',
     IL: 'Israel',
     MA: 'Morocco',

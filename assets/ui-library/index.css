@@ -540,7 +540,7 @@ body {
     font-family: Gotham, Helvetica, Arial, sans-serif;
     height: 100vh;
     justify-content: space-between;
-    overflow: hidden;
+    overflow: visible;
     margin: 0;
     width: 376px;
     z-index: 1;

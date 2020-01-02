@@ -56,15 +56,62 @@
         
         var markerOptions = {
             options: {
-                size: 40,
-                opacity: 0.7
+                markerFactory: function(data, defaultFactoryMethod, oldMarker) {
+                    //create a default marker
+                    var marker = defaultFactoryMethod(data);
+                    if (oldMarker) { // we need to check if it's an update
+                        var isPopupOpen = oldMarker.getPopup().isOpen();
+                        oldMarker.setPopup(marker.getPopup());
+                        if (isPopupOpen) {
+                            oldMarker.togglePopup();
+                        }
+                        return oldMarker;
+                    }
+                    //modify marker's content
+                    var style = 'height: 40px; width: 40px; line-height: 40px; font-size: 20px; opacity: 0.7';
+                    marker.getElement().style.cssText = style;
+                    var content = marker.getElement().children[0];
+                    content.style.cssText = style;
+                    return marker;
+                }
             },
             css: {
-                innerClass: 'custom-inner-class',
-                outerClass: 'custom-outer-class'
+                markerFactory: function(data, defaultFactoryMethod, oldMarker) {
+                    //create a default marker
+                    var marker = defaultFactoryMethod(data);
+                    if (oldMarker) { // we need to check if it's an update
+                        var isPopupOpen = oldMarker.getPopup().isOpen();
+                        oldMarker.setPopup(marker.getPopup());
+                        if (isPopupOpen) {
+                            oldMarker.togglePopup();
+                        }
+                        return oldMarker;
+                    }
+                    //modify marker's content
+                    marker.getElement().classList.add('custom-outer-class');
+                    var content = marker.getElement().children[0];
+                    content.classList.add('custom-inner-class');
+                    return marker;
+                }
             },
             html: {
-                markerContentFactory: function(data) {
+                markerFactory: function(data, defaultFactoryMethod, oldMarker) {
+                    var isCluster = data.properties && data.properties.clusterSize;
+                    if (isCluster) { // we do not want to modify cluster markers here
+                        return defaultFactoryMethod(data);
+                    }
+                    //firstly we need to get a default popup since we do not want to modify it
+                    var defaultMarker = defaultFactoryMethod(data);
+                    var popup = defaultMarker.getPopup();
+                    if (oldMarker) { // we need to check if it's an update
+                        var isPopupOpen = oldMarker.getPopup().isOpen();
+                        oldMarker.setPopup(popup);
+                        if (isPopupOpen) {
+                            oldMarker.togglePopup();
+                        }
+                        return oldMarker;
+                    }
+
                     /**
                      * Here we are only mapping 3 categories to given icons. For full list of supported incident
                      * categories, please refer to: 
@@ -74,7 +121,14 @@
                     var img = document.createElement('img');
                     img.className = 'custom-html';
                     img.src = '../assets/images/custom-incident-markers/' + photo;
-                    return img;
+                    var marker = new tt.Marker({
+                        element: img,
+                        anchor: 'center'
+                    });
+                    marker.setLngLat(data.geometry.coordinates);
+                    //now we provide a popup
+                    marker.setPopup(popup);
+                    return marker;
                 }
             }
         };

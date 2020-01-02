@@ -80,6 +80,7 @@
         <div id='map' class='full-map'></div>
     </div>
     <script>
+        var tt = window.tt;
         tt.setProductInfo('<your-product-name>', '<your-product-version>');
         var map = tt.map({
             key: '${api.key.maps}',
@@ -99,14 +100,14 @@
             .setLngLat(new tt.LngLat(4.3705, 50.8515))
             .addTo(map);
 
-        new SidePanel('.tt-side-panel', map);
-        var radiusSlider = new Slider(document.querySelector('.js-radius-slider'));
-        var limitSlider = new Slider(document.querySelector('.js-limit-slider'));
+        new window.SidePanel('.tt-side-panel', map);
+        var radiusSlider = new window.Slider(document.querySelector('.js-radius-slider'));
+        var limitSlider = new window.Slider(document.querySelector('.js-limit-slider'));
         var languageSelector = new window.TailSelector(window.searchLanguages, '.js-language-select', 'en-US');
         var headingDirectionGroup = new window.ButtonsGroup(document.getElementById('heading-dir'));
 
         function CrossStreetLookup() {
-            this.errorHint = new InfoHint('error', 'bottom-center', 3000)
+            this.errorHint = new window.InfoHint('error', 'bottom-center', 3000)
                 .addTo(document.getElementById('map'));
 
             this.bindElements();
@@ -222,18 +223,18 @@
 
             this.errorHint.hide();
 
-            addresses.forEach(function(crossing) {
+            addresses.forEach(function(address) {
                 var popupAddress = document.createElement('strong');
-                var freeformAddress = crossing.address.freeformAddress;
+                var freeformAddress = address.address.freeformAddress;
                 popupAddress.innerText = freeformAddress;
                 var popupContent = popupAddress.outerHTML;
 
                 var markerElement = document.createElement('div');
                 markerElement.setAttribute('class', 'tt-marker -start');
 
-                var marker = new window.tt.Marker(markerElement).setLngLat(crossing.position);
+                var marker = new window.tt.Marker(markerElement).setLngLat(address.position);
                 marker.addTo(map);
-                marker.setPopup(new window.tt.Popup({ offset: 30 }).setHTML(popupContent));
+                marker.setPopup(new window.tt.Popup({ offset: [0, -30] }).setHTML(popupContent));
                 this.state.markers[freeformAddress] = marker;
             }.bind(this));
 

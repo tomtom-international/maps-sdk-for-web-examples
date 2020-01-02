@@ -195,7 +195,7 @@
         },
         noResultsMessage: 'No results with a polygon found.'
     });
-    document.getElementById('searchBoxPlaceholder').append(ttSearchBox.getSearchBoxHTML());
+    document.getElementById('searchBoxPlaceholder').appendChild(ttSearchBox.getSearchBoxHTML());
     ttSearchBox.on('tomtom.searchbox.resultselected', function(event) {
         event.origin.preventDefault();
 

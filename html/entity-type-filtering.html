@@ -51,6 +51,7 @@
     <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
     <script src='/cdn.web-sdk-services/services-web.min.js'></script>
     <script>
+        var tt = window.tt;
         tt.setProductInfo('<your-product-name>', '<your-product-version>');
         var map = tt.map({
             key: '${api.key.maps}',
@@ -63,6 +64,7 @@
 
         map.addControl(new tt.FullscreenControl());
         map.addControl(new tt.NavigationControl());
+        new window.Foldable('.js-foldable', 'top-right');
         var roundLatLng = window.Formatters.roundLatLng;
 
         var entities = {
@@ -82,11 +84,11 @@
                 placeholder: 'Add filters from the list',
                 multiShowCount: false,
                 multiContainer: '.js-filters-container'
-        });
+            });
         var languageSelector = new window.TailSelector(window.searchLanguages, '.js-language-select', 'en-US');
 
         function EntityTypeFiltering() {
-            this.errorHint = new InfoHint('error', 'bottom-center', 5000)
+            this.errorHint = new window.InfoHint('error', 'bottom-center', 5000)
                 .addTo(document.getElementById('map'));
 
             this.initState();
@@ -125,7 +127,7 @@
                 this.updatePosition([undefined, event.target.value]);
             }.bind(this));
             this.elements.longitudeInput.addEventListener('change', function(event) {
-                this.updatePosition([event.target.value, undefined]);
+                this.updatePosition([event.target.value]);
             }.bind(this));
 
             map.on('click', this.handleMapClick.bind(this));
@@ -218,7 +220,6 @@
 
             if (address) {
                 var freeFormAddress = document.createElement('strong');
-                var freeformAddress = address.address.freeformAddress;
                 freeFormAddress.innerText = address.address.freeformAddress;
 
                 popupContent = freeFormAddress.outerHTML;
@@ -234,8 +235,8 @@
             this.popup.setHTML(popupContent || 'No data found for given parameters.');
         };
 
-        EntityTypeFiltering.prototype.setPopup = function(lngLat) {
-            this.popup = new tt.Popup({ className: 'tt-popup' })
+        EntityTypeFiltering.prototype.setPopup = function() {
+            this.popup = new tt.Popup({ className: 'tt-popup', offset: [0, -20] })
                 .setLngLat(new tt.LngLat(this.state.position.longitude, this.state.position.latitude))
                 .setHTML('Loading...');
 
@@ -285,7 +286,6 @@
         };
 
         new EntityTypeFiltering();
-        new Foldable('.js-foldable', 'top-right');
     </script>
 </body>
 </html>
