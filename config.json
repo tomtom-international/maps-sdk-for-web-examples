@@ -7,9 +7,9 @@
         "trafficFlow": "<your traffic flow key>"
     },
     "cdn": {
-        "web-sdk-maps": "https://api.tomtom.com/maps-sdk-for-web/cdn/5.x/5.43.0/maps",
-        "web-sdk-services": "https://api.tomtom.com/maps-sdk-for-web/cdn/5.x/5.43.0/services",
-        "web-sdk-plugin-searchbox": "https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/SearchBox/1.0.7/",
+        "web-sdk-maps": "https://api.tomtom.com/maps-sdk-for-web/cdn/5.x/5.43.1/maps",
+        "web-sdk-services": "https://api.tomtom.com/maps-sdk-for-web/cdn/5.x/5.43.1/services",
+        "web-sdk-plugin-searchbox": "https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/SearchBox/1.0.8/",
         "web-sdk-plugin-pancontrols": "https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/PanControls/1.0.9/",
         "web-sdk-plugin-zoomcontrols": "https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/ZoomControls/1.0.9/",
         "web-sdk-plugin-minimap": "https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/Minimap/1.0.2/"
