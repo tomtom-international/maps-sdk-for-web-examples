@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Structured geocode</title>
+    <meta name='viewport' content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/css-styles/poi.css'/>
+</head>
+<body>
+    <div class='map-view'>
+        <form class='tt-side-panel js-form'>
+            <div class='tt-tabs js-tabs'>
+                <div class='tt-tabs__tabslist' role='tablist'>
+                    <button role='tab' aria-selected='true' aria-controls='options' class='tt-tabs__tab'
+                        type='button'>Params</button>
+                    <button role='tab' aria-selected='false' aria-controls='results' class='tt-tabs__tab'
+                        type='button'>Results</button>
+                </div>
+                <div role='tabpanel' class='tt-tabs__panel' id='options'>
+                    <div class='tt-params-box'>
+                        <header class='tt-params-box__header'>
+                            Structured geocode parameters
+                        </header>
+                        <div class='tt-params-box__content'>
+                            <label class='tt-form-label'>Language
+                                <select class='js-language-select tt-select'></select>
+                            </label>
+                            <label class='tt-form-label'>Country code
+                                <input class='tt-input js-country-code' placeholder='Type country code here'>
+                            </label>
+                            <label class='tt-form-label'>Street name
+                                <input class='tt-input js-street-name' placeholder='Type street name here'>
+                            </label>
+                            <label class='tt-form-label'>Street number
+                                <input class='tt-input js-street-number' placeholder='Type street number here'>
+                            </label>
+                            <label class='tt-form-label'>Municipality
+                                <input class='tt-input js-municipality' placeholder='Type municipality here'>
+                            </label>
+                            <label class='tt-form-label'>Postal code
+                                <input class='tt-input js-postal-code' placeholder='Type postal code here'>
+                            </label>
+                            <label class='tt-form-label js-slider'>Limit (<span class='js-counter'>10</span>)
+                                <input class='tt-slider js-limit' name='limit' type='range' min='1' max='100' value='10'>
+                            </label>
+                            <div class='tt-spacing-top-24'>
+                                <input type='submit' class='tt-button -primary tt-spacing-top-24 js-submit' title='Submit'>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div role='tabpanel' class='tt-tabs__panel' hidden='hidden' id='results'>
+                    <div class='js-results' hidden='hidden'></div>
+                    <div class='js-results-loader' hidden='hidden'>
+                        <div class='loader-center'><span class='loader'></span></div>
+                    </div>
+                    <div class='tt-tabs__placeholder js-results-placeholder'>
+                        NO RESULTS
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div id='map' class='full-map'></div>
+    </div>
+    <script data-showable type='text/javascript' src='../assets/js/search/search-results-parser.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/dom-helpers.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/tabs.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/results-manager.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/languages.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/side-panel.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/slider.js'></script>
+    <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/tail-selector.js'></script>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search-markers/search-marker.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search-markers/search-markers-manager.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script>
+        var tt = window.tt;
+        
+        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            style: 'tomtom://vector/1/basic-main',
+            center: [6.315226, 45.095108],
+            zoom: 1,
+            dragPan: !window.isMobileOrTablet()
+        });
+        map.addControl(new tt.FullscreenControl({ container: document.querySelector('body') }));
+        map.addControl(new tt.NavigationControl());
+
+        new window.SidePanel('.tt-side-panel', map);
+        var tabs = new window.Tabs('.js-tabs');
+        new window.Slider(document.querySelector('.js-slider'));
+        var searchMarkersManager = new window.SearchMarkersManager(map);
+
+        var languageSelector = new window.TailSelector(window.searchLanguages, '.js-language-select', 'en-GB');
+
+        function StructuredGeocode() {
+            this.domHelpers = window.DomHelpers;
+            this.searchResultsParser = window.SearchResultsParser;
+            this.resultsManager = new window.ResultsManager();
+            this.errorHint = new window.InfoHint('error', 'bottom-center', 5000)
+                .addTo(document.getElementById('map'));
+
+            this.elements = {
+                language: languageSelector.getElement(),
+                form: document.querySelector('.js-form'),
+                submit: document.querySelector('.js-submit')
+            };
+
+            this.language = 'en-GB';
+
+            this.bindEvents();
+        }
+
+        StructuredGeocode.prototype.bindEvents = function() {
+            this.elements.language.on('change', function(selected) {
+                this.language = selected.key;
+            }.bind(this));
+            this.elements.submit.addEventListener('click', this.handleSubmit.bind(this));
+            this.elements.form.addEventListener('submit', this.handleSubmit.bind(this));
+        };
+
+        StructuredGeocode.prototype.handleSubmit = function(event) {
+            event.preventDefault();
+
+            if (!document.querySelector('.js-country-code').value) {
+                this.errorHint.setMessage('Country code is required field');
+                return;
+            }
+
+            var callParameters = {
+                key: '${api.key.search}',
+                language: this.language,
+                limit: document.querySelector('.js-limit').value,
+                countryCode: document.querySelector('.js-country-code').value,
+                streetName: document.querySelector('.js-street-name').value,
+                streetNumber: document.querySelector('.js-street-number').value,
+                municipality: document.querySelector('.js-municipality').value,
+                postalCode: document.querySelector('.js-postal-code').value
+            };
+
+            this.resultsManager.loading();
+            searchMarkersManager.clear();
+
+            tt.services.structuredGeocode(callParameters)
+                .go()
+                .then(this.handleResponse.bind(this))
+                .catch(this.handleError.bind(this));
+        };
+
+        StructuredGeocode.prototype.handleResponse = function(response) {
+            var resultList = this.domHelpers.createResultList();
+
+            if (response.results && response.results.length > 0) {
+                tabs.clickTab(document.querySelector('[aria-controls="results"]'));
+                this.resultsManager.success();
+
+                Array.prototype.slice.call(response.results)
+                    .forEach(function(result) {
+                        var searchResult = this.domHelpers.createSearchResult(
+                            this.searchResultsParser.getResultAddress(result)
+                        );
+                        var resultItem = this.domHelpers.createResultItem();
+                        resultItem.appendChild(searchResult);
+                        resultItem.setAttribute('data-id', result.id);
+                        resultItem.addEventListener('click', this.handleSearchResultItemClick.bind(this));
+
+                        resultList.appendChild(resultItem);
+                    }.bind(this));
+        
+                searchMarkersManager.draw(response.results);
+
+                map.fitBounds(searchMarkersManager.getMarkersBounds(), { duration: 3000, padding: 50 });
+
+                this.resultsManager.append(resultList);
+            } else {
+                this.resultsManager.resultsNotFound();
+                this.errorHint.setMessage('No results found for given parameters');
+            }
+        };
+
+        StructuredGeocode.prototype.handleError = function(error) {
+            this.resultsManager.resultsNotFound();
+            this.errorHint.setMessage(error.data ? error.data.errorText : error);
+        };
+
+        StructuredGeocode.prototype.selectResultItem = function(resultItem) {
+            if (resultItem.classList.contains('-selected')) {
+                return;
+            }
+            Array.prototype.slice.call(document.querySelectorAll('.tt-results-list__item'))
+                .forEach(function(item) {
+                    item.classList.remove('-selected');
+                });
+            resultItem.classList.add('-selected');
+        };
+
+        StructuredGeocode.prototype.handleSearchResultItemClick = function(event) {
+            var id = event.currentTarget.getAttribute('data-id');
+            searchMarkersManager.openPopup(id);
+            searchMarkersManager.jumpToMarker(id);
+        };
+
+        StructuredGeocode.prototype.createMarker = function(result) {
+            var newMarker = new window.SearchMarker({
+                address: result.address.freeformAddress + ', ' + result.address.countryCodeISO3,
+                position: result.position
+            });
+
+            newMarker.getPopup().on('open', function() {
+                this.selectResultItem(document.querySelector('li[data-id="' + result.id + '"]'));
+            }.bind(this));
+
+            newMarker.addTo(map);
+
+            return newMarker;
+        };
+
+        new StructuredGeocode();
+    </script>
+</body>
+
+</html>
