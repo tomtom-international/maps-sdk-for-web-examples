@@ -27,7 +27,7 @@
             key: '${api.key.maps}',
             container: 'map',
             style: 'tomtom://vector/1/basic-main',
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         });
         map.addControl(new tt.FullscreenControl());
         map.addControl(new tt.NavigationControl());
@@ -53,8 +53,8 @@
                 endPoint = feature.geometry.coordinates.slice(-1)[0];
             }
 
-            new tt.Marker({element: createMarkerElement('start')}).setLngLat(startPoint).addTo(map);
-            new tt.Marker({element: createMarkerElement('end')}).setLngLat(endPoint).addTo(map);
+            new tt.Marker({ element: createMarkerElement('start') }).setLngLat(startPoint).addTo(map);
+            new tt.Marker({ element: createMarkerElement('end') }).setLngLat(endPoint).addTo(map);
         }
 
         function findFirstBuildingLayerId() {
@@ -74,30 +74,30 @@
                 traffic: false,
                 locations: '4.8786,52.3679:4.8798,52.3679'
             })
-            .go()
-            .then(function(response) {
-                var geojson = response.toGeoJson();
-                map.addLayer({
-                    'id': 'route',
-                    'type': 'line',
-                    'source': {
-                        'type': 'geojson',
-                        'data': geojson
-                    },
-                    'paint': {
-                        'line-color': '#00d7ff',
-                        'line-width': 8
-                    }
-                }, findFirstBuildingLayerId());
+                .go()
+                .then(function(response) {
+                    var geojson = response.toGeoJson();
+                    map.addLayer({
+                        'id': 'route',
+                        'type': 'line',
+                        'source': {
+                            'type': 'geojson',
+                            'data': geojson
+                        },
+                        'paint': {
+                            'line-color': '#00d7ff',
+                            'line-width': 8
+                        }
+                    }, findFirstBuildingLayerId());
 
-                addMarkers(geojson.features[0]);
+                    addMarkers(geojson.features[0]);
 
-                var bounds = new tt.LngLatBounds();
-                geojson.features[0].geometry.coordinates.forEach(function(point) {
-                    bounds.extend(tt.LngLat.convert(point));
+                    var bounds = new tt.LngLatBounds();
+                    geojson.features[0].geometry.coordinates.forEach(function(point) {
+                        bounds.extend(tt.LngLat.convert(point));
+                    });
+                    map.fitBounds(bounds, { duration: 0, padding: 50 });
                 });
-                map.fitBounds(bounds, { duration: 0, padding: 50 });
-            });
         });
     </script>
 </body>

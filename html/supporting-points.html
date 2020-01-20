@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html class='use-all-space'>
-
 <head>
     <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
     <meta charset='UTF-8'>
@@ -70,6 +69,9 @@
         .map-view .tt-tabs .tt-tabs__placeholder {
             font-size: 15px;
         }
+        .map-view .input-wrappper {
+            min-height: 52px;
+        }
         .remove-btn {
             background-color: transparent;
             border: 0;
@@ -82,11 +84,11 @@
     <div class='map-view'>
         <form class='tt-side-panel js-form'>
             <header class='tt-side-panel__header'>
-                <div>
+                <div class='input-wrappper'>
                     <div class='tt-icon icon-spacing -start -black'></div>
                     <div id='startSearchBox' class='tt-form-label searchbox'></div>
                 </div>
-                <div>
+                <div class='input-wrappper'>
                     <div class='tt-icon icon-spacing -finish -black'></div>
                     <div id='finishSearchBox' class='tt-form-label searchbox'></div>
                 </div>
@@ -110,18 +112,13 @@
     <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/dom-helpers.js'></script>
-
     <script>
-        var tt = window.tt;
-        var InfoHint = window.InfoHint;
-
         tt.setProductInfo('<your-product-name>', '<your-product-version>');
-
         var map = tt.map({
             key: '${api.key.maps}',
             container: 'map',
             style: 'tomtom://vector/1/basic-main',
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         });
         map.addControl(new tt.FullscreenControl({ container: document.querySelector('body') }));
         map.addControl(new tt.NavigationControl());
@@ -186,8 +183,8 @@
                 startPoint = feature.geometry.coordinates[0];
                 endPoint = feature.geometry.coordinates.slice(-1)[0];
             }
-            startMarker = new tt.Marker({element: createMarkerElement('start')}).setLngLat(startPoint).addTo(map);
-            endMarker = new tt.Marker({element: createMarkerElement('finish')}).setLngLat(endPoint).addTo(map);
+            startMarker = new tt.Marker({ element: createMarkerElement('start') }).setLngLat(startPoint).addTo(map);
+            endMarker = new tt.Marker({ element: createMarkerElement('finish') }).setLngLat(endPoint).addTo(map);
         }
 
         function clearMap() {
@@ -284,6 +281,15 @@
             drawRoute(true);
         }
 
+        function onResultCleared(type) {
+            if (type === 'start') {
+                startMarker.remove();
+            } else {
+                endMarker.remove();
+            }
+            clearMap();
+        }
+
         function createSearchBox(type) {
             var searchBox = new tt.plugins.SearchBox(tt.services.fuzzySearch, {
                 showSearchIcon: false,
@@ -294,6 +300,12 @@
             });
             document.getElementById(type + 'SearchBox').appendChild(searchBox.getSearchBoxHTML());
             searchBox.on('tomtom.searchbox.resultselected', onResultSelected.bind(undefined, type));
+            searchBox.on('tomtom.searchbox.resultscleared', onResultCleared.bind(undefined, type));
+            searchBox.getSearchBoxHTML().addEventListener('keyup', function(e) {
+                if (e.srcElement.value.length === 0) {
+                    onResultCleared(type);
+                }
+            });
             return searchBox;
         }
 
@@ -384,7 +396,7 @@
 
             toggleResultsVisibility(true);
 
-            var resultItem = window.DomHelpers.createResultItem();
+            var resultItem = DomHelpers.createResultItem();
 
             var addressDiv = document.createElement('div');
             addressDiv.innerText = firstAddress.address.freeformAddress;
@@ -408,15 +420,14 @@
                 e.originalEvent.target.classList.contains('supporting-circle')) {
                 return;
             }
-
-            if (supportingPoints.length < 1) {
+            if (supportingPoints.length < 1 && !errorHint.isHidden()) {
                 infoHint.setMessage('You need to have at least 2 supporting points selected');
             }
 
             if (supportingPoints.length > 1 && route.start && route.finish) {
                 loadingHint.setMessage('Loading...');
             }
-
+            errorHint.hide();
             tt.services.reverseGeocode({
                 key: '${api.key.search}',
                 position: e.lngLat.toArray()

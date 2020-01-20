@@ -14,55 +14,45 @@
         #foldable {
             width: 320px;
         }
-
         #form {
             margin-top: 10px;
         }
-
         .tt-icon-size {
             height: 18px !important;
             padding: 8px;
             width: 18px !important;
         }
-
         .icon-spacing-right {
             margin-right: 12px;
             margin-top: 22px;
         }
-
         .icon-spacing-left {
             margin-left: 12px;
             margin-top: 24px;
         }
-
         .route-input-container {
             display: flex;
         }
-
         button.add-stop-btn {
             margin-left: 30px;
             margin-top: 24px;
         }
-
         .tt-search-box-input {
             width: calc(100% - 25px) !important;
         }
-
         .remove-btn {
             background-color: transparent;
-            border: 0px;
+            border: 0;
         }
-
         .remove-btn.hidden {
             visibility: hidden;
         }
-
         .waypoint-marker {
             align-items: center;
             background-color: #4a90e2;
             border: solid 3px #2faaff;
             border-radius: 50%;
-            color: white;
+            color: #ffffff;
             display: flex;
             font-size: 14px;
             font-weight: bold;
@@ -72,18 +62,20 @@
             width: 32px !important;
             will-change: unset !important;
         }
-
         .tt-icon-number {
             align-items: center;
-            background: #fff;
+            background: #ffffff;
             background-color: #8dc3eb;
             border-radius: 50%;
-            color: white;
+            color: #ffffff;
             display: flex;
             height: 18px;
             justify-content: center;
             text-align: center;
             width: 25px;
+        }
+        div.tt-search-box {
+            transform: none;
         }
 </style>
 <body>
@@ -106,7 +98,7 @@
             key: '${api.key.maps}',
             container: 'map',
             style: 'tomtom://vector/1/basic-main',
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         });
         map.addControl(new tt.FullscreenControl());
         map.addControl(new tt.NavigationControl());
@@ -175,7 +167,7 @@
             if (maxIndex < 0) {
                 return;
             }
-            
+
             locations.forEach(function(location, index) {
                 var marker = new tt.Marker(this.waypointMarker(index, maxIndex)).setLngLat(location).addTo(map);
                 markers.push(marker);
@@ -407,7 +399,6 @@
         });
         
         new Panel(routingService);
-
     </script>
 </body>
 </html>

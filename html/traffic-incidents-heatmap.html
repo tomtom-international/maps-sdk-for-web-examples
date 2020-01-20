@@ -15,11 +15,10 @@
     <script src='/cdn.web-sdk-services/services-web.min.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
     <script>
-        var tt = window.tt;
         var map = tt.map({
             key: '${api.key.maps}',
             container: 'map',
-            dragPan: !window.isMobileOrTablet(),
+            dragPan: !isMobileOrTablet(),
             zoom: 5,
             center: [-8.413585, 40.197530]
         });
@@ -79,7 +78,6 @@
                 }
             };
         }
-
     </script>
 </body>
 </html>

@@ -74,7 +74,7 @@
         key: '${api.key.maps}',
         container: 'map',
         style: 'tomtom://vector/1/basic-main',
-        dragPan: !window.isMobileOrTablet(),
+        dragPan: !isMobileOrTablet(),
         center: [-0.12634, 51.50276],
         zoom: 15
     });
@@ -93,7 +93,7 @@
     var minimap = new tt.plugins.Minimap(minimapOptions);
 
     map.addControl(minimap, 'bottom-right');
-    new window.Foldable('.js-foldable', 'top-right');
+    new Foldable('.js-foldable', 'top-right');
 
     function updateMinimapZoomLevelCounter() {
         document.getElementById('minimapZoom').innerText = minimap.getMap().getZoom().toFixed(2);
@@ -104,16 +104,16 @@
     }
 
     function updateMinimapMinZoomLevel() {
-        var minZoom = parseInt(document.getElementById('minZoomSlider').value);
+        var minZoom = parseInt(document.getElementById('minZoomSlider').value, 10);
         document.getElementById('minZoomCounter').innerText = minZoom;
-        minimapOptions = Object.assign({mapOptions: Object.assign(minimapOptions.mapOptions || {}, {minZoom: minZoom})},
+        minimapOptions = Object.assign({ mapOptions: Object.assign(minimapOptions.mapOptions || {}, {minZoom: minZoom}) },
             minimapOptions);
         minimap.getMap().setMinZoom(minZoom);
         updateMinimapZoomLevelCounter();
     }
 
     function updateMinimapMaxZoomLevel() {
-        var maxZoom = parseInt(document.getElementById('maxZoomSlider').value);
+        var maxZoom = parseInt(document.getElementById('maxZoomSlider').value, 10);
         document.getElementById('maxZoomCounter').innerText = maxZoom;
         minimapOptions = Object.assign({mapOptions: Object.assign(minimapOptions.mapOptions || {}, {maxZoom: maxZoom})},
             minimapOptions);
@@ -130,7 +130,7 @@
     }
 
     function updateZoomLevelOffset() {
-        var offset = parseInt(document.getElementById('zoomLevelOffsetSlider').value);
+        var offset = parseInt(document.getElementById('zoomLevelOffsetSlider').value, 10);
         document.getElementById('zoomLevelOffsetCounter').innerText = offset;
         minimapOptions = Object.assign(minimapOptions, {zoomOffset: offset});
         updateMinimap(minimapOptions);

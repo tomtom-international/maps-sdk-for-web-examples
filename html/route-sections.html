@@ -50,7 +50,7 @@
             zoom: 6,
             center: [10.90626, 50.71166],
             style: 'tomtom://vector/1/basic-main',
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         });
         map.addControl(new tt.FullscreenControl());
         map.addControl(new tt.NavigationControl());
@@ -69,7 +69,8 @@
 
         var scenarios = {
             motorwayAndVignettes: {
-                locations: '14.161376953125,50.078294547389454:19.4677734375,51.82219818336938:18.544921875000004,54.278054859672835',
+                locations: '14.161376953125,50.078294547389454:' +
+                    '19.4677734375,51.82219818336938:18.544921875000004,54.278054859672835',
                 types: ['motorway', 'tollRoad', 'tollVignette']
             },
             crossShore: {
@@ -77,7 +78,8 @@
                 types: ['ferry', 'tunnel']
             },
             park: {
-                locations: '-0.04856944084167481,51.49388910878061:-0.05478143692016602,51.49499793428775:-0.05581140518188477,51.49525175801964',
+                locations: '-0.04856944084167481,51.49388910878061:' +
+                    '-0.05478143692016602,51.49499793428775:-0.05581140518188477,51.49525175801964',
                 types: ['pedestrian', 'travelMode']
             },
             crossCountry: {
@@ -171,11 +173,11 @@
             }
         };
 
-        var scenarioSelector = new window.TailSelector(state.types, '.js-scenario-select', state.selectedScenario).getElement();
+        var scenarioSelector = new TailSelector(state.types, '.js-scenario-select', state.selectedScenario).getElement();
         var legendContainer = document.querySelector('.js-legend');
         var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
         var loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
-        new window.Foldable('.js-foldable', 'top-right');
+        new Foldable('.js-foldable', 'top-right');
 
         scenarioSelector.on('change', function(evt) {
             state.selectedScenario = evt.key;
@@ -195,35 +197,35 @@
                 sectionType: scenarios[state.selectedScenario].types,
                 traffic: state.selectedScenario === 'traffic'
             })
-            .go()
-            .then(function(res) {
-                var geojson = res.toGeoJson();
+                .go()
+                .then(function(res) {
+                    var geojson = res.toGeoJson();
 
-                drawLayer(geojson, 'route', '#1692E4', 4);
-                fitBounds(geojson);
+                    drawLayer(geojson, 'route', '#1692E4', 4);
+                    fitBounds(geojson);
 
-                var sectionsGeojsonLines = parseSectionsData(geojson)
-                    .map(function(section) {
-                        return convertToLineGeoJson(section);
-                    });
+                    var sectionsGeojsonLines = parseSectionsData(geojson)
+                        .map(function(section) {
+                            return convertToLineGeoJson(section);
+                        });
 
-                sectionsGeojsonLines
-                    .sort(function(line1, line2) {
-                        return getSectionIndex(line1) - getSectionIndex(line2);
-                    })
-                    .forEach(function(line) {
-                        drawLayer(line, getSectionId(line), getColorProperty(line), 8);
-                    });
+                    sectionsGeojsonLines
+                        .sort(function(line1, line2) {
+                            return getSectionIndex(line1) - getSectionIndex(line2);
+                        })
+                        .forEach(function(line) {
+                            drawLayer(line, getSectionId(line), getColorProperty(line), 8);
+                        });
 
-                createLegend(sectionsGeojsonLines);
-            })
-            .catch(function(error) {
-                var serviceError = error && error.data && error.data.error && error.data.error.description;
-                errorHint.setMessage(serviceError || error && error.message || 'Error occured');
-            })
-            .finally(function() {
-                loadingHint.hide();
-            });
+                    createLegend(sectionsGeojsonLines);
+                })
+                .catch(function(error) {
+                    var serviceError = error && error.data && error.data.error && error.data.error.description;
+                    errorHint.setMessage(serviceError || error && error.message || 'Error occured');
+                })
+                .finally(function() {
+                    loadingHint.hide();
+                });
         }
 
         function parseSectionsData(routeJson) {
@@ -279,9 +281,9 @@
             var coordinates = geojson.features[0].geometry.coordinates;
 
             var bounds = [].concat.apply([], coordinates)
-            .reduce(function(bounds, coord) {
-                return bounds.extend(tt.LngLat.convert(coord));
-            }, new tt.LngLatBounds());
+                .reduce(function(bounds, coord) {
+                    return bounds.extend(tt.LngLat.convert(coord));
+                }, new tt.LngLatBounds());
 
             var cameraOptions = map.cameraForBounds(bounds, { padding: 50 });
 

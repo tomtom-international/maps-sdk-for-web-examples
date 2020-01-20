@@ -45,7 +45,6 @@
         coordinates: null,
         selectedAddress: null
     };
-
     tt.setProductInfo('<your-product-name>', '<your-product-version>');
     var map = tt.map({
         key: '${api.key.maps}',
@@ -53,14 +52,14 @@
         style: 'tomtom://vector/1/basic-main',
         center: state.center,
         zoom: 3,
-        dragPan: !window.isMobileOrTablet()
+        dragPan: !isMobileOrTablet()
     });
-    var roundLatLng = window.Formatters.roundLatLng;
+    var roundLatLng = Formatters.roundLatLng;
 
     map
         .addControl(new tt.FullscreenControl())
         .addControl(new tt.NavigationControl())
-        .on('click', function (event) {
+        .on('click', function(event) {
             var coordinates = {
                 lng: roundLatLng(event.lngLat.lng),
                 lat: roundLatLng(event.lngLat.lat)
@@ -81,7 +80,7 @@
             .setHTML('Loading...')
             .addTo(map);
         fetchAddress(coordinates, selectedEntityType)
-            .then(function (reverseGeocodeResponse) {
+            .then(function(reverseGeocodeResponse) {
                 var address = reverseGeocodeResponse.addresses[0];
                 if (!address) {
                     throw new Error('Could not find any matching address.');
@@ -93,7 +92,7 @@
                     fetchPolygon(geometry, geometryZoom)
                 ]);
             })
-            .then(function (aggregatedResponse) {
+            .then(function(aggregatedResponse) {
                 var reverseGeocodeResponse = aggregatedResponse[0],
                     additionalDataResponse = aggregatedResponse[1];
                 var address = reverseGeocodeResponse.addresses[0],
@@ -109,14 +108,14 @@
                 if (state.selectedAddress === address.address.freeformAddress) {
                     const bBox = new tt.LngLatBounds(boundingBox.southWest, boundingBox.northEast);
                     map.fitBounds(new AntimeridianHandler().normalizeBoundingBox(bBox),
-                    { padding: 100, linear: true });
+                        { padding: 100, linear: true });
                     return layerManager.updateLayer(layer)
-                        .then(function () {
+                        .then(function() {
                             popup.setHTML('<strong>' + address.address.freeformAddress + '</strong>');
                         });
                 }
             })
-            .catch(function (error) {
+            .catch(function(error) {
                 var message = error;
                 if (error.data) {
                     message = message.data;
@@ -138,7 +137,7 @@
     }
 
     //-- Fetches
-    var fetchAddress = function (coordinates, entityType) {
+    var fetchAddress = function(coordinates, entityType) {
         return tt.services.reverseGeocode({
             key: '${api.key.search}',
             position: coordinates,
@@ -146,7 +145,7 @@
         }).go();
     };
 
-    var fetchPolygon = function (geometry, geometryZoom) {
+    var fetchPolygon = function(geometry, geometryZoom) {
         return tt.services.additionalData({
             key: '${api.key.search}',
             geometries: [ geometry ],
@@ -156,11 +155,11 @@
 
     /**
      * createLayer
-     * @param geoJSON
-     * @param geometryZoom
+     * @param {object} geoJSON
+     * @param {number} geometryZoom
      * @return {object}
      */
-    var createLayer = function (geoJSON, geometryZoom) {
+    var createLayer = function(geoJSON, geometryZoom) {
         return {
             id: geoJSON.id + '|' + geometryZoom,
             type: 'fill',
@@ -179,15 +178,15 @@
     //-- Instances
     var layerManager = new LayerManager(map);
     var form = {
-        geometryZoom: function () {
+        geometryZoom: function() {
             return sliderElement.value;
         },
-        entityType: function () {
+        entityType: function() {
             return document.querySelector('.tt-buttons-group__button.-active').innerText;
         }
     };
 
-    var marker = (function () {
+    var marker = (function() {
         var markerElement = document.createElement('div');
         markerElement.className = 'tt-marker -start';
         return new tt.Marker(markerElement)
@@ -211,11 +210,11 @@
         buttonGroupElement = document.querySelector('.tt-buttons-group');
     counterElement.innerText = form.geometryZoom();
 
-    sliderElement.addEventListener('change', function () {
+    sliderElement.addEventListener('change', function() {
         counterElement.innerText = sliderElement.value;
         update(state.coordinates, form.geometryZoom(), form.entityType());
     });
-    var buttonGroup = new window.ButtonsGroup(buttonGroupElement);
+    var buttonGroup = new ButtonsGroup(buttonGroupElement);
 
     buttonGroup.onSelect(function(target) {
         update(state.coordinates, form.geometryZoom(), target.textContent);

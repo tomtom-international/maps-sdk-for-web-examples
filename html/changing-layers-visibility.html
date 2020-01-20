@@ -37,7 +37,7 @@
             key: '${api.key.maps}',
             container: 'map',
             style: 'tomtom://vector/1/basic-main',
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         });
         map.addControl(new tt.FullscreenControl());
         map.addControl(new tt.NavigationControl());
@@ -53,10 +53,10 @@
 
             return function() {
                 [].slice.call(document.querySelectorAll('.layer-checkbox'))
-                .forEach(function(checkbox) {
-                    checkbox.checked = !isChecked;
-                    changeLayerVisibility(checkbox.id, checkbox.checked);
-                });
+                    .forEach(function(checkbox) {
+                        checkbox.checked = !isChecked;
+                        changeLayerVisibility(checkbox.id, checkbox.checked);
+                    });
                 isChecked = !isChecked;
             };
         }

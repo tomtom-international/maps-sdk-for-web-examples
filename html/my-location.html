@@ -22,13 +22,13 @@
         // Define your product name and version
         tt.setProductInfo('<your-product-name>', '<your-product-version>');
 
-        var mapElement = document.getElementById('map');
         var messageBox = document.querySelector('.js-message-box');
         var messageBoxContent = document.querySelector('.tt-overlay-panel__content');
         var messageBoxClose = messageBox.querySelector('.js-message-box-close');
 
         var messages = {
-            permissionDenied: 'Permission denied. You can change your browser settings to allow usage of geolocation on this domain.',
+            permissionDenied: 'Permission denied. You can change your browser settings' +
+                'to allow usage of geolocation on this domain.',
             notAvailable: 'Geolocation data provider not available.'
         };
 
@@ -37,7 +37,7 @@
             key: '${api.key.maps}',
             container: 'map',
             style: 'tomtom://vector/1/basic-main',
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         });
         map.addControl(new tt.FullscreenControl());
 
@@ -57,7 +57,7 @@
 
         function handlePermissionDenied() {
             if ('permissions' in navigator) {
-                navigator.permissions.query({name:'geolocation'})
+                navigator.permissions.query({name: 'geolocation'})
                     .then(function(result) {
                         if (result.state === 'denied') {
                             displayErrorMessage(messages.permissionDenied);
@@ -81,13 +81,13 @@
         }
 
         function handleError(error) {
-            switch(error.code) {
-                case error.PERMISSION_DENIED:
-                    displayErrorMessage(messages.permissionDenied);
+            switch (error.code) {
+            case error.PERMISSION_DENIED:
+                displayErrorMessage(messages.permissionDenied);
                 break;
-                case error.POSITION_UNAVAILABLE:
-                case error.TIMEOUT:
-                    displayErrorMessage(messages.notAvailable);
+            case error.POSITION_UNAVAILABLE:
+            case error.TIMEOUT:
+                displayErrorMessage(messages.notAvailable);
             }
         }
     </script>

@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Geopolitical views search</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/css-styles/poi.css'/>
+
+    <style>
+        .tt-tabs__panel {
+            height: 100%;
+        }
+        .scenario-results .tt-results-list {
+            box-shadow: unset;
+            height: 100%;
+            overflow-y: auto;
+        }
+        .double-list {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            overflow: hidden;
+        }
+        .tt-results-list .tt-results-list__item {
+            padding: 12px 24px;
+        }
+        .tt-results-list__item:before {
+            height: 0 !important;
+        }
+        .result-header {
+            align-items: center;
+            background-color: #ffffff;
+            display: flex;
+            font-size: 15px;
+            font-weight: bold;
+            height: 15%;
+            margin-bottom: 2px;
+            padding-left: 24px;
+        }
+        .result-header[hidden] {
+            display: none;
+        }
+        .scenario-results {
+            height: 48%;
+        }
+        #scenario-results-2 {
+            margin-top: 4%;
+        }
+        .js-results {
+            height: 85%;
+        }
+        .tt-results-list__item.-selected {
+            margin: 10px;
+            padding: 2px 14px;
+        }
+        .tt-results-list__item.-selected .highlight {
+            color: #b1110e;
+        }
+    </style>
+</head>
+
+<body>
+    <div class='map-view'>
+        <form class='tt-side-panel js-form'>
+            <header class='tt-side-panel__header'>
+                <label class='tt-form-label'>
+                    Scenario
+                    <select id='scenario-select' class='tt-select'></select>
+                </label>
+                <div class='tt-spacing-top-12'>
+                    <div class='js-filters-container tt-filters-container'></div>
+                </div>
+            </header>
+
+            <div class='tt-tabs js-tabs'>
+                <div class='tt-tabs__panel'>
+                    <div class='js-results-loader' hidden='hidden'>
+                        <div class='loader-center'><span class='loader'></span></div>
+                    </div>
+                    <div class='double-list'>
+                        <div class='tt-tabs__placeholder js-results-placeholder'>
+                            NO RESULTS
+                        </div>
+                        <div class='scenario-results' id='scenario-results-1'>
+                            <div class='result-header' hidden='hidden'></div>
+                            <div class='js-results' hidden='hidden'></div>
+                        </div>
+                        <div class='scenario-results' id='scenario-results-2'>
+                            <div class='result-header' hidden='hidden'></div>
+                            <div class='js-results' hidden='hidden'></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div id='map1' class='full-map'></div>
+        <div id='map2' class='full-map'></div>
+    </div>
+    <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/search-results-parser.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/dom-helpers.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/results-manager.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/geopolitical-views.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/tail-selector.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search-markers/search-marker.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search-markers/search-markers-manager.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/sync-maps.js'></script>
+
+    <script>
+        var tt = window.tt;
+        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+
+        var selectedScenario = 'Srinagar (Kashmir)';
+
+        var countryCodes = {
+            IN: 'India',
+            PK: 'Pakistan',
+            AR: 'Argentina',
+            MA: 'Morocco',
+            IL: 'Israel',
+            Unified: 'Unified'
+        };
+
+        var scenarios = {
+            'Srinagar (Kashmir)': {
+                query: 'Srinagar',
+                center: [74.8046206, 34.0811141],
+                geopoliticalViews: [
+                    'IN',
+                    'PK'
+                ]
+            },
+            'El samara (Western Sahara)': {
+                query: 'El samara',
+                center: [-11.6695703, 26.746126],
+                geopoliticalViews: [
+                    'MA',
+                    'Unified'
+                ]
+            },
+            'Mosque (Gaza)': {
+                query: 'mosque',
+                center: [34.4648144, 31.5021087],
+                geopoliticalViews: [
+                    'IL',
+                    'Unified'
+                ]
+            }
+        };
+
+        var scenarioSelector = new window.TailSelector(Object.keys(scenarios), '#scenario-select');
+        var noResultsElem = document.querySelector('.tt-tabs__placeholder.js-results-placeholder');
+        var loaderElem = document.querySelector('.js-results-loader');
+        var resultHeader1 = document.querySelector('#scenario-results-1 .result-header');
+        var resultHeader2 = document.querySelector('#scenario-results-2 .result-header');
+        var resultList1 = document.querySelector('#scenario-results-1 .js-results');
+        var resultList2 = document.querySelector('#scenario-results-2 .js-results');
+
+        // ScenarioView class
+        function ScenarioView(mapContainer, resultsElementSelector, defaultGeopolView) {
+            this.mapContainer = mapContainer;
+            this.resultsElementSelector = resultsElementSelector;
+            this.selectedGeopoliticalView = defaultGeopolView || 'IN';
+        }
+
+        ScenarioView.prototype._initMap = function() {
+            this._map = tt.map({
+                key: '${api.key.maps}',
+                container: this.mapContainer,
+                style: 'tomtom://vector/1/basic-main',
+                center: [-0.125827, 51.499125],
+                zoom: 6,
+                dragPan: !window.isMobileOrTablet()
+            });
+            this._map.addControl(new tt.FullscreenControl({ container: document.querySelector('body') }));
+            this._map.addControl(new tt.NavigationControl());
+        };
+
+        ScenarioView.prototype.getMap = function() {
+            return this._map;
+        };
+
+        ScenarioView.prototype.setResults = function(results) {
+            this._searchResultsManager.render(results);
+        };
+
+        ScenarioView.prototype.setGeopoliticalView = function(geopoliticalView) {
+            this.selectedGeopoliticalView = geopoliticalView;
+        };
+
+        ScenarioView.prototype.getResultData = function() {
+            return {
+                results: this._searchResultsManager.results,
+                markers: this._searchResultsManager._searchMarkersManager.getMarkers()
+            };
+        };
+
+        ScenarioView.prototype.init = function(onResultItemClicked) {
+            this._initMap();
+            this._searchResultsManager = new SearchResultsManager(this._map, this.resultsElementSelector);
+            this._searchResultsManager.setResultItemClickListener(onResultItemClicked);
+        };
+
+        //SearchResultsManager class
+        function SearchResultsManager(map, resultsElementSelector) {
+            this._map = map;
+            this._searchMarkersManager = new SearchMarkersManager(this._map);
+            this._resultsManager = new ResultsManager(resultsElementSelector);
+        }
+
+        SearchResultsManager.prototype._getBounds = function(data) {
+            var btmRight = [data.viewport.btmRightPoint.lng, data.viewport.btmRightPoint.lat];
+            var topLeft = [data.viewport.topLeftPoint.lng, data.viewport.topLeftPoint.lat];
+            return [btmRight, topLeft];
+        };
+
+        SearchResultsManager.prototype._fitToViewport = function(markerData) {
+            if (!markerData || !markerData.length) {
+                return;
+            }
+
+            var bounds = new tt.LngLatBounds();
+
+            markerData.forEach(function(marker) {
+                bounds.extend(this._getBounds(marker));
+            }.bind(this));
+
+            this._map.fitBounds(bounds, { padding: 100, linear: true });
+        };
+
+        SearchResultsManager.prototype.handleSearchResultItemClick = function(result) {
+            this._onResultItemClick(result);
+        };
+
+        SearchResultsManager.prototype.setResultItemClickListener = function(listenerFunc) {
+            this._onResultItemClick = listenerFunc;
+        };
+
+        SearchResultsManager.prototype.appendMarkerClickListener = function(markers) {
+            Object.keys(markers).forEach(function(markerKey) {
+                var marker = markers[markerKey];
+                marker.marker.getElement()
+                    .addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        this.handleSearchResultItemClick(this.results[markerKey].result);
+                    }.bind(this));
+            }.bind(this));
+        };
+
+        SearchResultsManager.prototype.render = function(results) {
+            this.results = {};
+            this._searchMarkersManager.clear();
+            this._searchMarkersManager.draw(results);
+            this._fitToViewport(results);
+
+            this._resultsManager.clear();
+
+            var resultList = DomHelpers.createResultList();
+
+            if (results.length > 0) {
+                this._resultsManager.resultsElement.removeAttribute('hidden');
+
+                results.forEach(function(result) {
+                    var distance = SearchResultsParser.getResultDistance(result);
+                    var searchResult = DomHelpers.createSearchResult(
+                        SearchResultsParser.getResultName(result),
+                        SearchResultsParser.getResultAddress(result),
+                        distance ? Formatters.formatAsMetricDistance(distance) : ''
+                    );
+
+                    var resultItem = DomHelpers.createResultItem();
+                    resultItem.appendChild(searchResult);
+                    resultItem.addEventListener('click', this.handleSearchResultItemClick.bind(this, result));
+
+                    resultList.appendChild(resultItem);
+                    this.results[result.id] = {
+                        result: result,
+                        resultElem: resultItem
+                    };
+                }, this);
+                this._resultsManager.append(resultList);
+
+                this.appendMarkerClickListener(this._searchMarkersManager.getMarkers());
+            }
+        };
+
+        //helpers
+        function getNonExistentWordsInString(firstString, secondString) {
+            var a = firstString.replace(/,/g, '').split(' ');
+            var b = secondString.replace(/,/g, '').split(' ');
+
+            var nonExistantWords = [];
+
+            a.forEach(function(word) {
+                if (b.indexOf(word) === -1) {
+                    nonExistantWords.push(word);
+                }
+            });
+            return nonExistantWords;
+        }
+
+        // handling events
+        function findResultByPosition(resultList, result) {
+            var key = Object.keys(resultList).find(function(resultListKey) {
+                var resultMapping = resultList[resultListKey];
+                return resultMapping.result.position.lat === result.position.lat &&
+                resultMapping.result.position.lng === result.position.lng;
+            });
+            return resultList[key];
+        }
+
+        function togglePopups(markers, activeMarkerId) {
+            Object.keys(markers).forEach(function(markerKey) {
+                var marker = markers[markerKey];
+                if (marker.getPopup().isOpen()) {
+                    marker.togglePopup();
+                }
+            });
+
+            var activeMarker = markers[activeMarkerId];
+            if (activeMarker && !activeMarker.getPopup().isOpen()) {
+                activeMarker.togglePopup();
+            }
+        }
+
+        function selectResultItem(results, activeResultId) {
+            var resultElem = results[activeResultId].resultElem;
+            if (resultElem.classList.contains('-selected')) {
+                return;
+            }
+
+            Object.keys(results).forEach(function(key) {
+                results[key].resultElem.classList.remove('-selected');
+            });
+
+            resultElem.classList.add('-selected');
+            resultElem.parentNode.scrollTop = resultElem.offsetTop - resultElem.parentNode.offsetTop - 10;
+        }
+
+        function highlightElemText(elem, textA, textB) {
+            var newText = textA;
+            var textDifference = getNonExistentWordsInString(textA, textB);
+            textDifference.forEach(function(word) {
+                newText = newText.replace(word, '<span class="highlight">' + word + '</span>');
+            });
+            elem.innerHTML = '<div>' + newText + '</div>';
+        }
+
+        function highlightTextDifference(elemA, elemB) {
+            var textElemA = elemA.querySelector('.tt-search-result__address');
+            var textElemB = elemB.querySelector('.tt-search-result__address');
+
+            highlightElemText(textElemA, textElemA.innerText, textElemB.innerText);
+            highlightElemText(textElemB, textElemB.innerText, textElemA.innerText);
+        }
+
+        function onResultItemClicked(result) {
+            var scenario1Data = scenarioView1.getResultData();
+            var scenario2Data = scenarioView2.getResultData();
+
+            var result1 = findResultByPosition(scenario1Data.results, result);
+            var result2 = findResultByPosition(scenario2Data.results, result);
+
+            togglePopups(scenario1Data.markers, result1.result.id);
+            togglePopups(scenario2Data.markers, result2.result.id);
+
+            selectResultItem(scenario1Data.results, result1.result.id);
+            selectResultItem(scenario2Data.results, result2.result.id);
+
+            highlightTextDifference(scenario1Data.results[result1.result.id].resultElem,
+                scenario2Data.results[result2.result.id].resultElem);
+
+            scenarioView1.getMap().easeTo({
+                center: result.position
+            });
+        }
+
+        function searchRequest() {
+            loaderElem.removeAttribute('hidden');
+            noResultsElem.style.display = 'none';
+            [resultHeader1, resultHeader2, resultList1, resultList2].forEach(function(elem) {
+                elem.setAttribute('hidden', 'hidden');
+            });
+
+            var scenario = scenarios[selectedScenario];
+
+            Promise.all([
+                tt.services.fuzzySearch({
+                    key: '${api.key.search}',
+                    query: scenario.query,
+                    center: scenario.center,
+                    view: scenarioView1.selectedGeopoliticalView,
+                    radius: 100000,
+                    idxSet: 'POI'
+                }).go(),
+                tt.services.fuzzySearch({
+                    key: '${api.key.search}',
+                    query: scenario.query,
+                    center: scenario.center,
+                    view: scenarioView2.selectedGeopoliticalView,
+                    radius: 100000,
+                    idxSet: 'POI'
+                }).go()
+            ]).then(function(resp) {
+                loaderElem.setAttribute('hidden', 'hidden');
+
+                // set results
+                scenarioView1.setResults(resp[0].results);
+                scenarioView2.setResults(resp[1].results);
+
+                // change geopolitical views
+                scenarioView1.getMap().setGeopoliticalView(scenarioView1.selectedGeopoliticalView);
+                scenarioView2.getMap().setGeopoliticalView(scenarioView2.selectedGeopoliticalView);
+
+                // update headers
+                resultHeader1.removeAttribute('hidden');
+                resultHeader2.removeAttribute('hidden');
+                resultHeader1.innerText = countryCodes[scenarioView1.selectedGeopoliticalView] + ' view results (left)';
+                resultHeader2.innerText = countryCodes[scenarioView2.selectedGeopoliticalView] + ' view results (right)';
+            });
+        }
+
+        //init
+        var scenarioView1 = new ScenarioView('map1', '#scenario-results-1');
+        var scenarioView2 = new ScenarioView('map2', '#scenario-results-2', 'PK');
+
+        scenarioView1.init(onResultItemClicked);
+        scenarioView2.init(onResultItemClicked);
+
+        window.syncMaps(scenarioView1.getMap(), scenarioView2.getMap());
+
+        scenarioSelector.getElement().on('change', function(e) {
+            selectedScenario = e.value;
+            var geopoliticalViews = scenarios[selectedScenario].geopoliticalViews;
+            scenarioView1.setGeopoliticalView(geopoliticalViews[0]);
+            scenarioView2.setGeopoliticalView(geopoliticalViews[1]);
+            searchRequest();
+        });
+
+        searchRequest();
+    </script>
+</body>
+
+</html>

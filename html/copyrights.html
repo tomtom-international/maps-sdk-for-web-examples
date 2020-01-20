@@ -15,12 +15,11 @@
     <script>
         // Define your product name and version.
         tt.setProductInfo('<your-product-name>', '<your-product-version>');
-
         var map = tt.map({
             key: '${api.key.maps}',
             container: 'map',
             style: 'tomtom://vector/1/basic-main',
-            dragPan: !window.isMobileOrTablet(),
+            dragPan: !isMobileOrTablet(),
             attributionControlPosition: 'bottom-left'
         });
         map.addControl(new tt.FullscreenControl());

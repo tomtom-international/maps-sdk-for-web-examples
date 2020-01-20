@@ -24,13 +24,16 @@
 <div id='map' class='map'>
     <div id='foldable' class='tt-overlay-panel -left-top -medium js-foldable'>
         <form>
-            <label id='searchBoxPlaceholder' class='tt-form-label'>Search
+            <label id='searchBoxPlaceholder' class='tt-form-label'>
+                Search
             </label>
             <label class='tt-form-label'>
                 Geometries zoom (<span id='geometriesZoomLevelCounter' class='tt-counter'>11</span>)
                 <input id='geometriesZoomLevelSlider' class='tt-slider' type='range' min='0' max='22' value='11'/>
             </label>
-            <label class='tt-form-label'>Map zoom: <span id='mapZoom'>0</span></label>
+            <label class='tt-form-label'>
+                Map zoom: <span id='mapZoom'>0</span>
+            </label>
         </form>
     </div>
 </div>
@@ -47,14 +50,13 @@
     var POLYGON_ID = 'searchResultPolygon';
 
     new Foldable('#foldable', 'top-right');
-    var roundLatLng = window.Formatters.roundLatLng;
-
+    var roundLatLng = Formatters.roundLatLng;
     var map = tt.map({
         key: '${api.key.maps}',
         container: 'map',
         style: 'tomtom://vector/1/basic-main',
         zoom: 0,
-        dragPan: !window.isMobileOrTablet()
+        dragPan: !isMobileOrTablet()
     });
     map.addControl(new tt.FullscreenControl());
     map.addControl(new tt.NavigationControl());
@@ -72,7 +74,7 @@
 
     var geometriesZoomLevelSliderEl = document.querySelector('#geometriesZoomLevelSlider');
     var geometriesZoomLevelCounterEl = document.querySelector('#geometriesZoomLevelCounter');
-    geometriesZoomLevelSliderEl.addEventListener('change', function () {
+    geometriesZoomLevelSliderEl.addEventListener('change', function() {
         geometriesZoomLevelCounterEl.innerText = geometriesZoomLevelSliderEl.value;
         return loadPolygon();
     });
@@ -145,7 +147,7 @@
     function showStartSearchingPopup() {
         popup.setLngLat(map.getCenter())
             .setHTML('<strong>Start searching.</strong>');
-        if(!popup.isOpen()) {
+        if (!popup.isOpen()) {
             popup.addTo(map);
         }
     }
@@ -171,12 +173,11 @@
                 geometriesZoom: geometriesZoomLevelSliderEl.value
             }).go();
         }).then(function(additionalDataResponse) {
-            var additionalDataResult = additionalDataResponse && additionalDataResponse.additionalData
-                && additionalDataResponse.additionalData[0];
+            var additionalDataResult = additionalDataResponse && additionalDataResponse.additionalData &&
+                additionalDataResponse.additionalData[0];
             renderPolygon(searchResult, additionalDataResult);
             showPopup(searchResult);
         }).catch(function(error) {
-            console.error(error);
             clearPopup();
             if (error.message) {
                 errorHint.setMessage(error.message);
@@ -208,7 +209,6 @@
         clearPolygon();
         showStartSearchingPopup();
     });
-
 </script>
 </body>
 </html>

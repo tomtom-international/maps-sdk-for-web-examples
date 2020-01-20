@@ -16,7 +16,6 @@
         font-size: 13px;
         font-weight: bold;
     }
-
     .static-image-result .tt-code-snippet {
         min-width: 350px;
     }
@@ -26,17 +25,14 @@
         margin-right: 48px;
         min-width: 400px;
     }
-
     .js-image-container.-is-loading:before {
         content: "Loading...";
         position: absolute;
     }
-
     .static-image-result img {
         max-height: 400px;
         max-width: 100%;
     }
-
     .image-border {
         background: rgba(255, 255, 255, .2);
         border: 2px dashed #004b7e;
@@ -49,21 +45,17 @@
         width: 256px;
         z-index: 2;
     }
-
     @media screen and (max-width: 1280px) {
         .static-image-result {
             flex-direction: column;
             width: inherit;
         }
-
         .static-image-result .tt-code-snippet {
             min-width: inherit;
         }
-
         .static-image-result img {
             margin-bottom: 24px;
         }
-
         .static-image-result__img-container {
             min-width: inherit;
         }
@@ -81,7 +73,8 @@
 
                     <div class='tt-params-box__content'>
                         <div class='tt-inline-input-group'>
-                            <label class='tt-form-label'>Width (px)
+                            <label class='tt-form-label'>
+                                Width (px)
                                 <input
                                     class='tt-input js-width'
                                     value='512'
@@ -90,7 +83,8 @@
                                     max='8192'
                                     placeholder='e.g. 1500' />
                             </label>
-                            <label class='tt-form-label js-height'>Height (px)
+                            <label class='tt-form-label js-height'>
+                                Height (px)
                                 <input
                                 class='tt-input'
                                 value='512'
@@ -101,13 +95,16 @@
                             </label>
                         </div>
 
-                        <label class='tt-form-label tt-spacing-top-24'>Language
+                        <label class='tt-form-label tt-spacing-top-24'>
+                            Language
                             <select class='js-language-select tt-select'></select>
                         </label>
-                        <label class='tt-form-label'>Geopolitical view
+                        <label class='tt-form-label'>
+                            Geopolitical view
                             <select class='js-geo-view-select tt-select'></select>
                         </label>
-                        <label class='tt-form-label'>Style
+                        <label class='tt-form-label'>
+                            Style
                             <select class='js-style-select tt-select'></select>
                         </label>
 
@@ -170,7 +167,7 @@
         container: 'map',
         maxZoom: 21,
         style: 'tomtom://raster/1/basic-main',
-        dragPan: !window.isMobileOrTablet(),
+        dragPan: !isMobileOrTablet(),
         dragRotate: false
     });
     map.addControl(new tt.FullscreenControl({ container: document.querySelector('.map-view') }));
@@ -183,10 +180,10 @@
         document.querySelector('.js-zoom-level').innerText = zoom > 22 ? 22 : zoom;
     });
 
-    window.stepZoomHandler.enable(map);
+    stepZoomHandler.enable(map);
 
-    new window.SidePanel('.tt-side-panel', map);
-    var popup = new window.Popup();
+    new SidePanel('.tt-side-panel', map);
+    var popup = new Popup();
     popup.addTo(document.querySelector('.map-view'));
     popup.addTitle('Static map image:');
     var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
@@ -203,10 +200,10 @@
     var elements = {
         width: document.querySelector('.js-width'),
         height: document.querySelector('.js-height'),
-        language: new window.TailSelector(window.mapLanguages, '.js-language-select', 'NGT').getElement(),
-        view: new window.TailSelector(window.mapGeopoliticalViews, '.js-geo-view-select', 'Unified').getElement(),
-        style: new window.TailSelector(styles, '.js-style-select', 'main').getElement(),
-        layer: new window.ButtonsGroup(document.querySelector('.js-layer-buttons-group')),
+        language: new TailSelector(mapLanguages, '.js-language-select', 'NGT').getElement(),
+        view: new TailSelector(mapGeopoliticalViews, '.js-geo-view-select', 'Unified').getElement(),
+        style: new TailSelector(styles, '.js-style-select', 'main').getElement(),
+        layer: new ButtonsGroup(document.querySelector('.js-layer-buttons-group')),
         form: document.querySelector('.js-form'),
         formats: document.querySelectorAll('input[name=format]')
     };
@@ -233,7 +230,6 @@
         input.addEventListener('click', formatChangeHandler);
     });
     elements.form.addEventListener('submit', submitHandler);
-
 
     function layerChangeHandler(element) {
         state.layer = element.innerText;
@@ -277,34 +273,34 @@
         };
 
         tt.services.staticImage(options)
-        .go()
-        .then(function(result) {
-            var url = result.replace(/&/g, '&amp;');
-            var publicUrl = url.replace('${api.key}', '&lt;your-api-key&gt;');
+            .go()
+            .then(function(result) {
+                var url = result.replace(/&/g, '&amp;');
+                var publicUrl = url.replace('${api.key}', '&lt;your-api-key&gt;');
 
-            var content =
-                '<div class="static-image-result">' +
-                    '<div class="static-image-result__img-container -is-loading js-image-container">' +
-                        '<img src="' + url + '" onload="handleImageLoad()"/>' +
-                    '</div>' +
-                    '<div class="snippet-container">' +
-                        'HTML' +
-                        '<pre class="tt-code-snippet">' +
-                            '&lt;img src=&quot;' + publicUrl + '&quot;/&gt;' +
-                        '</pre>' +
-                        'URL' +
-                        '<pre class="tt-code-snippet">' +
-                            publicUrl +
-                        '</pre>' +
-                    '</div>' +
-                '</div>';
+                var content =
+                    '<div class="static-image-result">' +
+                        '<div class="static-image-result__img-container -is-loading js-image-container">' +
+                            '<img src="' + url + '" onload="handleImageLoad()"/>' +
+                        '</div>' +
+                        '<div class="snippet-container">' +
+                            'HTML' +
+                            '<pre class="tt-code-snippet">' +
+                                '&lt;img src=&quot;' + publicUrl + '&quot;/&gt;' +
+                            '</pre>' +
+                            'URL' +
+                            '<pre class="tt-code-snippet">' +
+                                publicUrl +
+                            '</pre>' +
+                        '</div>' +
+                    '</div>';
 
-            popup.addContent(content);
-            popup.show();
-        })
-        .catch(function(error) {
-            errorHint.setMessage(error.message);
-        });
+                popup.addContent(content);
+                popup.show();
+            })
+            .catch(function(error) {
+                errorHint.setMessage(error.message);
+            });
     }
 
     function handleImageLoad() {
@@ -339,16 +335,15 @@
             state[name] = value;
 
             switch (name) {
-                case 'language':
-                    map.setLanguage(value);
-                    break;
-                case 'view':
-                    map.setGeopoliticalView(value);
-                    break;
-                case 'style': {
-                    changeMapStyle();
-                    break;
-                }
+            case 'language':
+                map.setLanguage(value);
+                break;
+            case 'view':
+                map.setGeopoliticalView(value);
+                break;
+            case 'style':
+                changeMapStyle();
+                break;
             }
         };
     }

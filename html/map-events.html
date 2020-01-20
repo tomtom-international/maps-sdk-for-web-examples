@@ -15,10 +15,10 @@
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
     <script>
-         // Define your product name and version
-         tt.setProductInfo('<your-product-name>', '<your-product-version>');
+        // Define your product name and version
+        tt.setProductInfo('<your-product-name>', '<your-product-version>');
         var center = [4.899431, 52.379189];
-        var roundLatLng = window.Formatters.roundLatLng;
+        var roundLatLng = Formatters.roundLatLng;
         // Create map
         var map = tt.map({
             key: '${api.key.maps}',
@@ -26,7 +26,7 @@
             style: 'tomtom://vector/1/basic-main',
             zoom: 12,
             center: center,
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         });
         map.addControl(new tt.FullscreenControl());
 

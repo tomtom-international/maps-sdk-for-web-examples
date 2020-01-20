@@ -42,8 +42,6 @@
         </div>
     </div>
     <script>
-        var tt = window.tt;
-
         var baseStyle = 'tomtom://vector/1/',
             config = {
                 key: '${api.key.trafficFlow}',
@@ -60,10 +58,10 @@
                 maxZoom: maxZoomLevel,
                 style: baseStyle + 'basic-main',
                 zoom: 15,
-                dragPan: !window.isMobileOrTablet()
+                dragPan: !isMobileOrTablet()
             });
 
-        var errorHint = new window.InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map')),
+        var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map')),
             formatters = Formatters,
             isPositionIncorrect,
             popupElement = null,
@@ -91,7 +89,7 @@
             unitsToSelect = document.querySelectorAll('input[name=unit]'),
             unitValue = 'KMPH';
 
-        new window.Foldable('.js-foldable', 'top-right');
+        new Foldable('.js-foldable', 'top-right');
         map.addControl(new tt.FullscreenControl());
         map.addControl(new tt.NavigationControl());
         map.on('load', handleMapLoad);

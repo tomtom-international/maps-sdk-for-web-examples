@@ -46,8 +46,6 @@
         <div id='map' class='full-map'></div>
     </div>
     <script>
-        var tt = window.tt;
-
         tt.setProductInfo('<your-product-name>', '<your-product-version>');
         var map = tt.map({
             key: '${api.key.maps}',
@@ -55,7 +53,7 @@
             style: 'tomtom://vector/1/basic-main',
             center: [2.349014, 48.864716],
             zoom: 12,
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         });
         map.addControl(new tt.FullscreenControl({ container: document.querySelector('body') }));
         map.addControl(new tt.NavigationControl());
@@ -67,14 +65,14 @@
             center,
             centerMarker = null,
             formatters = Formatters,
-            errorHint = new window.InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map')),
-            loadingHint = new window.InfoHint('info', 'bottom-center').addTo(document.getElementById('map')),
+            errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map')),
+            loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map')),
             markers = {},
             placeholderChange = false,
-            resultsManager = new window.ResultsManager(),
+            resultsManager = new ResultsManager(),
             selectedRouteId = '';
-
-        new window.SidePanel('.tt-side-panel', map);
+        
+        new SidePanel('.tt-side-panel', map);
         map.once('load', function() {
             categorySelect.on('change', handleCategoryChange);
         });
@@ -89,7 +87,7 @@
         }
 
         function createMarker(searchCategoryResult) {
-            var newMarker = new window.SearchMarker({
+            var newMarker = new SearchMarker({
                 name: searchCategoryResult.poi.name,
                 address: searchCategoryResult.address.freeformAddress + ', ' + searchCategoryResult.address.countryCodeISO3,
                 distance: searchCategoryResult.dist,
@@ -270,6 +268,7 @@
                         searchResults = createSearchResults(matrixAPIResults, searchCategoryAPIResults),
                         resultsElement = searchResults.resultsElement,
                         resultsWrapper = searchResults.resultsWrapper;
+
                     removeCenterMarker();
                     marker.className = 'tt-icon -location';
                     centerMarker = new tt.Marker({ element: marker })
@@ -310,6 +309,7 @@
 
         function handleMatrixRoutingError(error) {
             var displayedError = error.error ? error.error.description : error;
+
             errorHint.setMessage(displayedError);
         }
 

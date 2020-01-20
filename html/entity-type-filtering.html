@@ -21,16 +21,19 @@
     <div id='map' class='map'>
         <div class='tt-overlay-panel -left-top -medium js-foldable'>
             <form>
-                <label class='tt-form-label'>Language
+                <label class='tt-form-label'>
+                    Language
                     <select class='js-language-select tt-select'></select>
                 </label>
                 <div class='tt-inline-input-group tt-spacing-top-24'>
-                    <label class='tt-form-label'>Latitude
+                    <label class='tt-form-label'>
+                        Latitude
                         <input
                             class='tt-input js-latitude-input'
                             placeholder='e.g. 51.686666' />
                     </label>
-                    <label class='tt-form-label'>Longitude
+                    <label class='tt-form-label'>
+                        Longitude
                         <input
                             class='tt-input js-longitude-input'
                             placeholder='e.g. 19.640000' />
@@ -39,7 +42,8 @@
                 <span class='tt-hint-text tt-spacing-top-12'>
                     *Type or click on the map to select a location.
                 </span>
-                <label class='tt-form-label tt-spacing-top-24'>Entity type
+                <label class='tt-form-label tt-spacing-top-24'>
+                    Entity type
                     <select class='js-entity-type-select tt-select'></select>
                 </label>
                 <div class='tt-spacing-top-12'>
@@ -51,7 +55,6 @@
     <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
     <script src='/cdn.web-sdk-services/services-web.min.js'></script>
     <script>
-        var tt = window.tt;
         tt.setProductInfo('<your-product-name>', '<your-product-version>');
         var map = tt.map({
             key: '${api.key.maps}',
@@ -59,13 +62,13 @@
             style: 'tomtom://vector/1/basic-main',
             center: [4.899431, 52.379189],
             zoom: 13,
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         });
 
         map.addControl(new tt.FullscreenControl());
         map.addControl(new tt.NavigationControl());
-        new window.Foldable('.js-foldable', 'top-right');
-        var roundLatLng = window.Formatters.roundLatLng;
+        new Foldable('.js-foldable', 'top-right');
+        var roundLatLng = Formatters.roundLatLng;
 
         var entities = {
             CountrySecondarySubdivision: 'CountrySecondarySubdivision',
@@ -76,7 +79,7 @@
             PostalCodeArea: 'PostalCodeArea'
         };
 
-        var entityTypeSelector = new window.TailSelector(
+        var entityTypeSelector = new TailSelector(
             entities,
             '.js-entity-type-select',
             undefined, {
@@ -85,10 +88,10 @@
                 multiShowCount: false,
                 multiContainer: '.js-filters-container'
             });
-        var languageSelector = new window.TailSelector(window.searchLanguages, '.js-language-select', 'en-US');
+        var languageSelector = new TailSelector(searchLanguages, '.js-language-select', 'en-US');
 
         function EntityTypeFiltering() {
-            this.errorHint = new window.InfoHint('error', 'bottom-center', 5000)
+            this.errorHint = new InfoHint('error', 'bottom-center', 5000)
                 .addTo(document.getElementById('map'));
 
             this.initState();

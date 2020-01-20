@@ -14,8 +14,8 @@
     <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
     <script>
-         // Define your product name and version.
-         tt.setProductInfo('<your-product-name>', '<your-product-version>');
+        // Define your product name and version.
+        tt.setProductInfo('<your-product-name>', '<your-product-version>');
 
         // Define a set of points to cycle through.
         var points = [[-104.98485, 39.73845], [-118.24334, 34.05224], [-122.42017, 37.78008]];
@@ -30,7 +30,7 @@
             style: 'tomtom://vector/1/basic-main',
             zoom: 9,
             center: points[0],
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         });
         map.addControl(new tt.FullscreenControl());
 

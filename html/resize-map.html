@@ -25,8 +25,8 @@
     <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
     <script>
-         // Define your product name and version
-         tt.setProductInfo('<your-product-name>', '<your-product-version>');
+        // Define your product name and version
+        tt.setProductInfo('<your-product-name>', '<your-product-version>');
 
         var mapElement = document.getElementById('map');
         var resizeButtons = document.querySelectorAll('.js-button');
@@ -38,7 +38,7 @@
             key: '${api.key.maps}',
             container: 'map',
             style: 'tomtom://vector/1/basic-main',
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         });
         map.addControl(new tt.FullscreenControl({container: document.querySelector('body')}));
 

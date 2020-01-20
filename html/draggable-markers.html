@@ -24,7 +24,7 @@
             key: '${api.key.maps}',
             container: 'map',
             style: 'tomtom://vector/1/basic-main',
-            dragPan: !window.isMobileOrTablet(),
+            dragPan: !isMobileOrTablet(),
             center: center,
             zoom: 14
         });
@@ -46,7 +46,6 @@
         }
 
         marker.on('dragend', onDragEnd);
-
     </script>
 </body>
 </html>

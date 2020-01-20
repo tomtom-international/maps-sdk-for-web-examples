@@ -569,8 +569,29 @@ body {
 
 .tt-side-panel__header {
         background-color: #ffffff;
-        padding: 24px 24px 32px 16px;
+        padding: 24px 24px 24px 16px;
     }
+
+.tt-side-panel__header.-traffic {
+            background-color: white;
+            box-shadow: 0 5px 12px 0 rgba(0, 0, 0, .09);
+            display: flex;
+            min-height: 67px;
+            padding: 24px 16px;
+            position: relative;
+            z-index: 1;
+        }
+
+.tt-side-panel__header.-traffic > div {
+                cursor: pointer;
+                font-size: 14px;
+                font-weight: bold;
+                width: 27.5%;
+            }
+
+.tt-side-panel__header.-traffic > div:first-child {
+                    width: 45%;
+                }
 
 .tt-reveal-side-panel {
     background-color: #ffffff;
@@ -1414,6 +1435,15 @@ body {
         color: #ffffff;
     }
 
+.tt-button.-sortable {
+        background-color: transparent;
+        padding: 0 5px;
+    }
+
+.tt-button.-sortable:hover {
+            background-color: transparent;
+        }
+
 .tt-button.-toggle {
         align-items: center;
         display: flex;
@@ -2203,6 +2233,23 @@ body {
         width: 32px;
     }
 
+.tt-icon.-sort {
+        background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16px' height='16px' viewBox='0 0 16 16' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'%3E%3Ctitle%3Esort_filter%3C/title%3E%3Cdesc%3ECreated with Sketch.%3C/desc%3E%3Cg id='sort_filter' stroke='none' stroke-width='1' fill='none' fill-rule='evenodd'%3E%3Cg id='Group-Copy-2' transform='translate%283.000000%2C 3.000000%29' fill='%23000000' fill-rule='nonzero'%3E%3Cpath d='M6%2C8 L6%2C10 L0%2C10 L0%2C8 L6%2C8 Z M8%2C4 L8%2C6 L0%2C6 L0%2C4 L8%2C4 Z M11%2C0 L11%2C2 L0%2C2 L0%2C0 L11%2C0 Z' id='Shape'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        height: 10px;
+        -webkit-transform: rotate(180deg);
+                transform: rotate(180deg);
+        width: 10px;
+    }
+
+.tt-icon.-sort.-brown {
+            background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16px' height='16px' viewBox='0 0 16 16' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'%3E%3Ctitle%3Esort_filter%3C/title%3E%3Cdesc%3ECreated with Sketch.%3C/desc%3E%3Cg id='sort_filter' stroke='none' stroke-width='1' fill='none' fill-rule='evenodd'%3E%3Cg id='Group-Copy-2' transform='translate%283.000000%2C 3.000000%29' fill='%23b1110e' fill-rule='nonzero'%3E%3Cpath d='M6%2C8 L6%2C10 L0%2C10 L0%2C8 L6%2C8 Z M8%2C4 L8%2C6 L0%2C6 L0%2C4 L8%2C4 Z M11%2C0 L11%2C2 L0%2C2 L0%2C0 L11%2C0 Z' id='Shape'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+.tt-icon.-sort.-brown.-desc {
+                -webkit-transform: rotate(0deg);
+                        transform: rotate(0deg);
+            }
+
 .tt-label {
     display: block;
     font-family: Gotham, Helvetica, Arial, sans-serif;
@@ -2447,3 +2494,65 @@ body {
     white-space: normal;
     word-break: break-all;
 }
+
+.tt-incidents-details {
+    display: flex;
+    flex-direction: row;
+}
+
+.tt-incidents-list {
+    background-color: #ffffff;
+    color: #666666;
+    font-family: Gotham, Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    height: auto;
+}
+
+.tt-incidents-list__item {
+        cursor: pointer;
+        display: flex;
+        padding: 17px 5px 17px 5px;
+        position: relative;
+    }
+
+.tt-incidents-list__item:before {
+            background-color: #f2f2f2;
+            content: "";
+            height: 1px;
+            left: 0;
+            position: absolute;
+            top: 0;
+            width: 100%;
+        }
+
+.tt-incidents-list__item > div {
+            width: 27.5%;
+        }
+
+.tt-incidents-list__item > div:first-child {
+                width: calc(45% + 15px);
+            }
+
+.tt-incidents-list__item.-selected {
+            background: lightgray;
+        }
+
+.tt-overflow {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.tt-overflow__placeholder {
+        font-size: 18px;
+        font-weight: bold;
+        margin: 0 auto;
+        opacity: .46;
+        padding: 56px 0;
+        text-align: center;
+    }
+
+.tt-overflow__placeholder.-small {
+            font-size: 14px;
+            line-height: 24px;
+            padding: 56px 34px;
+        }

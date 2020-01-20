@@ -35,8 +35,29 @@
 
     .tt-side-panel__header{
         background-color:#ffffff;
-        padding:24px 24px 32px 16px;
+        padding:24px 24px 24px 16px;
     }
+
+    .tt-side-panel__header.-traffic{
+            background-color:white;
+            box-shadow:0 5px 12px 0 rgba(0, 0, 0, .09);
+            display:flex;
+            min-height:67px;
+            padding:24px 16px;
+            position:relative;
+            z-index:1;
+        }
+
+    .tt-side-panel__header.-traffic > div{
+                cursor:pointer;
+                font-size:14px;
+                font-weight:bold;
+                width:27.5%;
+            }
+
+    .tt-side-panel__header.-traffic > div:first-child{
+                    width:45%;
+                }
 .tt-reveal-side-panel{
     background-color:#ffffff;
     box-shadow:0 4px 24px 0 rgba(0, 0, 0, .16);

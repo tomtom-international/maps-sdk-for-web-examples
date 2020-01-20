@@ -76,8 +76,6 @@
     <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
     <script src='/cdn.web-sdk-services/services-web.min.js'></script>
     <script>
-        var tt = window.tt;
-        var mapRefs = {};
         var defaults = {
             map1: {
                 language: 'en-US',
@@ -86,7 +84,7 @@
             map2: {
                 language: 'en-US',
                 geopolView: 'IN'
-            },
+            }
         };
         var locationData = {
             IN: {
@@ -131,7 +129,7 @@
             style: baseLayer.Vector,
             center: locationData.IN.center,
             zoom: locationData.IN.zoom,
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         };
 
         function assign() {
@@ -147,7 +145,7 @@
             return newObj;
         }
 
-        window.tt.setProductInfo('<your-product-name>', '<your-product-version>');
+        tt.setProductInfo('<your-product-name>', '<your-product-version>');
 
         function MapView(mapOptions, config) {
             this.mapOptions = mapOptions;
@@ -162,19 +160,20 @@
             this.map.addControl(new tt.FullscreenControl({container: document.querySelector('body')}));
             this.map.addControl(new tt.NavigationControl());
 
-            new window.Foldable(this.config.foldableSelector, 'top-right');
+            new Foldable(this.config.foldableSelector, 'top-right');
         };
 
         MapView.prototype.initEvents = function() {
-            var languageSelector = new window.TailSelector(window.mapLanguages, this.config.languageSelector, this.mapOptions.language);
-            var geopolSelector = new window.TailSelector(window.mapGeopoliticalViews, this.config.geopolSelector, this.mapOptions.geopoliticalView);
-            var buttonGroup = new window.ButtonsGroup(document.getElementById(this.config.baseLayerId));
+            var languageSelector = new TailSelector(mapLanguages, this.config.languageSelector, this.mapOptions.language);
+            var geopolSelector = new TailSelector(
+                mapGeopoliticalViews, this.config.geopolSelector, this.mapOptions.geopoliticalView);
+            var buttonGroup = new ButtonsGroup(document.getElementById(this.config.baseLayerId));
 
-            languageSelector.getElement().on('change', function (selected) {
+            languageSelector.getElement().on('change', function(selected) {
                 this.map.setLanguage(selected.key);
             }.bind(this));
 
-            geopolSelector.getElement().on('change', function (selected) {
+            geopolSelector.getElement().on('change', function(selected) {
                 this.map.setGeopoliticalView(selected.key);
                 if (selected.key !== 'Unified') {
                     this.map.flyTo(locationData[selected.key]);
@@ -210,8 +209,7 @@
             foldableSelector: '.js-foldable2'
         });
 
-        mapRefs = { map: map1.map, map2: map2.map };
-        window.syncMaps(map1.map, map2.map);
+        syncMaps(map1.map, map2.map);
     </script>
 </body>
 </html>

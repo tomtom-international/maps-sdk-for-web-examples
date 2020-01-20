@@ -76,18 +76,15 @@
     <script data-showable type='text/javascript' src='../assets/js/tail-selector.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
-
     <script>
-        var tt = window.tt;
         tt.setProductInfo('<your-product-name>', '<your-product-version>');
-
         var map = tt.map({
             key: '${api.key.maps}',
             container: 'map',
             style: 'tomtom://vector/1/basic-main',
             center: [4.827472, 52.349646],
             zoom: 7,
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         });
         map.addControl(new tt.FullscreenControl({ container: document.querySelector('body') }));
         map.addControl(new tt.NavigationControl());
@@ -99,15 +96,15 @@
             'Sint Lucas Andreas Ziekenhuis': [4.83989, 52.37091]
         };
 
-        var hospitalSelector = new window.TailSelector(Object.keys(availableHospitals), '#hospital-select', undefined, {
+        var hospitalSelector = new TailSelector(Object.keys(availableHospitals), '#hospital-select', undefined, {
             multiple: true,
             placeholder: 'Add hospitals from the list',
             multiShowCount: false,
             multiContainer: '.js-filters-container'
         });
 
-        var errorHint = new window.InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
-        var loadingHint = new window.InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
+        var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
+        var loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
 
         // these variables hold the state of the data displayed on the map
         var layersOnTheMap = {};
@@ -129,7 +126,7 @@
             // get time budgets
             for (var j = 1; j <= 3; j++) {
                 if (document.getElementById('checkbox-timebudget' + j).checked) {
-                    var time = parseInt(document.getElementById('timebudget' + j).value);
+                    var time = parseInt(document.getElementById('timebudget' + j).value, 10);
 
                     if (isNaN(time) || time < 0) {
                         timeBudgets = [];

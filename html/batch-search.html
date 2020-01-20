@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html class='use-all-space'>
-
 <head>
     <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
     <meta charset='UTF-8'>
@@ -10,7 +9,6 @@
     <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css' />
     <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/css-styles/poi.css' />
 </head>
-
 <body>
     <div class='map-view'>
         <form class='tt-side-panel js-form'>
@@ -20,7 +18,8 @@
                         Batch Search parameters
                     </header>
                     <div class='tt-params-box__content'>
-                        <label class='tt-form-label tt-spacing-top-24'>Locations
+                        <label class='tt-form-label tt-spacing-top-24'>
+                            Locations
                             <select class='js-locations-select tt-select'></select>
                         </label>
                         <div class='tt-spacing-top-12'>
@@ -48,21 +47,19 @@
     <script data-showable type='text/javascript' src='../assets/js/tail-selector.js'></script>
     <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/side-panel.js'></script>
-
     <script src='/cdn.web-sdk-services/services-web.min.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search-markers/search-marker.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search-markers/search-markers-manager.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
     <script>
         tt.setProductInfo('<your-product-name>', '<your-product-version>');
-
         var map = tt.map({
             key: '${api.key.maps}',
             container: 'map',
             style: 'tomtom://vector/1/basic-main',
             center: [12.374761, 51.49912573429843],
             zoom: 3,
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         });
         map.addControl(new tt.FullscreenControl({ container: document.querySelector('body') }));
         map.addControl(new tt.NavigationControl());
@@ -87,7 +84,7 @@
             Amsterdam: { lat: 52.366667, lon: 4.9 }
         };
 
-        var locationSelector = new window.TailSelector(
+        var locationSelector = new TailSelector(
             Object.keys(locations),
             '.js-locations-select',
             undefined, {
@@ -203,7 +200,6 @@
 
         BatchSearch.prototype.handleSubmit = function(event) {
             event.preventDefault();
-
             var chosenLocations = Array.apply(null, document.querySelectorAll('div[class=select-handle]'))
                 .map(function(item) {
                     return locations[item.innerHTML];
@@ -352,9 +348,8 @@
                 }
             });
         };
-        new BatchSearch();
 
+        new BatchSearch();
     </script>
 </body>
-
 </html>

@@ -14,15 +14,15 @@
     <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
     <script>
-        var map = window.tt.map({
+        var map = tt.map({
             key: '${api.key.maps}',
             container: 'map',
             center: [-0.128666, 51.505814],
             zoom: 10,
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         });
-        map.addControl(new window.tt.FullscreenControl());
-        map.addControl(new window.tt.NavigationControl());
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
 
         var markersOnTheMap = {};
         var eventListenersAdded = false;
@@ -163,12 +163,12 @@
             });
 
             map.querySourceFeatures('point-source').forEach(function(feature) {
-                if (feature.properties && !feature.properties.cluster){
-                    var id = parseInt(feature.properties.id);
+                if (feature.properties && !feature.properties.cluster) {
+                    var id = parseInt(feature.properties.id, 10);
                     if (!markersOnTheMap[id]) {
-                        var newMarker = new window.tt.Marker().setLngLat(feature.geometry.coordinates);
+                        var newMarker = new tt.Marker().setLngLat(feature.geometry.coordinates);
                         newMarker.addTo(map);
-                        newMarker.setPopup(new window.tt.Popup({offset: 30}).setText(feature.properties.name));
+                        newMarker.setPopup(new tt.Popup({offset: 30}).setText(feature.properties.name));
                         markersOnTheMap[id] = newMarker;
                     }
                 }
@@ -228,7 +228,7 @@
                 }
             });
 
-            map.on('data', function (e) {
+            map.on('data', function(e) {
                 if (e.sourceId !== 'point-source' || !map.getSource('point-source').loaded()) return;
                 refreshMarkers();
 
@@ -239,10 +239,10 @@
                 }
             });
 
-            map.on('click', 'clusters', function (e) {
+            map.on('click', 'clusters', function(e) {
                 var features = map.queryRenderedFeatures(e.point, { layers: ['clusters'] });
                 var clusterId = features[0].properties.cluster_id;
-                map.getSource('point-source').getClusterExpansionZoom(clusterId, function (err, zoom) {
+                map.getSource('point-source').getClusterExpansionZoom(clusterId, function(err, zoom) {
                     if (err) {
                         return;
                     }
@@ -254,15 +254,14 @@
                 });
             });
 
-            map.on('mouseenter', 'clusters', function () {
+            map.on('mouseenter', 'clusters', function() {
                 map.getCanvas().style.cursor = 'pointer';
             });
 
-            map.on('mouseleave', 'clusters', function () {
+            map.on('mouseleave', 'clusters', function() {
                 map.getCanvas().style.cursor = '';
             });
         });
-
     </script>
 </body>
 </html>

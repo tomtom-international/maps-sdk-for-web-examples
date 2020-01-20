@@ -14,7 +14,8 @@
     <div id='map' class='map'>
         <div class='tt-overlay-panel -left-top -medium js-foldable'>
             <div class='tt-form'>
-                <label class='tt-form-label tt-spacing-top-24'>Traffic flow style
+                <label class='tt-form-label tt-spacing-top-24'>
+                    Traffic flow style
                     <select class='js-style-select tt-select'>
                         <option value='absolute'>absolute</option>
                         <option value='relative' selected >relative</option>
@@ -29,20 +30,18 @@
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
     <script>
         var baseStyle = 'tomtom://vector/1/';
-
         var config = {
             key: '${api.key.trafficFlow}',
             style: baseStyle + 'relative',
             refresh: 30000
         };
-
         var map = tt.map({
             key: '${api.key.maps}',
             container: 'map',
             style: baseStyle + 'basic-main',
             center: [-0.12634, 51.50276],
             zoom: 10,
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         });
 
         map.on('load', function() {
@@ -65,7 +64,6 @@
                 return map.addTier(new tt.TrafficFlowTilesTier(config));
             });
         });
-
     </script>
 </body>
 </html>

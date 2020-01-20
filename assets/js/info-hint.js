@@ -19,6 +19,10 @@ InfoHint.prototype.addTo = function(container) {
     return this;
 };
 
+InfoHint.prototype.isHidden = function() {
+    return this.element.classList.contains('-hidden');
+};
+
 InfoHint.prototype.hide = function() {
     this.element.classList.add('-hidden');
 };

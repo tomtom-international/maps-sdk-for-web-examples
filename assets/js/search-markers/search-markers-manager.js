@@ -80,14 +80,17 @@ SearchMarkersManager.prototype.draw = function(poiList) {
     this._poiList.forEach(function(poi) {
         var markerId = poi.id;
 
+        var countryCodeISO3 = poi.address.countryCodeISO3 ? ', ' + poi.address.countryCodeISO3 : '';
+
         var poiOpts = {
             name: poi.poi ? poi.poi.name : undefined,
-            address: poi.address.freeformAddress + ', ' + poi.address.countryCodeISO3,
+            address: poi.address.freeformAddress + countryCodeISO3,
             distance: poi.dist,
             classification: poi.poi ? poi.poi.classifications[0].code : undefined,
             position: poi.position,
             entryPoints: poi.entryPoints
         };
+
         var marker = new window.SearchMarker(poiOpts, this._options);
         marker.onClick(function(clickedMarker) {
             if (this._lastClickedMarker && this._lastClickedMarker !== clickedMarker) {

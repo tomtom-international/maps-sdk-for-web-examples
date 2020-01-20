@@ -15,7 +15,8 @@
     <div id='map' class='map'>
         <div class='tt-overlay-panel -left-top -medium js-foldable'>
             <div class='tt-form'>
-                <label class='tt-form-label tt-spacing-top-24'>Markers customization
+                <label class='tt-form-label tt-spacing-top-24'>
+                    Markers customization
                     <select class='js-style-select tt-select'>
                         <option value='html'>Custom HTML element</option>
                         <option value='options'>Size and opacity options</option>
@@ -30,15 +31,13 @@
             height: 30px !important;
             width: 30px !important;
         }
-        
         .custom-outer-class {
-            border-radius: 0px;
+            border-radius: 0;
             height: 30px;
             width: 30px;
         }
-
         .custom-html {
-            border: 3px solid white;
+            border: 3px solid #ffffff;
             border-radius: 50%;
             width: 64px;
         }
@@ -114,7 +113,7 @@
 
                     /**
                      * Here we are only mapping 3 categories to given icons. For full list of supported incident
-                     * categories, please refer to: 
+                     * categories, please refer to:
                      * https://developer.tomtom.com/traffic-api/traffic-api-documentation-traffic-incidents/traffic-incident-details
                      **/
                     var photo = photosMapping[data.properties.incidentCategory] || photosMapping.Default;
@@ -151,7 +150,7 @@
             style: 'tomtom://vector/1/basic-main',
             center: [-0.12634, 51.50276],
             zoom: 15,
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         });
 
         map.addControl(new tt.FullscreenControl());
@@ -174,7 +173,6 @@
             });
             updateLayer();
         });
-
     </script>
 </body>
 </html>

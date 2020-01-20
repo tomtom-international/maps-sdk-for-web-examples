@@ -21,11 +21,12 @@ function convertToTimeFormat(secondsValue) {
         minutes = Math.floor((secondsValue - (hours * 3600)) / 60),
         seconds = secondsValue - (hours * 3600) - (minutes * 60);
 
-    return (hours ? (hours + 'h ') : '') + (minutes ? (minutes + 'min ') : '') + seconds + 's';
+    return (hours ? (hours + 'h ') : '') + (minutes ? (minutes + 'min ') : '') + (seconds ? (seconds + 's') : '');
 }
 
 function formatAsMetricDistance(distanceMeters) {
     var distance = Math.round(distanceMeters);
+
     if (distance >= 1000) {
         return Math.round(distance / 10) / 100 + 'km';
     }

@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html class='use-all-space'>
-
 <head>
     <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
     <meta charset='UTF-8'>
@@ -10,7 +9,6 @@
     <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
     <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/css-styles/poi.css'/>
 </head>
-
 <body>
     <div class='map-view'>
         <form class='tt-side-panel js-form'>
@@ -33,13 +31,16 @@
                             Geocode parameters
                         </header>
                         <div class='tt-params-box__content'>
-                            <label class='tt-form-label'>Language
+                            <label class='tt-form-label'>
+                                Language
                                 <select class='js-language-select tt-select'></select>
                             </label>
-                            <label class='tt-form-label'>Geopolitical view
+                            <label class='tt-form-label'>
+                                Geopolitical view
                                 <select class='js-geo-view-select tt-select'></select>
                             </label>
-                            <label class='tt-form-label js-slider'>Limit (<span class='js-counter'>10</span>)
+                            <label class='tt-form-label js-slider'>
+                                Limit (<span class='js-counter'>10</span>)
                                 <input class='tt-slider' name='limit' type='range' min='1' max='100' value='10'>
                             </label>
 
@@ -55,15 +56,17 @@
                                     </div>
 
                                     <div class='js-bias-controls'>
-                                        <label class='tt-form-label js-slider'>Radius (<span
-                                                class='js-counter'>0</span>m)
+                                        <label class='tt-form-label js-slider'>
+                                            Radius (<span class='js-counter'>0</span>m)
                                             <input class='tt-slider' name='radius' type='range' min='0' max='10000'
                                                 value='0'>
                                         </label>
-                                        <label class='tt-form-label'>Latitude
+                                        <label class='tt-form-label'>
+                                            Latitude
                                             <input class='tt-input' name='latitude' placeholder='e.g. 37.9717162'>
                                         </label>
-                                        <label class='tt-form-label'>Longitude
+                                        <label class='tt-form-label'>
+                                            Longitude
                                             <input class='tt-input' name='longitude' placeholder='e.g. 23.7263126'>
                                         </label>
                                     </div>
@@ -109,14 +112,13 @@
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
     <script>
         tt.setProductInfo('<your-product-name>', '<your-product-version>');
-
         var map = tt.map({
             key: '${api.key.maps}',
             container: 'map',
             style: 'tomtom://vector/1/basic-main',
             center: [6.315226, 45.095108],
             zoom: 1,
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         });
         map.addControl(new tt.FullscreenControl({ container: document.querySelector('body') }));
         map.addControl(new tt.NavigationControl());
@@ -129,17 +131,17 @@
                 new Slider(slider);
             });
 
-        var languageSelector = new window.TailSelector(window.searchLanguages, '.js-language-select', 'en-GB');
-        var geopolSelector = new window.TailSelector(window.searchGeopoliticalViews, '.js-geo-view-select', 'Unified');
+        var languageSelector = new TailSelector(searchLanguages, '.js-language-select', 'en-GB');
+        var geopolSelector = new TailSelector(searchGeopoliticalViews, '.js-geo-view-select', 'Unified');
 
         geopolSelector.getElement().on('change', function(selected) {
             this.map.setGeopoliticalView(selected.key);
         }.bind(this));
 
         function Geocode() {
-            this.domHelpers = window.DomHelpers;
-            this.searchResultsParser = window.SearchResultsParser;
-            this.formatters = window.Formatters;
+            this.domHelpers = DomHelpers;
+            this.searchResultsParser = SearchResultsParser;
+            this.formatters = Formatters;
             this.resultsManager = new ResultsManager();
             this.errorHint = new InfoHint('error', 'bottom-center', 5000)
                 .addTo(document.getElementById('map'));
@@ -216,13 +218,13 @@
             this.state.isGeobiasActive = isGeobiasActive;
 
             Array.prototype.slice.call(this.elements.biasControls.querySelectorAll('label, input'))
-            .forEach(function(label) {
-                if (isGeobiasActive) {
-                    label.removeAttribute('disabled');
-                } else {
-                    label.setAttribute('disabled', 'true');
-                }
-            });
+                .forEach(function(label) {
+                    if (isGeobiasActive) {
+                        label.removeAttribute('disabled');
+                    } else {
+                        label.setAttribute('disabled', 'true');
+                    }
+                });
         };
 
         Geocode.prototype.handleSubmit = function(event) {
@@ -261,20 +263,20 @@
                 this.resultsManager.success();
 
                 Array.prototype.slice.call(response.results)
-                .forEach(function(result) {
-                    var distance = this.searchResultsParser.getResultDistance(result);
-                    var searchResult = this.domHelpers.createSearchResult(
-                        this.searchResultsParser.getResultAddress(result),
-                        distance ? this.formatters.formatAsMetricDistance(distance) : ''
-                    );
+                    .forEach(function(result) {
+                        var distance = this.searchResultsParser.getResultDistance(result);
+                        var searchResult = this.domHelpers.createSearchResult(
+                            this.searchResultsParser.getResultAddress(result),
+                            distance ? this.formatters.formatAsMetricDistance(distance) : ''
+                        );
 
-                    var resultItem = this.domHelpers.createResultItem();
-                    resultItem.appendChild(searchResult);
-                    resultItem.setAttribute('data-id', result.id);
-                    resultItem.addEventListener('click', this.handleSearchResultItemClick.bind(this));
+                        var resultItem = this.domHelpers.createResultItem();
+                        resultItem.appendChild(searchResult);
+                        resultItem.setAttribute('data-id', result.id);
+                        resultItem.addEventListener('click', this.handleSearchResultItemClick.bind(this));
 
-                    resultsDocumentFragment.appendChild(resultItem);
-                }, this);
+                        resultsDocumentFragment.appendChild(resultItem);
+                    }, this);
 
                 searchMarkersManager.draw(response.results);
 
@@ -295,9 +297,9 @@
 
         Geocode.prototype.selectResultItem = function(resultItem) {
             Array.prototype.slice.call(document.querySelectorAll('.tt-results-list__item'))
-            .forEach(function (item) {
-                item.classList.remove('-selected');
-            });
+                .forEach(function(item) {
+                    item.classList.remove('-selected');
+                });
             resultItem.classList.add('-selected');
         };
 
@@ -310,5 +312,4 @@
         new Geocode();
     </script>
 </body>
-
 </html>

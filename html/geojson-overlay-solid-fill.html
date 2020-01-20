@@ -20,11 +20,10 @@
             style: 'tomtom://vector/1/basic-main',
             zoom: 15,
             center: [4.952129606368089, 52.31404857051368],
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         });
         map.addControl(new tt.FullscreenControl());
         map.addControl(new tt.NavigationControl());
-
 
         map.on('load', function() {
             map.addLayer({
@@ -36,13 +35,13 @@
                         'type': 'Feature',
                         'geometry': {
                             'type': 'Polygon',
-                            'coordinates': [[[4.9486338,52.3139782],
-                                            [4.9511976,52.3149028],
-                                            [4.9550533,52.3162253],
-                                            [4.9568229,52.3141933],
-                                            [4.9566674,52.3140014],
-                                            [4.9506185,52.3119233],
-                                            [4.9486338,52.3139782]]]
+                            'coordinates': [[[4.9486338, 52.3139782],
+                                [4.9511976, 52.3149028],
+                                [4.9550533, 52.3162253],
+                                [4.9568229, 52.3141933],
+                                [4.9566674, 52.3140014],
+                                [4.9506185, 52.3119233],
+                                [4.9486338, 52.3139782]]]
                         }
                     }
                 },

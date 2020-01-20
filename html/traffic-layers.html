@@ -34,7 +34,6 @@
             style: 'tomtom://vector/1/relative',
             refresh: 30000
         };
-
         var incidentConfig = {
             key: '${api.key.trafficIncidents}',
             incidentDetails:  {
@@ -45,14 +44,13 @@
             },
             refresh: 30000
         };
-
         var map = tt.map({
             key: '${api.key.maps}',
             container: 'map',
             style: 'tomtom://vector/1/basic-main',
             center: [-0.12634, 51.50276],
             zoom: 10,
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         });
 
         //initial state
@@ -91,7 +89,6 @@
         map.addControl(new tt.NavigationControl());
 
         new Foldable('.js-foldable', 'top-right');
-
     </script>
 </body>
 </html>

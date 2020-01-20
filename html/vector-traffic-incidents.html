@@ -15,7 +15,8 @@
     <div id='map' class='map'>
         <div class='tt-overlay-panel -left-top -medium js-foldable'>
             <div class='tt-form'>
-                <label class='tt-form-label tt-spacing-top-24'>Traffic incidents style
+                <label class='tt-form-label tt-spacing-top-24'>
+                    Traffic incidents style
                     <select class='js-style-select tt-select'>
                         <option value='s1'>s1</option>
                         <option value='s2'>s2</option>
@@ -36,18 +37,17 @@
                 style: 's1'
             },
             incidentTiles: {
-                style: baseStyle + 's1',
+                style: baseStyle + 's1'
             },
             refresh: 30000
         };
-
         var map = tt.map({
             key: '${api.key.maps}',
             container: 'map',
             style: baseStyle + 'basic-main',
             center: [-0.12634, 51.50276],
             zoom: 15,
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         });
 
         map.addControl(new tt.FullscreenControl());
@@ -71,7 +71,6 @@
             });
             updateLayer();
         });
-
     </script>
 </body>
 </html>

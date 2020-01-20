@@ -12,7 +12,8 @@
 <body>
     <div id='map' class='map'></div>
     <div class='tt-overlay-panel -left-top js-foldable'>
-        <label class='tt-form-label'>Style
+        <label class='tt-form-label'>
+            Style
             <select class='js-style-select tt-select'></select>
         </label>
         <div class='tt-form-label'>
@@ -52,13 +53,13 @@
             key: '${api.key.maps}',
             container: 'map',
             style: getCurrentStyleUrl(),
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         });
 
         map.addControl(new tt.FullscreenControl());
         map.addControl(new tt.NavigationControl());
 
-        var styleSelector = new window.TailSelector(styles, '.js-style-select', 'main').getElement();
+        var styleSelector = new TailSelector(styles, '.js-style-select', 'main').getElement();
         styleSelector.on('change', function(e) {
             styleOptions.style = e.key;
             map.setStyle(getCurrentStyleUrl());
@@ -70,17 +71,16 @@
             map.setStyle(getCurrentStyleUrl());
         }
 
-        var layerTypeGroup = new window.ButtonsGroup(document.getElementById('layers-type'));
+        var layerTypeGroup = new ButtonsGroup(document.getElementById('layers-type'));
         layerTypeGroup.onSelect(buttonsGroupChange);
 
-        var baseLayerGroup = new window.ButtonsGroup(document.getElementById('base-layer'));
+        var baseLayerGroup = new ButtonsGroup(document.getElementById('base-layer'));
         baseLayerGroup.onSelect(buttonsGroupChange);
 
         function getCurrentStyleUrl() {
             return 'tomtom://' + styleOptions.baseLayer + '/1/' + styleOptions.layerType + '-' + styleOptions.style;
         }
         new Foldable('.js-foldable', 'top-right');
-
     </script>
 </body>
 </html>

@@ -17,6 +17,15 @@
         color:#ffffff;
     }
 
+    .tt-button.-sortable{
+        background-color:transparent;
+        padding:0 5px;
+    }
+
+    .tt-button.-sortable:hover{
+            background-color:transparent;
+        }
+
     .tt-button.-toggle{
         align-items:center;
         display:flex;

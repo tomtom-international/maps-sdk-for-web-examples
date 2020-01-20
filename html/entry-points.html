@@ -27,13 +27,11 @@
 <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
 <script>
     tt.setProductInfo('<your-product-name>', '<your-product-version>');
-    var markers = [];
-
     var map = tt.map({
         key: '${api.key.maps}',
         container: 'map',
         style: 'tomtom://vector/1/basic-main',
-        dragPan: !window.isMobileOrTablet()
+        dragPan: !isMobileOrTablet()
     });
 
     var searchApiKey = '${api.key.search}';
@@ -51,17 +49,18 @@
     var searchMarkersManager;
 
     map.on('load', function() {
-        searchMarkersManager = new SearchMarkersManager(map, {entryPoints: true, reverseGeocodeService: function(options) {
-                options['key'] = searchApiKey;
-                return tt.services.reverseGeocode(options);
+        searchMarkersManager = new SearchMarkersManager(map, { entryPoints: true, reverseGeocodeService: function(options) {
+            options.key = searchApiKey;
+            return tt.services.reverseGeocode(options);
         }});
     });
 
     function getBounds(data) {
-        if (data.viewport) {
-            var btmRight = [data.viewport.btmRightPoint.lng, data.viewport.btmRightPoint.lat];
-            var topLeft = [data.viewport.topLeftPoint.lng, data.viewport.topLeftPoint.lat];
+        if (!data.viewport) {
+            return;
         }
+        var btmRight = [data.viewport.btmRightPoint.lng, data.viewport.btmRightPoint.lat];
+        var topLeft = [data.viewport.topLeftPoint.lng, data.viewport.topLeftPoint.lat];
         return [btmRight, topLeft];
     }
 

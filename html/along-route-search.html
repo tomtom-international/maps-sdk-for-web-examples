@@ -18,18 +18,15 @@
         height: 30px;
         width: 30px;
     }
-
     .tt-icon.-finish {
         height: 16px !important;
         width: 16px !important;
     }
-
     .icon-spacing {
         float: left;
         margin-right: 14px;
         margin-top: 24px;
     }
-
     .map-view .searchbox {
         float: left;
     }
@@ -58,10 +55,12 @@
                                 Search along route parameters
                             </header>
                             <div class='tt-params-box__content'>
-                                <label class='tt-form-label'>Query
+                                <label class='tt-form-label'>
+                                    Query
                                     <input id='query' class='tt-input' name='query' placeholder='Query eg. pizza'>
                                 </label>
-                                <label class='tt-form-label js-slider'>Max detour time in seconds (<span id='maxDetourTimeLabel' class='js-counter'>900</span>)
+                                <label class='tt-form-label js-slider'>
+                                    Max detour time in seconds (<span id='maxDetourTimeLabel' class='js-counter'>900</span>)
                                     <input class='tt-slider' id='maxDetourTime' type='range' min='1' max='3600' value='900'>
                                 </label>
                                 <div class='tt-form-label'>
@@ -71,7 +70,8 @@
                                         <button class='tt-buttons-group__button' data-id='auto' value='auto'>Auto</button>
                                     </div>
                                 </div>
-                                <label class='tt-form-label js-slider'>Limit (<span id='limitLabel' class='js-counter'>10</span>)
+                                <label class='tt-form-label js-slider'>
+                                    Limit (<span id='limitLabel' class='js-counter'>10</span>)
                                     <input class='tt-slider' id='limit' type='range' min='1' max='20' value='10'>
                                 </label>
                                 <div class='tt-spacing-top-24'>
@@ -119,7 +119,7 @@
             key: '${api.key.maps}',
             container: 'map',
             style: 'tomtom://vector/1/basic-main',
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         });
 
         map.addControl(new tt.FullscreenControl());
@@ -128,13 +128,13 @@
         new SidePanel('.tt-side-panel', map);
         var tabs = new Tabs('.js-tabs');
         var searchMarkersManager = new SearchMarkersManager(map);
-        var spreadingMode = new window.ButtonsGroup(document.getElementById('spreadingMode'));
+        var spreadingMode = new ButtonsGroup(document.getElementById('spreadingMode'));
         var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
         var loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
         var resultsManager = new ResultsManager();
-        var domHelpers = window.DomHelpers;
-        var searchResultsParser = window.SearchResultsParser;
-        var formatters = window.Formatters;
+        var domHelpers = DomHelpers;
+        var searchResultsParser = SearchResultsParser;
+        var formatters = Formatters;
 
         var maxDetourTime = document.getElementById('maxDetourTime');
         maxDetourTime.onchange = sliderOnChange;
@@ -178,7 +178,9 @@
                 currentMarker.remove();
             }
             var searchResult = event.data.result;
-            this.state[type + 'Marker'] = new tt.Marker({element: createMarkerElement(type)}).setLngLat(searchResult.position).addTo(map);
+            this.state[type + 'Marker'] = new tt.Marker({element: createMarkerElement(type)})
+                .setLngLat(searchResult.position)
+                .addTo(map);
             updateRouteIfNeeded();
         }
         
@@ -311,7 +313,6 @@
                 errorHint.setMessage(error);
             });
         };
-
     </script>
 </body>
 </html>

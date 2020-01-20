@@ -117,7 +117,7 @@
             center: origin,
             zoom: 13,
             style: 'tomtom://vector/1/basic-main',
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         });
         map.addControl(new tt.FullscreenControl());
         map.addControl(new tt.NavigationControl());
@@ -133,8 +133,8 @@
         var combustionTab = document.querySelector('[aria-controls="combustion"]');
         var electricTab = document.querySelector('[aria-controls="electric"]');
         var submit = document.querySelector('input[type="submit"]');
-        var timeBudgetSelect = new window.TailSelector(window.reachableRangeBudgets.time, '.js-time-budget-select', '600');
-        var fuelBudgetSelect = new window.TailSelector(window.reachableRangeBudgets.fuel, '.js-fuel-budget-select', '10');
+        var timeBudgetSelect = new TailSelector(reachableRangeBudgets.time, '.js-time-budget-select', '600');
+        var fuelBudgetSelect = new TailSelector(reachableRangeBudgets.fuel, '.js-fuel-budget-select', '10');
         var timeBudgetsRadios = document.querySelectorAll('input[name="budget-radio"]');
         var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
         var loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
@@ -149,9 +149,9 @@
         // Initialize UI state
         var uiState = {
             isEV: false,
-            selectedScenario:'car',
+            selectedScenario: 'car',
             isBudgetInSec: false,
-            markers: [],
+            markers: []
         };
 
         // Build UI controls
@@ -159,8 +159,8 @@
         createScenarios();
         createScenarioDetails();
         handleBudgetChange();
-        new window.Tabs('.js-tabs');
-        new window.SidePanel('.tt-side-panel', map);
+        new Tabs('.js-tabs');
+        new SidePanel('.tt-side-panel', map);
 
         function handleSubmit(evt) {
             evt.preventDefault();
@@ -195,12 +195,12 @@
                                 })
                             }]
                         })
-                        .go()
-                        .then(function(res) {
-                            return res.results.filter(function(poi) {
-                                return poi.poi.classifications[0].code === classification;
-                            });
-                        })
+                            .go()
+                            .then(function(res) {
+                                return res.results.filter(function(poi) {
+                                    return poi.poi.classifications[0].code === classification;
+                                });
+                            })
                     ]);
                 })
                 .then(function(results) {
@@ -245,8 +245,8 @@
         }
         function getParams() {
             var constantSpeedConsumptionParam = uiState.isEV ?
-                 'constantSpeedConsumptionInkWhPerHundredkm' :
-                 'constantSpeedConsumptionInLitersPerHundredkm';
+                'constantSpeedConsumptionInkWhPerHundredkm' :
+                'constantSpeedConsumptionInLitersPerHundredkm';
             var budgetParam = uiState.isBudgetInSec ?
                 'timeBudgetInSec' :
                 (uiState.isEV ? 'energyBudgetInkWh' : 'fuelBudgetInLiters');
@@ -301,18 +301,18 @@
                     fuelBudgetSelect.getElement().select.style.display = 'none';
                     timeBudgetSelect.getElement().select.style.display = 'none';
                     switch (evt.target.id) {
-                        case 'time-radio': {
-                            uiState.isBudgetInSec = true;
-                            timeBudgetSelect.getElement().select.style.display = 'block';
-                            break;
-                        }
-                        case 'fuel-radio': {
-                            uiState.isBudgetInSec = false;
-                            fuelBudgetSelect.getElement().select.style.display = 'block';
-                            break;
-                        }
-                        default:
-                            return;
+                    case 'time-radio': {
+                        uiState.isBudgetInSec = true;
+                        timeBudgetSelect.getElement().select.style.display = 'block';
+                        break;
+                    }
+                    case 'fuel-radio': {
+                        uiState.isBudgetInSec = false;
+                        fuelBudgetSelect.getElement().select.style.display = 'block';
+                        break;
+                    }
+                    default:
+                        return;
                     }
                 });
             });
@@ -322,7 +322,7 @@
                 consumption: {
                     label: 'Consumption',
                     abbr: uiState.isEV ? 'kw/h' : 'l',
-                    title: uiState.isEV ? 'kilowatts per hour' : 'liters',
+                    title: uiState.isEV ? 'kilowatts per hour' : 'liters'
                 },
                 speed: {
                     label: 'Speed',
@@ -337,7 +337,7 @@
                 fuelBudget: {
                     label: uiState.isEV ? 'Energy budget' : 'Fuel budget',
                     abbr: uiState.isEV ? 'kw/h' : 'l',
-                    title: uiState.isEV ? 'kilowatts per hour' : 'liters',
+                    title: uiState.isEV ? 'kilowatts per hour' : 'liters'
                 }
             };
 
@@ -387,7 +387,7 @@
             toggleRemoveRowButton();
         }
         function removeRow() {
-            pairs.removeChild(pairs.children[pairs.children.length-1]);
+            pairs.removeChild(pairs.children[pairs.children.length - 1]);
             toggleRemoveRowButton();
         }
         function toggleRemoveRowButton() {
@@ -447,7 +447,7 @@
             var fragment = document.createDocumentFragment();
             var scenarios = window.reachableRangeScenarios[uiState.isEV ? 'electric' : 'combustion'];
             for (var scenario in scenarios) {
-                var isSelected = uiState.selectedScenario == scenario;
+                var isSelected = uiState.selectedScenario === scenario;
                 var element = document.createElement('div');
                 element.setAttribute('data-scenario', scenario);
                 isSelected && element.classList.add('-selected');
@@ -479,17 +479,17 @@
                 },
                 currentChargeInkWh: {
                     label: 'Current charge',
-                    abbr:'kw/h',
+                    abbr: 'kw/h',
                     title: 'kilowatts per hour'
                 },
                 auxiliaryPowerInkW: {
                     label: 'Auxiliary power',
-                    abbr:'kw/h',
+                    abbr: 'kw/h',
                     title: 'kilowatts per hour'
                 },
                 vehicleWeight: {
                     label: 'Vechicle weight',
-                    abbr:'kg',
+                    abbr: 'kg',
                     title: 'kilograms'
                 },
                 accelerationEfficiency: {
@@ -506,27 +506,27 @@
                 },
                 maxChargeInkWh: {
                     label: 'Max charge',
-                    abbr:'kw/h',
+                    abbr: 'kw/h',
                     title: 'kilowatts per hour'
                 },
                 vehicleMaxSpeed: {
                     label: 'Vechicle max speed',
-                    abbr:'km/h',
+                    abbr: 'km/h',
                     title: 'kilometers per hour'
                 },
                 currentFuelInLiters: {
                     label: 'Current fuel',
-                    abbr:'l',
+                    abbr: 'l',
                     title: 'liters'
                 },
                 auxiliaryPowerInLitersPerHour: {
                     label: 'Auxiliary power',
-                    abbr:'l/h',
+                    abbr: 'l/h',
                     title: 'liters per hour'
                 },
                 fuelEnergyDensityInMJoulesPerLiter: {
                     label: 'Fuel energy density',
-                    abbr:'MJ/l',
+                    abbr: 'MJ/l',
                     title: 'mega joules per liter'
                 }
             };

@@ -18,7 +18,7 @@
             key: '${api.key.maps}',
             container: 'map',
             style: 'tomtom://raster/1/basic-main',
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         });
         map.addControl(new tt.FullscreenControl());
         map.addControl(new tt.NavigationControl());
