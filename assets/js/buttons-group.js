@@ -71,7 +71,7 @@ ButtonsGroup.prototype.select = function(element) {
 };
 
 ButtonsGroup.prototype.getActive = function() {
-    for(var buttonName in this.buttons) {
+    for (var buttonName in this.buttons) {
         var btn = this.buttons[buttonName];
         if (btn.classList.contains('-active')) {
             return btn;

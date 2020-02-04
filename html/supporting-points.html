@@ -131,8 +131,8 @@
         var route = {
             start: [-8.4292, 40.21149],
             finish: [-3.70034, 40.41669]
-
         };
+
         var startMarker;
         var endMarker;
         var supportingPoints = [];
@@ -282,11 +282,9 @@
         }
 
         function onResultCleared(type) {
-            if (type === 'start') {
-                startMarker.remove();
-            } else {
-                endMarker.remove();
-            }
+            startMarker.remove();
+            endMarker.remove();
+            route[type] = undefined;
             clearMap();
         }
 

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Search filtering options</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/css-styles/poi.css'/>
+
+    <style>
+        .tt-results-list__item.list-header {
+            padding: 12px 24px;
+        }
+        .list-header span:first-child {
+            font-weight: bold;
+        }
+        .select-handle.disabled {
+            pointer-events: none;
+        }
+        .tt-filters-container.tail-select-container .select-handle.disabled {
+            padding-right: 8px;
+        }
+        .tt-filters-container.tail-select-container
+        .select-handle.disabled::after {
+            background-image: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class='map-view'>
+        <form class='tt-side-panel js-form'>
+            <header class='tt-side-panel__header'>
+                <label class='tt-form-label'>
+                    Scenario
+                    <select id='scenario-select' class='tt-select'></select>
+                </label>
+                <div class='tt-spacing-top-12' id='filters-select-container'>
+                    <label class='tt-form-label tt-spacing-top-24'>
+                        Filters
+                        <select id='filters-select' class='tt-select'></select>
+                    </label>
+                    <div class='tt-spacing-top-12'>
+                        <div class='tt-filters-container'></div>
+                    </div>
+                </div>
+            </header>
+            <div class='tt-tabs js-tabs'>
+                <div class='tt-tabs__panel' id='results'>
+                    <div class='js-results' hidden='hidden'></div>
+                    <div class='js-results-loader' hidden='hidden'>
+                        <div class='loader-center'><span class='loader'></span></div>
+                    </div>
+                    <div class='tt-tabs__placeholder js-results-placeholder'>
+                        NO RESULTS
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div id='map' class='full-map'></div>
+    </div>
+    <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/search-results-parser.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/dom-helpers.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/results-manager.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/tail-selector.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search-markers/search-marker.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search-markers/search-markers-manager.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+
+    <script>
+        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            style: 'tomtom://vector/1/basic-main',
+            center: [-0.130033, 51.510363],
+            zoom: 11,
+            dragPan: !isMobileOrTablet()
+        });
+        map.addControl(new tt.FullscreenControl({ container: document.querySelector('body') }));
+        map.addControl(new tt.NavigationControl());
+
+        var scenarios = {
+            'Connector type (EV stations)': {
+                locationName: 'London',
+                locationQuery: 'EV stations',
+                center: [-0.130033, 51.510363],
+                query: 'EV stations',
+                type: 'connectorSet',
+                filters: ['Tesla', 'StandardHouseholdCountrySpecific', 'IEC62196Type1',
+                    'IEC62196Type2CableAttached', 'IEC62196Type2Outlet', 'IEC62196Type2CCS']
+            },
+            'Brand name (automotive dealers)': {
+                locationName: 'London',
+                locationQuery: 'Automotive dealers',
+                center: [-0.130033, 51.510363],
+                query: 'car dealer',
+                type: 'brandSet',
+                filters: ['Toyota', 'BMW', 'Peugeot', 'Renault', 'Honda']
+            },
+            'Category (places to visit)': {
+                locationName: 'London',
+                locationQuery: 'Tourist attractions',
+                center: [-0.130033, 51.510363],
+                query: 'London',
+                type: 'categorySet',
+                filters: [7374, 7317, 7342, 9902 ],
+                filtersName: ['Stadium', 'Museum', 'Movie Theather', 'Amusement Park']
+            }
+        };
+        var state = {
+            selectedScenario: 'Connector type (EV stations)',
+            results: undefined
+        };
+
+        var searchMarkersManager = new SearchMarkersManager(map);
+        var resultsManager = new ResultsManager();
+
+        var scenarioSelector = new TailSelector(Object.keys(scenarios), '#scenario-select');
+        var filtersSelector = new TailSelector(scenarios[state.selectedScenario].filters, '#filters-select',
+            undefined, {
+                multiple: true,
+                placeholder: 'Add filters from the list',
+                multiShowCount: false,
+                multiContainer: '.tt-filters-container'
+            });
+
+        var ttPanelSelector = document.querySelector('.tt-tabs__panel');
+        var filtersContainer = document.querySelector('.tt-filters-container');
+
+        function selectResultItem(activeResultId) {
+            var results = state.results;
+            var resultElem = results[activeResultId].resultElem;
+            if (resultElem.classList.contains('-selected')) {
+                return;
+            }
+
+            Object.keys(results).forEach(function(key) {
+                results[key].resultElem.classList.remove('-selected');
+            });
+
+            resultElem.classList.add('-selected');
+            ttPanelSelector.scrollTop = resultElem.offsetTop - ttPanelSelector.offsetTop;
+        }
+
+        function onResultClicked(id) {
+            searchMarkersManager.openPopup(id);
+            selectResultItem(id);
+        }
+
+        function appendMarkerClickListener(marker, id) {
+            marker.getElement().addEventListener('click', function(e) {
+                e.stopPropagation();
+                onResultClicked(id);
+            });
+        }
+
+        function getBounds(data) {
+            var btmRight = [data.viewport.btmRightPoint.lng, data.viewport.btmRightPoint.lat];
+            var topLeft = [data.viewport.topLeftPoint.lng, data.viewport.topLeftPoint.lat];
+            return [btmRight, topLeft];
+        }
+
+        function fitToViewport(markerData) {
+            var bounds = new tt.LngLatBounds();
+
+            markerData.forEach(function(marker) {
+                bounds.extend(getBounds(marker));
+            });
+
+            map.fitBounds(bounds, { padding: 50, linear: true });
+        }
+
+        function renderSearchResults(results) {
+            var scenario = scenarios[state.selectedScenario];
+
+            searchMarkersManager.clear();
+            searchMarkersManager.draw(results);
+
+            resultsManager.success();
+            resultsManager.clear();
+
+            var resultList = DomHelpers.createResultList();
+
+            var header = document.createElement('div');
+            header.className = 'tt-results-list__item list-header';
+            header.innerHTML = '<span>' + scenario.locationQuery + ' in </span>' +
+                '<span>' + scenario.locationName + '</span>';
+
+            resultList.appendChild(header);
+
+            var markers = searchMarkersManager.getMarkers();
+            var newResults = {};
+
+            if (results.length > 0) {
+                results.forEach(function(result) {
+                    var distance = SearchResultsParser.getResultDistance(result);
+                    var searchResult = DomHelpers.createSearchResult(
+                        SearchResultsParser.getResultName(result),
+                        SearchResultsParser.getResultAddress(result),
+                        distance ? Formatters.formatAsMetricDistance(distance) : ''
+                    );
+
+                    var resultItem = DomHelpers.createResultItem();
+                    resultItem.appendChild(searchResult);
+                    resultItem.addEventListener('click', onResultClicked.bind(null, result.id));
+
+                    resultList.appendChild(resultItem);
+                    newResults[result.id] = {
+                        result: result,
+                        resultElem: resultItem
+                    };
+
+                    appendMarkerClickListener(markers[result.id].marker, result.id);
+                });
+
+                resultsManager.append(resultList);
+                state.results = newResults;
+                fitToViewport(results);
+            }
+        }
+
+        function performSearch() {
+            resultsManager.loading();
+            var scenario = scenarios[state.selectedScenario];
+            var searchOptions = {
+                key: '${api.key.search}',
+                query: scenario.query,
+                center: scenario.center,
+                limit: 20
+            };
+
+            if (scenario.type === 'connectorSet') {
+                searchOptions.connectorSet = filtersSelector.getSelectedOptions().join(',');
+            }
+
+            if (scenario.type === 'brandSet') {
+                searchOptions.brandSet = filtersSelector.getSelectedOptions().join(',');
+            }
+
+            if (scenario.type === 'categorySet') {
+                var categoryIds = [];
+                filtersSelector.getSelectedOptions().forEach(function(filterName) {
+                    categoryIds.push(scenario.filters[scenario.filtersName.indexOf(filterName)]);
+                });
+
+                searchOptions.categorySet = categoryIds.join(',');
+            }
+
+            tt.services.fuzzySearch(searchOptions).go().then(function(response) {
+                renderSearchResults(response.results);
+            });
+        }
+
+        function disableFilters(flag) {
+            var options = filtersContainer.querySelectorAll('.select-handle');
+
+            for (var i = 0; i < options.length; i++) {
+                options[i].classList[flag ? 'add' : 'remove']('disabled');
+            }
+        }
+
+        function appendEventListenerToFilters() {
+            filtersSelector.getElement().on('change', function() {
+                performSearch();
+
+                if (filtersSelector.getSelectedOptions().length === 1) {
+                    disableFilters(true);
+                } else {
+                    disableFilters(false);
+                }
+            });
+        }
+
+        // init
+        function init() {
+            appendEventListenerToFilters();
+            disableFilters(true);
+            performSearch();
+        }
+
+        scenarioSelector.getElement().on('change', function(e) {
+            state.selectedScenario = e.value;
+            var scenario = scenarios[state.selectedScenario];
+            var filters;
+
+            if (scenario.type === 'categorySet') {
+                filters = scenario.filtersName;
+            } else {
+                filters = scenario.filters;
+            }
+
+            filtersSelector.replaceOptions(filters);
+
+            init();
+        });
+
+        init();
+    </script>
+</body>
+
+</html>

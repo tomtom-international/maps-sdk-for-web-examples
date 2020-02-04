@@ -1,0 +1,21 @@
+.details-result{
+    background:undefined;
+    border:undefined;
+    border-radius:3px;
+    color:rgb(51, 51, 51);
+    font-family:undefined;
+    font-stretch:100%;
+    height:250px;
+    letter-spacing:1px;
+    list-style-position:inside;
+    margin:0 10px 5px 10px;
+    overflow:auto;
+    padding-right:18px;
+    white-space:pre;
+    word-break:break-all;
+    word-wrap:break-word;
+}
+.popup-details-wrapper{
+    list-style-type:disc;
+    padding-left:10px;
+}

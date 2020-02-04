@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Search Output Parameters</title>
+    <meta name='viewport' content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/css-styles/poi.css'/>
+    <style>
+        .tt-form-label.-group > div:first-child {
+            margin-top: 18px;
+        }
+        .tt-input.-small {
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class='map-view'>
+        <form class='tt-side-panel js-form'>
+            <header class='tt-side-panel__header'>
+                <div class='tt-input-icon'>
+                    <input class='tt-input' name='query' placeholder='Query eg. Washington'>
+                    <span class='tt-icon -search'></span>
+                </div>
+            </header>
+            <div class='tt-tabs js-tabs'>
+                <div class='tt-tabs__tabslist' role='tablist'>
+                    <button role='tab' aria-selected='true' aria-controls='options' class='tt-tabs__tab'
+                        type='button'>Params</button>
+                    <button role='tab' aria-selected='false' aria-controls='results' class='tt-tabs__tab'
+                        type='button'>Results</button>
+                </div>
+                <div role='tabpanel' class='tt-tabs__panel' id='options'>
+                    <div class='tt-params-box'>
+                        <header class='tt-params-box__header'>
+                            Search Output Parameters
+                        </header>
+                        <div class='tt-params-box__content'>
+                            <label class='tt-form-label'>
+                                Language
+                                <select class='js-language-select tt-select'></select>
+                            </label>
+                            <label class='tt-form-label'>
+                                Geopolitical view
+                                <select class='js-geo-view-select tt-select'></select>
+                            </label>
+                            <div class='tt-form-label -group'>
+                                Set of search indices
+                                <div class='tt-checkable-input'>
+                                    <input id='indices-addressrange' name='indices' value='Addr' class='tt-checkbox' type='checkbox' checked>
+                                    <label for='indices-addressrange' class='tt-label -full'>Address range interpolation</label>
+                                </div>
+                                <div class='tt-checkable-input'>
+                                    <input id='indices-geographies' name='indices' value='Geo' class='tt-checkbox' type='checkbox' checked>
+                                    <label for='indices-geographies' class='tt-label -full'>Geographies</label>
+                                </div>
+                                <div class='tt-checkable-input'>
+                                    <input id='indices-intersections' name='indices' value='XStr' class='tt-checkbox' type='checkbox' checked>
+                                    <label for='indices-intersections' class='tt-label -full'>Cross streets (intersections)</label>
+                                </div>
+                                <div class='tt-checkable-input'>
+                                    <input id='indices-streets' name='indices' value='Str' class='tt-checkbox' type='checkbox' checked>
+                                    <label for='indices-streets' class='tt-label -full'>Streets</label>
+                                </div>
+                                <div class='tt-checkable-input'>
+                                    <input id='indices-pointaddresses' name='indices' value='PAD' class='tt-checkbox' type='checkbox' checked>
+                                    <label for='indices-pointaddresses' class='tt-label -full'>Point addresses</label>
+                                </div>
+                                <div class='tt-checkable-input'>
+                                    <input id='indices-poi' name='indices' value='POI' class='tt-checkbox' type='checkbox' checked>
+                                    <label for='indices-poi' class='tt-label -full'>POI</label>
+                                </div>
+                            </div>
+                            <div class='tt-form-label -group'>
+                                Extended postal codes for
+                                <div class='tt-checkable-input'>
+                                    <input id='postcode-addressrange' name='postcode' value='Addr' class='tt-checkbox' type='checkbox' checked>
+                                    <label for='postcode-addressrange' class='tt-label -full'>Address range interpolation</label>
+                                </div>
+                                <div class='tt-checkable-input'>
+                                    <input id='postcode-geographies' name='postcode' value='Geo' class='tt-checkbox' type='checkbox'>
+                                    <label for='postcode-geographies' class='tt-label -full'>Geographies</label>
+                                </div>
+                                <div class='tt-checkable-input'>
+                                    <input id='postcode-intersections' name='postcode' value='XStr' class='tt-checkbox' type='checkbox' checked>
+                                    <label for='postcode-intersections' class='tt-label -full'>Cross streets (intersections)</label>
+                                </div>
+                                <div class='tt-checkable-input'>
+                                    <input id='postcode-streets' name='postcode' value='Str' class='tt-checkbox' type='checkbox' checked>
+                                    <label for='postcode-streets' class='tt-label -full'>Streets</label>
+                                </div>
+                                <div class='tt-checkable-input'>
+                                    <input id='postcode-pointaddresses' name='postcode' value='PAD' class='tt-checkbox' type='checkbox' checked>
+                                    <label for='postcode-pointaddresses' class='tt-label -full'>Point addresses</label>
+                                </div>
+                                <div class='tt-checkable-input'>
+                                    <input id='postcode-poi' name='postcode' value='POI' class='tt-checkbox' type='checkbox' checked>
+                                    <label for='postcode-poi' class='tt-label -full'>POI</label>
+                                </div>
+                            </div>
+                            <label class='tt-form-label'>
+                                Country code(s)
+                                <input class='tt-input -small' name='codes' placeholder='Comma separated list of country codes'>
+                            </label>
+                            <div class='tt-spacing-top-24 js-bias-container'>
+                                <div class='tt-controls-group'>
+                                    <div class='tt-controls-group__title'>
+                                        Geobias
+                                    </div>
+                                    <div class='tt-controls-group__toggle'>
+                                        <input id='toggle1' class='tt-toggle js-bias-toggle' type='checkbox'
+                                            checked='true'>
+                                        <label for='toggle1' class='tt-label'></label>
+                                    </div>
+                                    <div class='js-bias-controls'>
+                                        <label class='tt-form-label js-slider'>
+                                            Radius (<span class='js-counter'>0</span>m)
+                                            <input class='tt-slider' name='radius' type='range' min='0' max='10000'
+                                                value='0'>
+                                        </label>
+                                        <label class='tt-form-label'>
+                                            Latitude
+                                            <input class='tt-input' name='latitude' placeholder='e.g. 37.9717162'>
+                                        </label>
+                                        <label class='tt-form-label'>
+                                            Longitude
+                                            <input class='tt-input' name='longitude' placeholder='e.g. 23.7263126'>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class='tt-spacing-top-24'>
+                                <input type='submit' class='tt-button -primary tt-spacing-top-24' name='submit' title='Submit'>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div role='tabpanel' class='tt-tabs__panel' hidden='hidden' id='results'>
+                    <div class='js-results' hidden='hidden'></div>
+                    <div class='js-results-loader' hidden='hidden'>
+                        <div class='loader-center'><span class='loader'></span></div>
+                    </div>
+                    <div class='tt-tabs__placeholder js-results-placeholder'>
+                        NO RESULTS
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div id='map' class='full-map'></div>
+    </div>
+    <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/dom-helpers.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/geopolitical-views.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/languages.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/results-manager.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/search-results-parser.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/side-panel.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/slider.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/tabs.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search-markers/search-marker.js'></script>
+    <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/tail-selector.js'></script>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+    <script>
+        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            style: 'tomtom://vector/1/basic-main',
+            center: [6.315226, 45.095108],
+            zoom: 1,
+            dragPan: !isMobileOrTablet()
+        });
+
+        map.addControl(new tt.FullscreenControl({ container: document.querySelector('body') }));
+        map.addControl(new tt.NavigationControl());
+        new SidePanel('.tt-side-panel', map);
+        new Slider(document.querySelector('.js-slider'));
+        var geopolSelector = new TailSelector(searchGeopoliticalViews, '.js-geo-view-select', 'Unified');
+        var languageSelector = new TailSelector(searchLanguages, '.js-language-select', 'en-GB');
+        var tabs = new Tabs('.js-tabs');
+
+        geopolSelector.getElement().on('change', function(selected) {
+            map.setGeopoliticalView(selected.key);
+        });
+
+        function SearchOutput() {
+            this.centerMarker = null;
+            this.errorHint = new InfoHint('error', 'bottom-center', 5000)
+                .addTo(document.getElementById('map'));
+            this.mapCenter = null;
+            this.marker = document.createElement('div');
+            this.markers = {};
+            this.resultsManager = new ResultsManager();
+            this.searchResultsParser = SearchResultsParser;
+            this.referenceHTMLElements();
+            [].slice.call(document.querySelectorAll('input'))
+                .forEach(function(input) {
+                    var name = input.name;
+
+                    if (this.shouldCreateDOMElement(name)) {
+                        this.elements[name] = input;
+                    }
+                }.bind(this));
+            this.state = {
+                codes: this.elements.codes.value,
+                isGeobiasActive: true,
+                language: 'en-GB',
+                radius: this.elements.radius.value,
+                query: this.elements.query.value,
+                view: 'Unified'
+            };
+            this.marker.className = 'tt-icon -location';
+            this.initializeStateWithCheckboxesValues();
+            this.addIndexesToCallParameters = this.addIndexesToCallParameters.bind(this);
+            this.updateInputValue = this.updateInputValue.bind(this);
+            this.updateSelectValue = this.updateSelectValue.bind(this);
+            this.bindEvents();
+        }
+
+        SearchOutput.prototype.addIndexesToCallParameters = function() {
+            return Object.keys(this.state.indices)
+                .reduce(function(obj, key) {
+                    if (this.state.indices[key]) {
+                        obj.indices.push(key);
+                    }
+                    if (this.state.postcode[key]) {
+                        obj.postcode.push(key);
+                    }
+                    return obj;
+                }.bind(this), { indices: [], postcode: [] });
+        };
+
+        SearchOutput.prototype.bindEvents = function() {
+            var self = this;
+
+            this.elements.codes.addEventListener('change', this.updateInputValue.bind(this, 'codes'));
+            this.elements.form.addEventListener('submit', this.handleSubmit.bind(this));
+            this.elements.geobiasToggle.addEventListener('click', this.toggleGeoBias.bind(this));
+            [].slice.call(this.elements.indices).forEach(function(element, index) {
+                element.addEventListener('click', self.updateCheckboxValue.bind(self));
+                self.elements.postcode[index].addEventListener('click', self.updateCheckboxValue.bind(self));
+            });
+            this.elements.language.on('change', this.updateSelectValue.bind(this, 'language'));
+            this.elements.latitude.addEventListener('change', this.updateInputValue.bind(this, 'latitude'));
+            this.elements.longitude.addEventListener('change', this.updateInputValue.bind(this, 'longitude'));
+            this.elements.radius.addEventListener('change', this.updateInputValue.bind(this, 'radius'));
+            this.elements.query.addEventListener('change', this.updateInputValue.bind(this, 'query'));
+            this.elements.view.on('change', this.updateSelectValue.bind(this, 'view'));
+            map.on('load', this.updateBiasPosition.bind(this));
+            map.on('moveend', this.updateBiasPosition.bind(this));
+        };
+
+        SearchOutput.prototype.getMarkersBounds = function() {
+            var bounds = new tt.LngLatBounds();
+
+            for (var marker in this.markers) {
+                bounds.extend(this.markers[marker].getLngLat());
+            }
+            bounds.extend(this.centerMarker.getLngLat());
+            return bounds;
+        };
+
+        SearchOutput.prototype.handleError = function(error) {
+            this.errorHint.setMessage(error.message);
+            this.removeCenterMarker();
+        };
+
+        SearchOutput.prototype.createUlElement = function(properties) {
+            var list = '<ul class="popup-details-wrapper">';
+
+            for (var property in properties) {
+                if (this.shouldCreateLiElement(properties, property)) {
+                    list +=
+                        '<li>' +
+                            property + (typeof properties[property] !== 'object' ?
+                            ': ' + properties[property] :
+                            this.createUlElement(properties[property])) +
+                        '</li>';
+                }
+            }
+            list += '</ul>';
+            return list;
+        };
+
+        SearchOutput.prototype.createDetailsPopup = function(result) {
+            var detailsPopupElement = DomHelpers.elementFactory('div', 'details-result');
+
+            detailsPopupElement.innerHTML = this.createUlElement(result);
+            return detailsPopupElement;
+        };
+
+        SearchOutput.prototype.createMarker = function(result) {
+            var newMarker = new SearchMarker({
+                classification: result.poi && result.poi.categories || result.type,
+                position: result.position
+            });
+
+            newMarker
+                .getPopup()
+                .setMaxWidth('320px')
+                .setDOMContent(this.createDetailsPopup(result))
+                .on('open', this.makeResultItemSelected.bind(this, result.id));
+            newMarker.addTo(map);
+            return newMarker;
+        };
+
+        SearchOutput.prototype.handleResponse = function(response) {
+            var resultListElement = DomHelpers.elementFactory('div', 'tt-results-list');
+            var results = response.results;
+
+            this.resultsManager.loading();
+            tabs.clickTab(document.querySelector('[aria-controls="results"]'));
+
+            this.removeCenterMarker();
+            this.removeResultsMarker();
+            if (results && results.length > 0) {
+                this.resultsManager.success();
+                this.mapCenter = map.getCenter();
+                [].slice.call(results).forEach(function(result) {
+                    var distance = this.searchResultsParser.getResultDistance(result),
+                        resultItem = DomHelpers.createResultItem(),
+                        searchResult = DomHelpers.createSearchResult(
+                            this.searchResultsParser.getResultName(result),
+                            this.searchResultsParser.getResultAddress(result),
+                            distance ? Formatters.formatAsMetricDistance(distance) : ''
+                        );
+
+                    this.markers[result.id] = this.createMarker(result);
+                    resultItem.appendChild(searchResult);
+                    resultItem.setAttribute('data-id', result.id);
+                    resultItem.addEventListener('click', this.handleSearchResultItemClick.bind(this));
+                    resultListElement.appendChild(resultItem);
+                }, this);
+                this.centerMarker = new tt.Marker({ element: this.marker })
+                    .setLngLat(this.mapCenter)
+                    .addTo(map);
+                this.resultsManager.append(resultListElement);
+                map.fitBounds(this.getMarkersBounds(), { duration: 1000, padding: 50 });
+            } else {
+                this.resultsManager.resultsNotFound();
+                this.errorHint.setMessage('No results found for given parameters');
+            }
+        };
+
+        SearchOutput.prototype.makeResultItemSelected = function(markerId) {
+            var selectedClass = '-selected';
+            var selectedResultItemElement = document.querySelector('li[data-id="' + markerId + '"]');
+            var selectedResultItemClassList = selectedResultItemElement.classList;
+
+            if (selectedResultItemClassList.contains(selectedClass)) {
+                return;
+            }
+            [].slice.call(document.querySelectorAll('.tt-results-list__item'))
+                .forEach(function(DOMElement) {
+                    DOMElement.classList.remove(selectedClass);
+                });
+            selectedResultItemElement.classList.add(selectedClass);
+            map.flyTo({ center: this.markers[markerId].getLngLat(), duration: 1000, offset: [0, 100] });
+        };
+
+        SearchOutput.prototype.handleSearchResultItemClick = function(event) {
+            var selectedResultItem = event.currentTarget;
+            var selectedResultItemId = selectedResultItem.getAttribute('data-id');
+
+            for (var marker in this.markers) {
+                var currentMarker = this.markers[marker];
+
+                if (currentMarker.getPopup().isOpen()) {
+                    currentMarker.togglePopup();
+                }
+            }
+            this.markers[selectedResultItemId].togglePopup();
+        };
+
+        SearchOutput.prototype.handleSubmit = function(event) {
+            event.preventDefault();
+            if (!this.state.query) {
+                this.elements.query.focus();
+                this.errorHint.setMessage('Query is required');
+                return;
+            }
+            var callParameters = {
+                key: '${api.key.search}',
+                query: this.state.query,
+                center: [this.state.longitude, this.state.latitude],
+                language: this.state.language,
+                maxFuzzyLevel: 2,
+                minFuzzyLevel: 1,
+                radius: this.state.radius,
+                view: this.state.view
+            };
+
+            if (this.state.isGeobiasActive) {
+                callParameters.radius = this.state.radius;
+                callParameters.center = [this.state.longitude, this.state.latitude];
+            } else {
+                callParameters.radius = '0';
+            }
+            var indexes = this.addIndexesToCallParameters();
+
+            if (this.state.codes) {
+                callParameters.countrySet = this.state.codes;
+            }
+            if (indexes.indices.length) {
+                callParameters.idxSet = indexes.indices.join(',');
+            }
+            if (indexes.postcode.length) {
+                callParameters.extendedPostalCodesFor = indexes.postcode.join(',');
+            }
+            tt.services.fuzzySearch(callParameters)
+                .go()
+                .then(this.handleResponse.bind(this))
+                .catch(this.handleError.bind(this));
+        };
+
+        SearchOutput.prototype.initializeStateWithCheckboxesValues = function() {
+            var indices = {}, postcode = {};
+            var postcodeElements = [].slice.call(this.elements.postcode);
+
+            [].slice.call(this.elements.indices).forEach(function(checkbox, index) {
+                indices[checkbox.value] = checkbox.checked;
+                postcode[postcodeElements[index].value] = postcodeElements[index].checked;
+            });
+            this.state.indices = indices;
+            this.state.postcode = postcode;
+        };
+
+        SearchOutput.prototype.makeSearchResultItemSelected = function(clickedResultItem) {
+            if (clickedResultItem.classList.contains('-selected')) {
+                return;
+            }
+            [].slice.call(document.querySelectorAll('.tt-results-list__item'))
+                .forEach(function(item) {
+                    item.classList.remove('-selected');
+                });
+            clickedResultItem.classList.add('-selected');
+        };
+
+        SearchOutput.prototype.referenceHTMLElements = function() {
+            this.elements = {
+                biasControls: document.querySelector('.js-bias-controls'),
+                biasPlaceholder: document.querySelector('.js-bias-placeholder'),
+                form: document.querySelector('.js-form'),
+                geobiasToggle: document.querySelector('.js-bias-toggle'),
+                indices: document.querySelectorAll('input[name="indices"]'),
+                language: languageSelector.getElement(),
+                postcode: document.querySelectorAll('input[name="postcode"]'),
+                view: geopolSelector.getElement()
+            };
+        };
+
+        SearchOutput.prototype.removeCenterMarker = function() {
+            if (!this.centerMarker) {
+                return;
+            }
+            this.centerMarker.remove();
+            this.centerMarker = null;
+        };
+
+        SearchOutput.prototype.removeResultsMarker = function() {
+            for (var marker in this.markers) {
+                this.markers[marker].remove();
+            }
+            this.markers = {};
+        };
+
+        SearchOutput.prototype.shouldCreateDOMElement = function(name) {
+            return name && name !== 'submit' && name !== 'postcode' && name !== 'indices';
+        };
+
+        SearchOutput.prototype.shouldCreateLiElement = function(properties, property) {
+            return (property !== 'id' || property === 'id' && typeof properties.id === 'number') && property !== 'info';
+        };
+
+        SearchOutput.prototype.toggleGeoBias = function() {
+            this.state.isGeobiasActive = !this.state.isGeobiasActive;
+            [].slice.call(this.elements.biasControls.querySelectorAll('label, input'))
+                .forEach(function(label) {
+                    label.toggleAttribute('disabled');
+                });
+        };
+
+        SearchOutput.prototype.updateBiasPosition = function() {
+            var lat = Formatters.roundLatLng(map.getCenter().lat),
+                lng = Formatters.roundLatLng(map.getCenter().lng);
+
+            this.elements.latitude.value = lat;
+            this.elements.longitude.value = lng;
+            this.state.latitude = lat;
+            this.state.longitude = lng;
+        };
+
+        SearchOutput.prototype.updateCheckboxValue = function(event) {
+            var target = event.target;
+
+            this.state[target.name][target.value] = target.checked;
+        };
+
+        SearchOutput.prototype.updateInputValue = function(property, event) {
+            this.state[property] = event.target.value;
+        };
+
+        SearchOutput.prototype.updateSelectValue = function(property, selected) {
+            this.state[property] = selected.key;
+        };
+
+        new SearchOutput();
+    </script>
+</body>
+</html>

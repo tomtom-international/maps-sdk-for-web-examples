@@ -24,9 +24,12 @@
                 <label for='trafficStyle' class='tt-form-label tt-spacing-top-24'>
                     <span>Traffic flow style</span>
                     <select id='trafficStyle' name='trafficStyle' class='js-style-select tt-select'>
+                        <option value='relative0' selected>relative0</option>
+                        <option value='relative0-dark'>relative0-dark</option>
                         <option value='absolute'>absolute</option>
-                        <option value='relative' selected='selected'>relative</option>
+                        <option value='relative'>relative</option>
                         <option value='relative-delay'>relative-delay</option>
+                        <option value='reduced-sensitivity'>reduced-sensitivity</option>
                     </select>
                 </label>
                 <label class='tt-form-label'>
@@ -45,7 +48,7 @@
         var baseStyle = 'tomtom://vector/1/',
             config = {
                 key: '${api.key.trafficFlow}',
-                style: baseStyle + 'relative',
+                style: baseStyle + 'relative0',
                 refresh: 30000
             },
             initMapCenter = [4.889516830444336, 52.37297919217682],

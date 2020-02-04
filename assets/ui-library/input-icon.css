@@ -1,11 +1,16 @@
 .tt-input-icon{
-    align-items:center;
+    -webkit-box-align:center;
+            align-items:center;
+    display:-webkit-box;
     display:flex;
-    flex-direction:row-reverse;
+    -webkit-box-orient:horizontal;
+    -webkit-box-direction:reverse;
+            flex-direction:row-reverse;
 }
 
     .tt-input-icon .tt-input{
-        flex-grow:1;
+        -webkit-box-flex:1;
+                flex-grow:1;
     }
 
     .tt-input-icon > .tt-icon:last-child{

@@ -9,6 +9,7 @@
     line-height:1.5;
     margin:0;
     padding:8px 24px;
+    -webkit-transition:background-color .2s ease;
     transition:background-color .2s ease;
 }
 
@@ -27,9 +28,12 @@
         }
 
     .tt-button.-toggle{
-        align-items:center;
+        -webkit-box-align:center;
+                align-items:center;
+        display:-webkit-box;
         display:flex;
-        justify-content:center;
+        -webkit-box-pack:center;
+                justify-content:center;
         height:24px;
         padding:0;
         position:absolute;
@@ -69,6 +73,7 @@
         color:#ffffff;
         background-color:#b1110e;
         cursor:pointer;
+        -webkit-transition:background-color .2s ease;
         transition:background-color .2s ease;
     }
 

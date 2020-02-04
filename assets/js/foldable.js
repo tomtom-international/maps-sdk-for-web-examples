@@ -3,13 +3,14 @@
  * @param {String} selector Element selector (any valid CSS selector).
  * @param {String="top-right"} position Position of the fold button.
  */
+
 function Foldable(selector, position) {
     this.position = position;
     this.element = document.querySelector(selector);
     this.element.classList.add('tt-foldable');
     this.foldButton = this._createFoldButton();
     this.isFolded = false;
-    this.overflowTimeout;
+    this.overflowTimeout = undefined;
 
     this._addFoldButton();
     this._bindEvents();

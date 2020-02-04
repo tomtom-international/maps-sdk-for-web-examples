@@ -9,7 +9,7 @@ console.log("Copying files to dist starting...");
 
 ncp(source, destination, (err) => {
     if (err) {
-        console.error(err);
+        console.error(err); // eslint-disable-line
         process.exit(-1);
     }
 

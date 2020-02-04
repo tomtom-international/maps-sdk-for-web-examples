@@ -65,7 +65,7 @@
     }
 
     function fitToViewport(markerData) {
-        if (!markerData || (markerData instanceof Array && !markerData.length)) {
+        if (!markerData || !markerData.length) {
             return;
         }
 

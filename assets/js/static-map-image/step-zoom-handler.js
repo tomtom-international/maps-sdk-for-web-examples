@@ -15,7 +15,7 @@ function debounce(callback, delayInMillis) {
 }
 
 var stepZoomHandler = (function() {
-    var onWheel = debounce(function(event) {
+    var onWheel = debounce(function(map, event) {
         var deltaY = event.originalEvent.deltaY;
         var detail = event.originalEvent.detail;
         var wheelDelta = event.originalEvent.wheelDelta;
@@ -26,7 +26,7 @@ var stepZoomHandler = (function() {
         map.setZoom(zoom);
     }, 50);
 
-    var onIdle = function() {
+    var onIdle = function(map) {
         var zoom = Math.round(map.getZoom());
         if (zoom !== map.getZoom()) {
             map.zoomTo(zoom);
@@ -40,14 +40,14 @@ var stepZoomHandler = (function() {
     return {
         enable: function(map) {
             map.setZoom(Math.round(map.getZoom()));
-            map.on('idle', onIdle);
-            map.on('wheel', onWheel);
+            map.on('idle', onIdle.bind(null, map));
+            map.on('wheel', onWheel.bind(null, map));
             map.getCanvasContainer().addEventListener('wheel', onWheelHandler);
             map.scrollZoom.disable();
         },
         disable: function(map) {
-            map.off('idle', onIdle);
-            map.off('wheel', onWheel);
+            map.off('idle', onIdle.bind(null, map));
+            map.off('wheel', onWheel.bind(null, map));
             map.getCanvasContainer().removeEventListener('wheel', onWheelHandler);
             map.scrollZoom.enable();
         }

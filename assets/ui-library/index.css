@@ -19,7 +19,8 @@ body {
 }
 
 .full-map {
-    flex: 1;
+    -webkit-box-flex: 1;
+            flex: 1;
     height: 100vh;
 }
 
@@ -27,6 +28,8 @@ body {
     background-color: #ffffff;
     max-height: 999px;
     max-width: 100%;
+    -webkit-transition: max-height .2s ease,
+        max-width .2s ease;
     transition: max-height .2s ease,
         max-width .2s ease;
 }
@@ -40,6 +43,7 @@ body {
         opacity: 0;
         position: absolute;
         top: 0;
+        -webkit-transition: opacity .2s ease;
         transition: opacity .2s ease;
         width: 100%;
         z-index: -1;
@@ -58,12 +62,15 @@ body {
         max-width: 32px;
         padding-left: 24px;
         padding-right: 24px;
+        -webkit-transition: max-height .2s ease,
+            max-width .2s .2s ease;
         transition: max-height .2s ease,
             max-width .2s .2s ease;
     }
 
 .tt-foldable.-folded:before {
             opacity: 1;
+            -webkit-transition: opacity .2s ease;
             transition: opacity .2s ease;
             z-index: 1;
         }
@@ -73,6 +80,7 @@ body {
             top: 18px;
             -webkit-transform: rotate(-180deg);
                     transform: rotate(-180deg);
+            -webkit-transition: left .2s ease;
             transition: left .2s ease;
             background-color: transparent;
         }
@@ -277,7 +285,9 @@ body {
     }
 
 .tt-pop-up-container {
-    align-items: flex-start;
+    -webkit-box-align: start;
+            align-items: flex-start;
+    display: -webkit-box;
     display: flex;
 }
 
@@ -390,9 +400,12 @@ body {
 }
 
 .loader-center {
-    align-items: center;
+    -webkit-box-align: center;
+            align-items: center;
+    display: -webkit-box;
     display: flex;
-    justify-content: center;
+    -webkit-box-pack: center;
+            justify-content: center;
 }
 
 @-webkit-keyframes loader {
@@ -449,6 +462,7 @@ body {
 }
 
 .map-view {
+    display: -webkit-box;
     display: flex;
 }
 
@@ -535,11 +549,15 @@ body {
 .tt-side-panel {
     background-color: #f2f2f2;
     box-shadow: 0 4px 24px 0 rgba(0, 0, 0, .16);
+    display: -webkit-box;
     display: flex;
-    flex-direction: column;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+            flex-direction: column;
     font-family: Gotham, Helvetica, Arial, sans-serif;
     height: 100vh;
-    justify-content: space-between;
+    -webkit-box-pack: justify;
+            justify-content: space-between;
     overflow: visible;
     margin: 0;
     width: 376px;
@@ -575,6 +593,7 @@ body {
 .tt-side-panel__header.-traffic {
             background-color: white;
             box-shadow: 0 5px 12px 0 rgba(0, 0, 0, .09);
+            display: -webkit-box;
             display: flex;
             min-height: 67px;
             padding: 24px 16px;
@@ -703,13 +722,15 @@ body {
     }
 
 .tt-inline-input-group {
+    display: -webkit-box;
     display: flex;
     margin-left: -8px;
     margin-right: -8px;
 }
 
 .tt-inline-input-group > .tt-form-label {
-        flex-grow: 1;
+        -webkit-box-flex: 1;
+                flex-grow: 1;
         margin-left: 8px;
         margin-right: 8px;
         margin-top: 0;
@@ -722,13 +743,18 @@ body {
     }
 
 .tt-input-icon {
-    align-items: center;
+    -webkit-box-align: center;
+            align-items: center;
+    display: -webkit-box;
     display: flex;
-    flex-direction: row-reverse;
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: reverse;
+            flex-direction: row-reverse;
 }
 
 .tt-input-icon .tt-input {
-        flex-grow: 1;
+        -webkit-box-flex: 1;
+                flex-grow: 1;
     }
 
 .tt-input-icon > .tt-icon:last-child {
@@ -750,6 +776,7 @@ body {
     outline: none;
     padding: 0 12px;
     text-overflow: ellipsis;
+    -webkit-transition: border-color .2s ease;
     transition: border-color .2s ease;
 
     /* &:-webkit-autofill,
@@ -769,6 +796,10 @@ body {
     }
 
 .tt-input::-webkit-input-placeholder {
+        color: #666666;
+    }
+
+.tt-input::-moz-placeholder {
         color: #666666;
     }
 
@@ -795,6 +826,10 @@ body {
     }
 
 .tt-input[disabled]::-webkit-input-placeholder {
+            color: #cccccc;
+        }
+
+.tt-input[disabled]::-moz-placeholder {
             color: #cccccc;
         }
 
@@ -991,6 +1026,7 @@ body {
     background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC\
     9zdmciIHdpZHRoPSIxMiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDEyIDE2Ij48cGF0aCBkPSJNMCA1bDYgNiA2LTZIM\
     HoiLz48L3N2Zz4=");
+    -webkit-transition: opacity 142ms linear, -webkit-transform 142ms linear;
     transition: opacity 142ms linear, -webkit-transform 142ms linear;
     transition: opacity 142ms linear, transform 142ms linear;
     transition: opacity 142ms linear, transform 142ms linear, -webkit-transform 142ms linear;
@@ -1346,6 +1382,7 @@ body {
             font-size: 13px;
             font-weight: normal;
             height: 32px;
+            -webkit-transition: border-color .2s ease;
             transition: border-color .2s ease;
         }
 
@@ -1427,6 +1464,7 @@ body {
     line-height: 1.5;
     margin: 0;
     padding: 8px 24px;
+    -webkit-transition: background-color .2s ease;
     transition: background-color .2s ease;
 }
 
@@ -1445,9 +1483,12 @@ body {
         }
 
 .tt-button.-toggle {
-        align-items: center;
+        -webkit-box-align: center;
+                align-items: center;
+        display: -webkit-box;
         display: flex;
-        justify-content: center;
+        -webkit-box-pack: center;
+                justify-content: center;
         height: 24px;
         padding: 0;
         position: absolute;
@@ -1487,6 +1528,7 @@ body {
         color: #ffffff;
         background-color: #b1110e;
         cursor: pointer;
+        -webkit-transition: background-color .2s ease;
         transition: background-color .2s ease;
     }
 
@@ -1530,6 +1572,7 @@ body {
     }
 
 .tt-buttons-group {
+    display: -webkit-box;
     display: flex;
 }
 
@@ -1545,6 +1588,7 @@ body {
         margin: 0;
         padding: 12px 24px;
         text-overflow: ellipsis;
+        -webkit-transition: background-color .2s ease, border-color .2s ease;
         transition: background-color .2s ease, border-color .2s ease;
         overflow: hidden;
     }
@@ -1627,9 +1671,13 @@ body {
 
 .tt-tabs {
     background-color: #f2f2f2;
+    display: -webkit-box;
     display: flex;
-    flex: 1;
-    flex-direction: column;
+    -webkit-box-flex: 1;
+            flex: 1;
+    -webkit-box-orient: vertical;
+    -webkit-box-direction: normal;
+            flex-direction: column;
     overflow: hidden;
 }
 
@@ -1840,6 +1888,7 @@ body {
     left: 0;
     position: relative;
     top: 0;
+    -webkit-transition: background-color .2s ease;
     transition: background-color .2s ease;
     width: 38px;
 }
@@ -1853,6 +1902,7 @@ body {
         left: 3px;
         position: absolute;
         top: 3px;
+        -webkit-transition: left .2s ease;
         transition: left .2s ease;
         width: 14px;
     }
@@ -2004,7 +2054,8 @@ body {
     font-weight: bold;
     opacity: .87;
     padding: 12px 16px;
-    transition-delay: 0s;
+    -webkit-transition-delay: 0s;
+            transition-delay: 0s;
     visibility: visible;
 }
 
@@ -2047,6 +2098,8 @@ body {
 
 .tt-info-hint.-hidden {
         opacity: 0;
+        -webkit-transition: visibility 0s .2s ease,
+            opacity .2s ease;
         transition: visibility 0s .2s ease,
             opacity .2s ease;
         visibility: hidden;
@@ -2056,6 +2109,8 @@ body {
     background-color: #ffffff;
     max-height: 999px;
     max-width: 100%;
+    -webkit-transition: max-height .2s ease,
+        max-width .2s ease;
     transition: max-height .2s ease,
         max-width .2s ease;
 }
@@ -2069,6 +2124,7 @@ body {
         opacity: 0;
         position: absolute;
         top: 0;
+        -webkit-transition: opacity .2s ease;
         transition: opacity .2s ease;
         width: 100%;
         z-index: -1;
@@ -2087,12 +2143,15 @@ body {
         max-width: 32px;
         padding-left: 24px;
         padding-right: 24px;
+        -webkit-transition: max-height .2s ease,
+            max-width .2s .2s ease;
         transition: max-height .2s ease,
             max-width .2s .2s ease;
     }
 
 .tt-foldable.-folded:before {
             opacity: 1;
+            -webkit-transition: opacity .2s ease;
             transition: opacity .2s ease;
             z-index: 1;
         }
@@ -2102,6 +2161,7 @@ body {
             top: 18px;
             -webkit-transform: rotate(-180deg);
                     transform: rotate(-180deg);
+            -webkit-transition: left .2s ease;
             transition: left .2s ease;
             background-color: transparent;
         }
@@ -2217,6 +2277,10 @@ body {
             background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='18px' height='16px' viewBox='0 0 18 16' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'%3E%3Ctitle%3Ecar%3C/title%3E%3Cdesc%3ECreated with Sketch.%3C/desc%3E%3Cg id='map_interaction' stroke='none' stroke-width='1' fill='none' fill-rule='evenodd'%3E%3Cg id='Artboard' transform='translate%28-214.000000%2C -102.000000%29' fill='%23000000'%3E%3Cg id='car' transform='translate%28211.000000%2C 98.000000%29'%3E%3Cpath d='M6.0000522%2C18 L6.0000522%2C19.5 C6.0000522%2C19.7761424 5.77619458%2C20 5.5000522%2C20 L3.5000522%2C20 C3.22390983%2C20 3.0000522%2C19.7761424 3.0000522%2C19.5 L3.0000522%2C10.9589179 C3.00006964%2C10.4881425 3.32843452%2C10.0811228 3.7885605%2C9.98155597 C3.9535891%2C9.94584537 4.0417201%2C9.91677109 4.05295349%2C9.89433311 L6.86564543%2C4.27616358 C6.95038701%2C4.10689779 7.1234506%2C4 7.31274414%2C4 L16.6614697%2C4 C16.8501133%2C4 17.0226986%2C4.10617248 17.1077575%2C4.27455115 L19.94634%2C9.89367392 C19.9577736%2C9.91630733 20.0464977%2C9.94567357 20.2125122%2C9.98177266 C20.6721901%2C10.081707 21.0000522%2C10.4885227 21.0000522%2C10.9589381 L21.0000522%2C19.5 C21.0000522%2C19.7761424 20.7761946%2C20 20.5000522%2C20 L18.5000522%2C20 C18.2239098%2C20 18.0000522%2C19.7761424 18.0000522%2C19.5 L18.0000522%2C18 L6.0000522%2C18 Z M8.5968264%2C6 L6.5000522%2C10 L17.5000522%2C10 L15.403278%2C6 L8.5968264%2C6 Z M17.7500522%2C15 C18.4404081%2C15 19.0000522%2C14.4403559 19.0000522%2C13.75 C19.0000522%2C13.0596441 18.4404081%2C12.5 17.7500522%2C12.5 C17.0596963%2C12.5 16.5000522%2C13.0596441 16.5000522%2C13.75 C16.5000522%2C14.4403559 17.0596963%2C15 17.7500522%2C15 Z M6.2500522%2C15 C6.94040814%2C15 7.5000522%2C14.4403559 7.5000522%2C13.75 C7.5000522%2C13.0596441 6.94040814%2C12.5 6.2500522%2C12.5 C5.55969626%2C12.5 5.0000522%2C13.0596441 5.0000522%2C13.75 C5.0000522%2C14.4403559 5.55969626%2C15 6.2500522%2C15 Z' id='Combined-Shape'/%3E%3C/g%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         }
 
+.tt-icon.-car.-big {
+            background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cpath fill='%2361ADE0' fill-rule='evenodd' d='M27.097 54a.3.3 0 0 1 .3.3v4.259a1 1 0 0 1-1 1H17.28a1 1 0 0 1-1-1V54.3a.3.3 0 0 1 .3-.3h10.518zm28.324 0a.3.3 0 0 1 .3.3v4.259a1 1 0 0 1-1 1h-9.118a1 1 0 0 1-1-1V54.3a.3.3 0 0 1 .3-.3H55.42zM43.935 13.5a9 9 0 0 1 8.326 5.584l3.82 9.312c.035.083.063.167.087.25A6.735 6.735 0 0 1 58.5 33.75V45a4.5 4.5 0 0 1-4.5 4.5H18a4.5 4.5 0 0 1-4.5-4.5V33.75c0-2.039.904-3.867 2.333-5.104a2.14 2.14 0 0 1 .085-.25l3.82-9.312a9 9 0 0 1 8.327-5.584h15.87zm7.815 18h-31.5A2.25 2.25 0 0 0 18 33.75V45h36V33.75a2.25 2.25 0 0 0-2.25-2.25zM25.875 36a3.375 3.375 0 0 1 3.375 3.375c0 .621-.504 1.125-1.125 1.125h-4.5c-.58 0-1.057-.439-1.118-1.002l-.007-.123A3.375 3.375 0 0 1 25.875 36zm20.25 0a3.375 3.375 0 0 1 3.375 3.375c0 .621-.504 1.125-1.125 1.125h-4.5c-.58 0-1.057-.439-1.118-1.002l-.007-.123A3.375 3.375 0 0 1 46.125 36zm-2.19-18h-15.87a4.5 4.5 0 0 0-4.163 2.792L21.355 27h29.29l-2.547-6.208A4.5 4.5 0 0 0 43.935 18z'/%3E%3C/svg%3E");
+        }
+
 .tt-icon.-truck {
         background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16px' height='18px' viewBox='0 0 16 18' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'%3E%3Ctitle%3Etruck%3C/title%3E%3Cdesc%3ECreated with Sketch.%3C/desc%3E%3Cg id='map_interaction' stroke='none' stroke-width='1' fill='none' fill-rule='evenodd'%3E%3Cg id='Artboard' transform='translate%28-330.000000%2C -97.000000%29' fill='%237A7E80'%3E%3Cg id='truck' transform='translate%28326.000000%2C 94.000000%29'%3E%3Cpath d='M19.0588235%2C10.5789474 L19.0588235%2C10.6810189 L19.6681949%2C11.2283123 C19.8793733%2C11.4179776 20%2C11.6884514 20%2C11.9722986 L20%2C18.6315789 C20%2C18.8931875 19.7893105%2C19.1052632 19.5294118%2C19.1052632 L19.0588235%2C19.1052632 L19.0588235%2C20.5263158 C19.0588235%2C20.7879244 18.848134%2C21 18.5882353%2C21 L16.7058824%2C21 C16.4459836%2C21 16.2352941%2C20.7879244 16.2352941%2C20.5263158 L16.2352941%2C19.1052632 L7.76470588%2C19.1052632 L7.76470588%2C20.5263158 C7.76470588%2C20.7879244 7.55401635%2C21 7.29411765%2C21 L5.41176471%2C21 C5.151866%2C21 4.94117647%2C20.7879244 4.94117647%2C20.5263158 L4.94117647%2C19.1052632 L4.47058824%2C19.1052632 C4.21068953%2C19.1052632 4%2C18.8931875 4%2C18.6315789 L4%2C11.9831405 C4%2C11.6930107 4.12600489%2C11.417183 4.34531437%2C11.2272392 L4.94117647%2C10.7111634 L4.94117647%2C10.5789474 C4.42137906%2C10.5789474 4%2C10.1575683 4%2C9.6377709 L4%2C6.78328173 C4%2C6.26348432 4.42137906%2C5.84210526 4.94117647%2C5.84210526 L4.94117647%2C5.84210526 L4.94117647%2C4.27713652 C4.94117647%2C4.07816552 5.0646996%2C3.90040244 5.2503836%2C3.83216937 C6.76011627%2C3.27738979 7.83351875%2C3 8.47059105%2C3 L15.529409%2C3 C16.1664819%2C3 17.2398859%2C3.27739035 18.7496209%2C3.83217104 C18.9352971%2C3.90040862 19.0588235%2C4.07816642 19.0588235%2C4.27713152 L19.0588235%2C5.84210526 C19.5786209%2C5.84210526 20%2C6.26348432 20%2C6.78328173 L20%2C9.6377709 C20%2C10.1575683 19.5786209%2C10.5789474 19.0588235%2C10.5789474 L19.0588235%2C10.5789474 Z M5.88235294%2C6.78947368 L5.88235294%2C11.5263158 L18.1176471%2C11.5263158 L18.1176471%2C6.78947368 L5.88235294%2C6.78947368 Z M9.64705882%2C15.3157895 L14.3529412%2C15.3157895 L14.3529412%2C14.3684211 L9.64705882%2C14.3684211 L9.64705882%2C15.3157895 Z M9.64705882%2C17.2105263 L14.3529412%2C17.2105263 L14.3529412%2C16.2631579 L9.64705882%2C16.2631579 L9.64705882%2C17.2105263 Z M5.88235294%2C15.3157895 L5.88235294%2C17.2105263 L8.70588235%2C17.2105263 L7.76470588%2C15.3157895 L5.88235294%2C15.3157895 Z M16.2352941%2C15.3157895 L15.2941176%2C17.2105263 L18.1176471%2C17.2105263 L18.1176471%2C15.3157895 L16.2352941%2C15.3157895 Z' id='Shape'/%3E%3C/g%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
         height: 18px;
@@ -2304,6 +2368,7 @@ body {
         border-top: 2px solid #cccccc;
         box-shadow: 0 5px 12px 0 rgba(0, 0, 0, .09);
         clear: both;
+        display: -webkit-box;
         display: flex;
         font-family: Gotham, Helvetica, Arial, sans-serif;
         font-size: 14px;
@@ -2314,8 +2379,10 @@ body {
     }
 
 .tt-results-wrapper__header div {
-            align-items: center;
+            -webkit-box-align: center;
+                    align-items: center;
             color: #000000;
+            display: -webkit-box;
             display: flex;
             font-weight: 700;
             height: 100%;
@@ -2339,16 +2406,22 @@ body {
             }
 
 .tt-results-wrapper__list {
+        display: -webkit-box;
         display: flex;
-        flex-direction: column;
+        -webkit-box-orient: vertical;
+        -webkit-box-direction: normal;
+                flex-direction: column;
     }
 
 .tt-results-wrapper__list.-item {
             background-color: #ffffff;
             border-top: 2px solid #cccccc;
             cursor: pointer;
+            display: -webkit-box;
             display: flex;
-            flex-direction: row;
+            -webkit-box-orient: horizontal;
+            -webkit-box-direction: normal;
+                    flex-direction: row;
             font-family: Noway, Gotham, Helvetica;
             font-size: 12px;
             height: auto;
@@ -2357,8 +2430,10 @@ body {
         }
 
 .tt-results-wrapper__list.-item > div {
-                align-items: center;
+                -webkit-box-align: center;
+                        align-items: center;
                 color: #666666;
+                display: -webkit-box;
                 display: flex;
                 height: auto;
                 padding: 12px;
@@ -2411,7 +2486,9 @@ body {
     }
 
 .tt-legend-label {
-    align-items: center;
+    -webkit-box-align: center;
+            align-items: center;
+    display: -webkit-box;
     display: flex;
     font-family: Gotham, Helvetica, Arial, sans-serif;
     height: 24px;
@@ -2431,7 +2508,9 @@ body {
     }
 
 .tt-checkable-input {
-    align-items: center;
+    -webkit-box-align: center;
+            align-items: center;
+    display: -webkit-box;
     display: flex;
     margin-top: 12px;
 }
@@ -2444,6 +2523,12 @@ body {
         font-family: Gotham, Helvetica, Arial, sans-serif;
         margin-top: 0;
     }
+
+.tt-checkable-input .tt-checkbox + .tt-label.-full {
+            font-size: 12px;
+            font-weight: 400;
+            width: 100%;
+        }
 
 .tt-link {
     color: #1692e4;
@@ -2495,9 +2580,35 @@ body {
     word-break: break-all;
 }
 
+.details-result {
+    background: #f2f2f2;
+    border: 1px solid #666666;
+    border-radius: 3px;
+    color: rgb(51, 51, 51);
+    font-family: Noway, Gotham, Helvetica;
+    font-stretch: 100%;
+    height: 250px;
+    letter-spacing: 1px;
+    list-style-position: inside;
+    margin: 0 10px 5px 10px;
+    overflow: auto;
+    padding-right: 18px;
+    white-space: pre;
+    word-break: break-all;
+    word-wrap: break-word;
+}
+
+.popup-details-wrapper {
+    list-style-type: disc;
+    padding-left: 10px;
+}
+
 .tt-incidents-details {
+    display: -webkit-box;
     display: flex;
-    flex-direction: row;
+    -webkit-box-orient: horizontal;
+    -webkit-box-direction: normal;
+            flex-direction: row;
 }
 
 .tt-incidents-list {
@@ -2510,6 +2621,7 @@ body {
 
 .tt-incidents-list__item {
         cursor: pointer;
+        display: -webkit-box;
         display: flex;
         padding: 17px 5px 17px 5px;
         position: relative;
@@ -2538,7 +2650,8 @@ body {
         }
 
 .tt-overflow {
-    flex: 1;
+    -webkit-box-flex: 1;
+            flex: 1;
     overflow-y: auto;
 }
 

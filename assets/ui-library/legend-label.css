@@ -1,5 +1,7 @@
 .tt-legend-label{
-    align-items:center;
+    -webkit-box-align:center;
+            align-items:center;
+    display:-webkit-box;
     display:flex;
     font-family:Gotham, Helvetica, Arial, sans-serif;
     height:24px;

@@ -5,7 +5,8 @@
     font-weight:bold;
     opacity:.87;
     padding:12px 16px;
-    transition-delay:0s;
+    -webkit-transition-delay:0s;
+            transition-delay:0s;
     visibility:visible;
 }
 
@@ -48,6 +49,8 @@
 
     .tt-info-hint.-hidden{
         opacity:0;
+        -webkit-transition:visibility 0s .2s ease,
+            opacity .2s ease;
         transition:visibility 0s .2s ease,
             opacity .2s ease;
         visibility:hidden;

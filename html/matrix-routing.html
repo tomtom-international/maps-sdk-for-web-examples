@@ -124,7 +124,7 @@
                             'data': geojson
                         },
                         'paint': {
-                            'line-color': '#00d7ff',
+                            'line-color': '#4a90e2',
                             'line-width': 8
                         }
                     });
@@ -136,12 +136,12 @@
         }
 
         function createResultsRowElement(formattedResults, locationId) {
-            var resultsRow = elementFactory('div', 'tt-results-wrapper__list -item'),
+            var resultsRow = DomHelpers.elementFactory('div', 'tt-results-wrapper__list -item'),
                 resultsRowElement = [];
 
             formattedResults.forEach(function(resultContent, index) {
                 var className = index > 3 ? 'not-visible' : '',
-                    resultCell = elementFactory('div', className, resultContent);
+                    resultCell = DomHelpers.elementFactory('div', className, resultContent);
 
                 resultsRowElement.push(resultCell);
                 resultsRow.appendChild(resultCell);
@@ -155,26 +155,26 @@
 
         function createResultElementsHeader() {
             var liveData = [
-                    elementFactory('div', 'not-visible', 'Live Traffic'),
-                    elementFactory('div', 'not-visible', 'Historic Traffic'),
-                    elementFactory('div', 'not-visible', 'No Traffic')
+                    DomHelpers.elementFactory('div', 'not-visible', 'Live Traffic'),
+                    DomHelpers.elementFactory('div', 'not-visible', 'Historic Traffic'),
+                    DomHelpers.elementFactory('div', 'not-visible', 'No Traffic')
                 ],
                 notLiveData = [
-                    elementFactory('div', '', 'Dist.'),
-                    elementFactory('div', '', 'ETA'),
-                    elementFactory('div', '', 'Delay')
+                    DomHelpers.elementFactory('div', '', 'Dist.'),
+                    DomHelpers.elementFactory('div', '', 'ETA'),
+                    DomHelpers.elementFactory('div', '', 'Delay')
                 ],
-                poiName = elementFactory('div', '', 'POI');
+                poiName = DomHelpers.elementFactory('div', '', 'POI');
 
             return [poiName].concat(liveData).concat(notLiveData);
         }
 
         function createSearchHeader() {
-            var headerWrapper = elementFactory('div', 'tt-results-wrapper__header'),
+            var headerWrapper = DomHelpers.elementFactory('div', 'tt-results-wrapper__header'),
                 searchHeaderElement = createResultElementsHeader(),
                 headerElementNoPoiName = searchHeaderElement.slice(1),
-                switchIcon = elementFactory('span', 'tt-icon -switch'),
-                trafficButton = elementFactory('span', 'tt-button -primary -toggle');
+                switchIcon = DomHelpers.elementFactory('span', 'tt-icon -switch'),
+                trafficButton = DomHelpers.elementFactory('span', 'tt-button -primary -toggle');
 
             searchHeaderElement.forEach(function(element) {
                 headerWrapper.appendChild(element);
@@ -190,7 +190,7 @@
 
         function createSearchResults(matrixAPIResults, searchCategoryAPIResults) {
             var generatedElements = [],
-                resultsWrapper = elementFactory('div', 'tt-results-wrapper__list');
+                resultsWrapper = DomHelpers.elementFactory('div', 'tt-results-wrapper__list');
 
             searchCategoryAPIResults.forEach(function(searchCategoryResult, index) {
                 var matrixSummary = matrixAPIResults[index].routeSummary,
@@ -246,7 +246,8 @@
                 return;
             }
             if (!placeholderChange) {
-                document.getElementById('results-container').innerText = 'Cannot find results for a requested category. Please move to a different area.';
+                document.getElementById('results-container')
+                    .innerText = 'Cannot find results for a requested category. Please move to a different area.';
                 placeholderChange = true;
             }
             resultsManager.loading();
@@ -258,9 +259,8 @@
                     var resultRowsDocumentFragment = document.createDocumentFragment(),
                         marker = document.createElement('div'),
                         matrixAPIResults = routeResults.matrixAPIResults,
-                        overflowElement = elementFactory('div', 'tt-results-wrapper__overflow'),
+                        overflowElement = DomHelpers.elementFactory('div', 'tt-results-wrapper__overflow'),
                         searchCategoryAPIResults = routeResults.searchCategoryAPIResults;
-
                     var searchHeader = createSearchHeader(),
                         headerElementNoPoiName = searchHeader.headerElementNoPoiName,
                         headerWrapper = searchHeader.headerWrapper,
@@ -293,7 +293,8 @@
                         markers[searchCategoryResult.id] = createMarker(searchCategoryResult);
                     });
                     map.fitBounds(getMarkersBounds(), { padding: 50 });
-                    trafficButton.addEventListener('click', trafficButtonHandler.bind(null, headerElementNoPoiName, resultsElement));
+                    trafficButton.addEventListener('click',
+                        trafficButtonHandler.bind(null, headerElementNoPoiName, resultsElement));
                 })
                 .catch(handleCategorySearchError)
                 .finally(function() {

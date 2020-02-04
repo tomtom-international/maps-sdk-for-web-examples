@@ -9,6 +9,7 @@
     outline:none;
     padding:0 12px;
     text-overflow:ellipsis;
+    -webkit-transition:border-color .2s ease;
     transition:border-color .2s ease;
 }
 
@@ -21,6 +22,10 @@
     }
 
     .tt-input::-webkit-input-placeholder{
+        color:#666666;
+    }
+
+    .tt-input::-moz-placeholder{
         color:#666666;
     }
 
@@ -47,6 +52,10 @@
     }
 
     .tt-input[disabled]::-webkit-input-placeholder{
+            color:#cccccc;
+        }
+
+    .tt-input[disabled]::-moz-placeholder{
             color:#cccccc;
         }
 

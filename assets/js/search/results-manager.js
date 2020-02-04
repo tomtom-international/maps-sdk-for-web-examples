@@ -8,7 +8,8 @@ function appendParentSelector(parentSelector, selector) {
  */
 function ResultsManager(resultsElementSelector) {
     this.resultsElement = document.querySelector(appendParentSelector(resultsElementSelector, '.js-results'));
-    this.resultsPlaceholder = document.querySelector(appendParentSelector(resultsElementSelector, '.js-results-placeholder'));
+    this.resultsPlaceholder =
+        document.querySelector(appendParentSelector(resultsElementSelector, '.js-results-placeholder'));
     this.resultsLoader = document.querySelector(appendParentSelector(resultsElementSelector, '.js-results-loader'));
 }
 
@@ -25,6 +26,10 @@ ResultsManager.prototype.success = function() {
 };
 
 ResultsManager.prototype.resultsNotFound = function() {
+    if (!this.resultsPlaceholder.getAttribute('hidden')) {
+        return;
+    }
+    this.resultsElement.setAttribute('hidden', 'hidden');
     this.resultsLoader.setAttribute('hidden', 'hidden');
     this.resultsPlaceholder.removeAttribute('hidden');
 };

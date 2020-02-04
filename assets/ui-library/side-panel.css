@@ -1,11 +1,15 @@
 .tt-side-panel{
     background-color:#f2f2f2;
     box-shadow:0 4px 24px 0 rgba(0, 0, 0, .16);
+    display:-webkit-box;
     display:flex;
-    flex-direction:column;
+    -webkit-box-orient:vertical;
+    -webkit-box-direction:normal;
+            flex-direction:column;
     font-family:Gotham, Helvetica, Arial, sans-serif;
     height:100vh;
-    justify-content:space-between;
+    -webkit-box-pack:justify;
+            justify-content:space-between;
     overflow:visible;
     margin:0;
     width:376px;
@@ -41,6 +45,7 @@
     .tt-side-panel__header.-traffic{
             background-color:white;
             box-shadow:0 5px 12px 0 rgba(0, 0, 0, .09);
+            display:-webkit-box;
             display:flex;
             min-height:67px;
             padding:24px 16px;

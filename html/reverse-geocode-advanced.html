@@ -27,6 +27,9 @@
             margin-right: 9px;
             padding: 7px;
         }
+        details:not([open]) {
+            cursor: pointer;
+        }
     </style>
     <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/tabs.js'></script>
@@ -34,6 +37,7 @@
     <script data-showable type='text/javascript' src='../assets/js/search/geopolitical-views.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/antimeridian-handler.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/buttons-group.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/dom-helpers.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/slider.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/side-panel.js'></script>
@@ -112,23 +116,23 @@
         <div id='map' class='full-map'></div>
     </div>
     <script>
-        window.tt.setProductInfo('<your-product-name>', '<your-product-version>');
-        var map = window.tt.map({
+        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+        var map = tt.map({
             key: '${api.key.maps}',
             container: 'map',
             style: 'tomtom://vector/1/basic-main',
             center: [4.3705, 50.8515],
             zoom: 12,
-            dragPan: !window.isMobileOrTablet()
+            dragPan: !isMobileOrTablet()
         });
 
-        map.addControl(new window.tt.FullscreenControl());
-        map.addControl(new window.tt.NavigationControl());
-        var roundLatLng = window.Formatters.roundLatLng;
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+        var roundLatLng = Formatters.roundLatLng;
 
-        var welcomePopup = new window.tt.Popup({ className: 'tt-popup' })
+        var welcomePopup = new tt.Popup({ className: 'tt-popup' })
             .setHTML('Click anywhere on the map to get position.')
-            .setLngLat(new window.tt.LngLat(4.3705, 50.8515))
+            .setLngLat(new tt.LngLat(4.3705, 50.8515))
             .addTo(map);
 
         var roadUseOptions = [
@@ -140,11 +144,11 @@
             'Rotary'
         ];
 
-        new window.SidePanel('.tt-side-panel', map);
-        var radiusSlider = new window.Slider(document.querySelector('.js-radius-slider'));
-        var languageSelector = new window.TailSelector(window.searchLanguages, '.js-language-select', 'en-US');
-        var geopolSelector = new window.TailSelector(window.searchGeopoliticalViews, '.js-geo-view-select', 'Unified');
-        var roadUseSelector = new window.TailSelector(
+        new SidePanel('.tt-side-panel', map);
+        var radiusSlider = new Slider(document.querySelector('.js-radius-slider'));
+        var languageSelector = new TailSelector(searchLanguages, '.js-language-select', 'en-US');
+        var geopolSelector = new TailSelector(searchGeopoliticalViews, '.js-geo-view-select', 'Unified');
+        var roadUseSelector = new TailSelector(
             roadUseOptions,
             '.js-road-use-select',
             undefined, {
@@ -155,10 +159,13 @@
                 deselect: true
             }
         );
-        var headingDirectionGroup = new window.ButtonsGroup(document.getElementById('heading-dir'));
+        var headingDirectionGroup = new ButtonsGroup(document.getElementById('heading-dir'));
 
         function ReverseGeocode() {
-            this.errorHint = new window.InfoHint('error', 'bottom-center', 3000)
+            this.errorHint = new InfoHint('error', 'bottom-center', 3000)
+                .addTo(document.getElementById('map'));
+
+            this.loadingHint = new InfoHint('info', 'bottom-center', 3000)
                 .addTo(document.getElementById('map'));
 
             this.bindElements();
@@ -202,7 +209,7 @@
         };
 
         ReverseGeocode.prototype.handleHeadingChange = function(button) {
-            var chosenHeading = parseInt(button.getAttribute('direction'));
+            var chosenHeading = parseInt(button.getAttribute('direction'), 10);
 
             if (chosenHeading === this.state.heading) {
                 headingDirectionGroup.unselect();
@@ -248,7 +255,7 @@
         };
 
         ReverseGeocode.prototype.getReverseGeocodeService = function() {
-            return window.tt.services.reverseGeocode({
+            return tt.services.reverseGeocode({
                 key: '${api.key.search}',
                 position: [
                     this.state.position.longitude,
@@ -288,50 +295,58 @@
 
         ReverseGeocode.prototype.handleResponse = function(response) {
             this.errorHint.hide();
+            this.loadingHint.hide();
 
             var result = response.addresses[0];
             var popupAddress = document.createElement('strong');
-            popupAddress.innerText = result.address.freeformAddress;
-
-            var details = document.createElement('details');
-            details.setAttribute('class', 'tt-details tt-spacing-top-8');
-
-            var parametersTable = document.createElement('div');
-            parametersTable.setAttribute('class', 'popup-table');
-
-            Object.keys(result.address).forEach(function(key) {
-                if (typeof result.address[key] !== 'object') {
-                    parametersTable.appendChild(this.createParameterRow(key, result.address[key]));
-                }
-            }.bind(this));
-
-            if (result.matchType) {
-                parametersTable.appendChild(this.createParameterRow('matchType', result.matchType));
-            }
+            popupAddress.innerText = result.address.freeformAddress || 'No result found';
 
             var popupContent = document.createElement('div');
-
             popupContent.appendChild(popupAddress);
-            details.appendChild(parametersTable);
-            popupContent.appendChild(details);
 
-            var markerElement = document.createElement('div');
-            markerElement.setAttribute('class', 'tt-marker -start');
+            if (popupAddress.innerText !== 'No result found') {
+                var details = document.createElement('details');
+                details.setAttribute('class', 'tt-details tt-spacing-top-8');
 
-            this.state.currentMarker = new window.tt.Marker(markerElement)
+                var parametersTable = document.createElement('div');
+                parametersTable.setAttribute('class', 'popup-table');
+
+                Object.keys(result.address).forEach(function(key) {
+                    if (typeof result.address[key] !== 'object') {
+                        parametersTable.appendChild(this.createParameterRow(key, result.address[key]));
+                    }
+                }.bind(this));
+
+                if (result.matchType) {
+                    parametersTable.appendChild(this.createParameterRow('matchType', result.matchType));
+                }
+                details.appendChild(parametersTable);
+                popupContent.appendChild(details);
+            } else {
+                this.errorHint.setMessage('No result found for given position');
+            }
+
+            this.state.currentMarker = new tt.Marker()
+
                 .setLngLat(result.position)
                 .addTo(map)
-                .setPopup(new window.tt.Popup({ offset: [0, -30] })
+                .setPopup(new tt.Popup({ offset: [0, -30] })
                     .setDOMContent(popupContent)
                     .setMaxWidth('none'));
 
+            this.state.currentMarker.getElement().classList.add('marker');
             this.state.currentMarker.getPopup().addTo(map);
 
             var ne = result.address.boundingBox.northEast;
             var sw = result.address.boundingBox.southWest;
-            var bounds = new window.tt.LngLatBounds(sw, ne);
+            var bounds = new tt.LngLatBounds(sw, ne);
 
-            map.fitBounds(new window.AntimeridianHandler().normalizeBoundingBox(bounds), { padding: 100 });
+            if (popupAddress.innerText !== 'No result found') {
+                map.fitBounds(new window.AntimeridianHandler().normalizeBoundingBox(bounds),
+                    { duration: 1000, padding: 100 });
+            } else {
+                map.flyTo({ center: result.position, duration: 1000 });
+            }
         };
 
         ReverseGeocode.prototype.createParameterRow = function(key, value) {
@@ -347,9 +362,11 @@
         };
 
         ReverseGeocode.prototype.handleMapClick = function(event) {
-            if (event.originalEvent.target.classList.contains('tt-marker')) {
+            if (DomHelpers.checkIfElementOrItsParentsHaveClass(event.originalEvent.target, 'marker')) {
                 return;
             }
+
+            this.loadingHint.setMessage('Loading');
 
             var pos = event.lngLat.toArray();
             this.state.position.longitude = pos[0];

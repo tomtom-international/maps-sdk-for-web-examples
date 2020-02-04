@@ -157,8 +157,8 @@
         var geopolSelector = new TailSelector(searchGeopoliticalViews, '.js-geo-view-select', 'Unified');
 
         geopolSelector.getElement().on('change', function(selected) {
-            this.map.setGeopoliticalView(selected.key);
-        }.bind(this));
+            map.setGeopoliticalView(selected.key);
+        });
 
         function Search() {
             this.domHelpers = DomHelpers;
@@ -221,8 +221,8 @@
         };
 
         Search.prototype.updateBiasPosition = function() {
-            var lat = map.getCenter().lat.toFixed(6);
-            var lng = map.getCenter().lng.toFixed(6);
+            var lat = Formatters.roundLatLng(map.getCenter().lat);
+            var lng = Formatters.roundLatLng(map.getCenter().lng);
             this.elements.latitude.value = lat;
             this.elements.longitude.value = lng;
 
@@ -348,7 +348,7 @@
 
             var serviceCall = tt.services[this.state.type];
 
-            if ((this.state.type !== 'geometrySearch') && this.state.isGeobiasActive) {
+            if (this.state.type !== 'geometrySearch' && this.state.isGeobiasActive) {
                 callParameters.radius = this.state.radius;
                 callParameters.center = [this.state.longitude, this.state.latitude];
             }

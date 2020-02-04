@@ -46,13 +46,14 @@
     <script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
     <script>
+        tt.setProductInfo('<your-product-name>', '<your-product-version>');
         var photosMapping = {
             'Default': 'default.png',
             'Jam': 'jam.png',
             'Road Works': 'road_works.png',
             'Road Closed': 'road_closed.png'
         };
-        
+
         var markerOptions = {
             options: {
                 markerFactory: function(data, defaultFactoryMethod, oldMarker) {
@@ -96,11 +97,11 @@
             html: {
                 markerFactory: function(data, defaultFactoryMethod, oldMarker) {
                     var isCluster = data.properties && data.properties.clusterSize;
+                    var defaultMarker = defaultFactoryMethod(data);
                     if (isCluster) { // we do not want to modify cluster markers here
-                        return defaultFactoryMethod(data);
+                        return defaultMarker;
                     }
                     //firstly we need to get a default popup since we do not want to modify it
-                    var defaultMarker = defaultFactoryMethod(data);
                     var popup = defaultMarker.getPopup();
                     if (oldMarker) { // we need to check if it's an update
                         var isPopupOpen = oldMarker.getPopup().isOpen();
@@ -135,11 +136,11 @@
         var incidentConfig = {
             key: '${api.key.trafficIncidents}',
             incidentDetails:  {
-                style: 's1',
+                style: 's0',
                 markerOptions: markerOptions.html
             },
             incidentTiles: {
-                style: 'tomtom://vector/1/s1'
+                style: 'tomtom://vector/1/s0'
             },
             refresh: 30000
         };

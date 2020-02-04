@@ -5,7 +5,7 @@
 if (typeof Object.assign !== 'function') {
     // Must be writable: true, enumerable: false, configurable: true
     Object.defineProperty(Object, 'assign', {
-        value: function assign(target, varArgs) { // .length of function is 2
+        value: function assign(target) {
             'use strict';
             if (target === null || target === undefined) {
                 throw new TypeError('Cannot convert undefined or null to object');
@@ -52,7 +52,7 @@ if (typeof Object.assign !== 'function') {
 
     injectStyle('details-polyfill-style',
         'html.no-details ' + DETAILS + ':not([open]) > :not(' + SUMMARY + ') { display: none; }\n' +
-        'html.no-details ' + DETAILS + ' > ' + SUMMARY + ':before { content: "\u25b6"; display: inline-block; font-size: .8em; width: 1.5em; }\n' +
+        'html.no-details ' + DETAILS + ' > ' + SUMMARY + ':before { content: "\u25b6"; display: inline-block; font-size: .8em; width: 1.5em; }\n' + //eslint-disable-line
         'html.no-details ' + DETAILS + '[open] > ' + SUMMARY + ':before { content: "\u25bc"; }');
 
     /*
@@ -91,7 +91,7 @@ if (typeof Object.assign !== 'function') {
 
         var diff = el.offsetHeight;
         el.open = true;
-        var result = diff != el.offsetHeight;
+        var result = diff !== el.offsetHeight;
 
         document.body.removeChild(el);
         return result;

@@ -15,6 +15,7 @@
     <script data-showable type='text/javascript' src='../assets/js/search/tabs.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/languages.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/buttons-group.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/dom-helpers.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/slider.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/side-panel.js'></script>
@@ -107,6 +108,9 @@
 
         function CrossStreetLookup() {
             this.errorHint = new InfoHint('error', 'bottom-center', 3000)
+                .addTo(document.getElementById('map'));
+
+            this.loadingHint = new InfoHint('info', 'bottom-center', 3000)
                 .addTo(document.getElementById('map'));
 
             this.bindElements();
@@ -209,11 +213,14 @@
         };
 
         CrossStreetLookup.prototype.handleError = function(error) {
+            this.loadingHint.hide();
             this.errorHint.setMessage(error.data ? error.data.errorText : error);
         };
 
         CrossStreetLookup.prototype.handleResponse = function(response) {
             var addresses = response.addresses;
+
+            this.loadingHint.hide();
 
             if (!addresses[0]) {
                 this.errorHint.setMessage('No results found for given parameters');
@@ -228,13 +235,12 @@
                 popupAddress.innerText = freeformAddress;
                 var popupContent = popupAddress.outerHTML;
 
-                var markerElement = document.createElement('div');
-                markerElement.setAttribute('class', 'tt-marker -start');
-
-                var marker = new window.tt.Marker(markerElement).setLngLat(crossing.position);
+                var marker = new window.tt.Marker().setLngLat(crossing.position);
+                marker.getElement().classList.add('marker');
                 marker.addTo(map);
                 marker.setPopup(new window.tt.Popup({ offset: [0, -30] }).setHTML(popupContent));
                 this.state.markers[freeformAddress] = marker;
+
             }.bind(this));
 
             map.fitBounds(this.getMarkersBounds(), { padding: 50 });
@@ -260,15 +266,18 @@
         };
 
         CrossStreetLookup.prototype.handleMapClick = function(event) {
-            if (event.originalEvent.target.classList.contains('tt-marker')) {
+            if (DomHelpers.checkIfElementOrItsParentsHaveClass(event.originalEvent.target, 'marker')) {
                 return;
             }
+
+            this.loadingHint.setMessage('Loading');
 
             var pos = event.lngLat.toArray();
             this.state.position.longitude = pos[0];
             this.state.position.latitude = pos[1];
             this.elements.longitude.value = roundLatLng(pos[0]);
             this.elements.latitude.value = roundLatLng(pos[1]);
+
             this.handleRequest();
         };
 

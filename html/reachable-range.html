@@ -249,7 +249,7 @@
                 'constantSpeedConsumptionInLitersPerHundredkm';
             var budgetParam = uiState.isBudgetInSec ?
                 'timeBudgetInSec' :
-                (uiState.isEV ? 'energyBudgetInkWh' : 'fuelBudgetInLiters');
+                (uiState.isEV ? 'energyBudgetInkWh' : 'fuelBudgetInLiters'); //eslint-disable-line
             var params = {
                 key: '${api.key.routing}',
                 origin: origin
@@ -301,18 +301,14 @@
                     fuelBudgetSelect.getElement().select.style.display = 'none';
                     timeBudgetSelect.getElement().select.style.display = 'none';
                     switch (evt.target.id) {
-                    case 'time-radio': {
+                    case 'time-radio':
                         uiState.isBudgetInSec = true;
                         timeBudgetSelect.getElement().select.style.display = 'block';
                         break;
-                    }
-                    case 'fuel-radio': {
+                    case 'fuel-radio':
                         uiState.isBudgetInSec = false;
                         fuelBudgetSelect.getElement().select.style.display = 'block';
                         break;
-                    }
-                    default:
-                        return;
                     }
                 });
             });
@@ -418,8 +414,8 @@
             var isCar = uiState.selectedScenario === 'car';
             var speed = 50;
             var consumption = uiState.isEV ?
-                (isCar ? 26 : 40) :
-                (isCar ? 6.3 : 20);
+                (isCar ? 26 : 40) : //eslint-disable-line
+                (isCar ? 6.3 : 20); // eslint-disable-line
 
             pairs.appendChild(createPair([speed, consumption]));
         }
@@ -450,7 +446,9 @@
                 var isSelected = uiState.selectedScenario === scenario;
                 var element = document.createElement('div');
                 element.setAttribute('data-scenario', scenario);
-                isSelected && element.classList.add('-selected');
+                if (isSelected) {
+                    element.classList.add('-selected');
+                }
                 var icon = document.createElement('div');
                 icon.className = 'tt-icon -' + scenario + (isSelected ? ' -black' : '');
 

@@ -41,7 +41,7 @@ function addEntryPointsMapLayersIfNecessary(map, options) {
  * @param {String} [options.markerClassName] Optional - CSS class name to customize marker styles.
  * @param {String} [options.popupClassName] Optional - CSS class name to customize marker styles.
  * @param {Boolean=false} [options.entryPoints] Optional - A flag indicating if entry points should be supported.
- * @param {Function} [options.reverseGeocodeService] Optional - A service used to fetch an address of an entry point
+ * @param {Function} [options.reverseGeocodeService] Optional - A service used to fetch an address of an entry point.
  *
  * This class draws markers on the map for a group of search results originating from the Tomtom Search service.
  * tt (tomtom object) needs to be available globally to use this Class.
@@ -51,6 +51,7 @@ function addEntryPointsMapLayersIfNecessary(map, options) {
  * - search-markers.css (included in our examples)
  * - poi-icons.css (shipped with the SDK)
  */
+
 function SearchMarkersManager(map, options) {
     checkDependencyAvailability();
 
@@ -74,7 +75,6 @@ SearchMarkersManager.prototype.draw = function(poiList) {
         throw new Error('Poi list(poiList) must be an array');
     }
     this._poiList = poiList;
-
     this.clear();
 
     this._poiList.forEach(function(poi) {

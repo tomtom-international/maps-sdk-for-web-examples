@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
     <meta charset='UTF-8'>
-    <title>Maps SDK for Web - Vector map</title>
+    <title>Maps SDK for Web - Raster traffic flow</title>
     <meta name='viewport'
           content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
     <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
@@ -17,9 +17,12 @@
                 <label class='tt-form-label tt-spacing-top-24'>
                     Traffic flow style
                     <select class='js-style-select tt-select'>
+                        <option value='relative0' selected>relative0</option>
+                        <option value='relative0-dark'>relative0-dark</option>
                         <option value='absolute'>absolute</option>
-                        <option value='relative' selected >relative</option>
+                        <option value='relative'>relative</option>
                         <option value='relative-delay'>relative-delay</option>
+                        <option value='reduced-sensitivity'>reduced-sensitivity</option>
                     </select>
                 </label>
             </div>
@@ -32,14 +35,14 @@
         var baseStyle = 'tomtom://raster/1/';
         var config = {
             key: '${api.key.trafficFlow}',
-            style: baseStyle + 'relative',
+            style: baseStyle + 'relative0',
             refresh: 30000
         };
         var map = tt.map({
             key: '${api.key.maps}',
             container: 'map',
             style: baseStyle + 'basic-main',
-            center: [-0.12634, 51.50276],
+            center: [2.340822, 48.855462],
             zoom: 10,
             dragPan: !isMobileOrTablet()
         });

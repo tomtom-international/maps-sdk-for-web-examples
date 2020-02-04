@@ -36,10 +36,25 @@ function createSearchResult(name, address, distance) {
     return element;
 }
 
+function checkIfElementOrItsParentsHaveClass(element, className) {
+    if (element.classList.contains(className)) {
+        return true;
+    }
+    while (element.parentNode) {
+        element = element.parentNode;
+        if (element.classList && element.classList.contains(className)) {
+            return true;
+        }
+    }
+    return false;
+}
+
 var DomHelpers = {
     createResultItem: createResultItem,
     createResultList: createResultList,
-    createSearchResult: createSearchResult
+    createSearchResult: createSearchResult,
+    checkIfElementOrItsParentsHaveClass: checkIfElementOrItsParentsHaveClass,
+    elementFactory: elementFactory
 };
 
 window.DomHelpers = window.DomHelpers || DomHelpers;

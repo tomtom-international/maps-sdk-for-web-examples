@@ -5,6 +5,7 @@
  * @param {String="bottom-center"} position The position in the map.
  * @param {Number} duration The delay after which the popup is hidden.
  */
+
 function InfoHint(type, position, duration) {
     this.type = type;
     this.position = position;

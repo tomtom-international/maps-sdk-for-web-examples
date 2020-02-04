@@ -28,7 +28,7 @@ function getResultAddress(result) {
     return '';
 }
 
-/**
+/*
  * Get the result distance from the search center.
  */
 function getResultDistance(result) {

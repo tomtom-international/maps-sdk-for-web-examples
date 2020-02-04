@@ -1,6 +1,9 @@
 .tt-incidents-details{
+    display:-webkit-box;
     display:flex;
-    flex-direction:row;
+    -webkit-box-orient:horizontal;
+    -webkit-box-direction:normal;
+            flex-direction:row;
 }
 .tt-incidents-list{
     background-color:#ffffff;
@@ -11,6 +14,7 @@
 }
 .tt-incidents-list__item{
         cursor:pointer;
+        display:-webkit-box;
         display:flex;
         padding:17px 5px 17px 5px;
         position:relative;
@@ -34,7 +38,8 @@
             background:lightgray;
         }
 .tt-overflow{
-    flex:1;
+    -webkit-box-flex:1;
+            flex:1;
     overflow-y:auto;
 }
 .tt-overflow__placeholder{

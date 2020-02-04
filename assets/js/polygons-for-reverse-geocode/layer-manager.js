@@ -1,7 +1,7 @@
 /**
  * LayerManager
  * @constructor
- * @param mapInstance
+ * @param {Object} mapInstance
  */
 function LayerManager(mapInstance) {
     this._mapInstance = mapInstance;

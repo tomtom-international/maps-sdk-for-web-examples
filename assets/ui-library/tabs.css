@@ -1,8 +1,12 @@
 .tt-tabs{
     background-color:#f2f2f2;
+    display:-webkit-box;
     display:flex;
-    flex:1;
-    flex-direction:column;
+    -webkit-box-flex:1;
+            flex:1;
+    -webkit-box-orient:vertical;
+    -webkit-box-direction:normal;
+            flex-direction:column;
     overflow:hidden;
 }
 

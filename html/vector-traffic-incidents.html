@@ -18,9 +18,12 @@
                 <label class='tt-form-label tt-spacing-top-24'>
                     Traffic incidents style
                     <select class='js-style-select tt-select'>
+                        <option value='s0'>s0</option>
+                        <option value='s0-dark'>s0-dark</option>
                         <option value='s1'>s1</option>
                         <option value='s2'>s2</option>
                         <option value='s3'>s3</option>
+                        <option value='night'>night</option>
                     </select>
                 </label>
             </div>
@@ -34,10 +37,10 @@
         var incidentConfig = {
             key: '${api.key.trafficIncidents}',
             incidentDetails:  {
-                style: 's1'
+                style: 's0'
             },
             incidentTiles: {
-                style: baseStyle + 's1'
+                style: baseStyle + 's0'
             },
             refresh: 30000
         };

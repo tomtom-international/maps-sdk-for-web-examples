@@ -162,6 +162,7 @@
     background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC\
     9zdmciIHdpZHRoPSIxMiIgaGVpZ2h0PSIxNiIgdmlld0JveD0iMCAwIDEyIDE2Ij48cGF0aCBkPSJNMCA1bDYgNiA2LTZIM\
     HoiLz48L3N2Zz4=");
+    -webkit-transition: opacity 142ms linear, -webkit-transform 142ms linear;
     transition: opacity 142ms linear, -webkit-transform 142ms linear;
     transition: opacity 142ms linear, transform 142ms linear;
     transition: opacity 142ms linear, transform 142ms linear, -webkit-transform 142ms linear;
@@ -471,6 +472,7 @@
             font-size:13px;
             font-weight:normal;
             height:32px;
+            -webkit-transition:border-color .2s ease;
             transition:border-color .2s ease;
         }
 .tt-fake-select.tail-select .select-label:after{

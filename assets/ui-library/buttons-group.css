@@ -1,4 +1,5 @@
 .tt-buttons-group{
+    display:-webkit-box;
     display:flex;
 }
 
@@ -14,6 +15,7 @@
         margin:0;
         padding:12px 24px;
         text-overflow:ellipsis;
+        -webkit-transition:background-color .2s ease, border-color .2s ease;
         transition:background-color .2s ease, border-color .2s ease;
         overflow:hidden;
     }

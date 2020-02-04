@@ -28,7 +28,7 @@
         font-size: 14px;
         font-weight: bold;
         min-width: 320px;
-        padding: 0 8px 20px 8px;
+        padding: 0 8px 20px;
     }
     .tt-traffic-cluster__list.-header {
         border-bottom: 1px solid #e5ebf0;
@@ -111,7 +111,7 @@
                 diff: true,
                 key: '${api.key.trafficIncidents}',
                 incidentDetails: {
-                    style: 's1',
+                    style: 's0',
                     markerOptions: {
                         cluster: {
                             disableOnClickBehavior: true
@@ -120,7 +120,7 @@
                     }
                 },
                 incidentTiles: {
-                    style: baseStyle + 's1'
+                    style: baseStyle + 's0'
                 }
             };
             var incidentsData = {};
@@ -201,7 +201,7 @@
                     features = properties.features,
                     displayedFeatures = features.sort(compareIncidentSeverity).slice(0, 4);
 
-                var clusterWrapper = elementFactory('div', 'tt-traffic-cluster'),
+                var clusterWrapper = DomHelpers.elementFactory('div', 'tt-traffic-cluster'),
                     clusterHTML =
                         '<div class="tt-traffic-cluster__header">INCIDENTS IN THIS AREA: ' + properties.clusterSize + '</div>' +
                         '<div>' +
@@ -269,7 +269,7 @@
             }
 
             function createIncidentDetailsContent(properties) {
-                var incidentDetailsElement = elementFactory('div', '');
+                var incidentDetailsElement = DomHelpers.elementFactory('div', '');
 
                 incidentDetailsElement.innerHTML =
                     '<div class="tt-incidents-details">' +
@@ -309,7 +309,7 @@
 
                 incidentHeader.innerHTML = '';
                 headerNames.forEach(function(headerName) {
-                    var headerElement = elementFactory('div', ''),
+                    var headerElement = DomHelpers.elementFactory('div', ''),
                         sortIcon = headerName.attribute === sortedByValue ?
                             sortDirection === 'asc' ?
                                 '<span class="tt-button -sortable">' +
@@ -334,10 +334,10 @@
                     delaySeconds = properties.delaySeconds,
                     lengthMeters = properties.lengthMeters;
 
-                var incidentDelay = elementFactory('div', '', formatters.convertToTimeFormat(delaySeconds)),
-                    incidentLength = elementFactory('div', '', formatters.formatAsMetricDistance(lengthMeters)),
+                var incidentDelay = DomHelpers.elementFactory('div', '', formatters.convertToTimeFormat(delaySeconds)),
+                    incidentLength = DomHelpers.elementFactory('div', '', formatters.formatAsMetricDistance(lengthMeters)),
                     incidentDetailsContent = createIncidentDetailsContent(properties),
-                    incidentsListItem = elementFactory('div', 'tt-incidents-list__item');
+                    incidentsListItem = DomHelpers.elementFactory('div', 'tt-incidents-list__item');
 
                 incidentsListItem.setAttribute('data-id', properties.id);
                 incidentsListItem.appendChild(incidentDetailsContent);
@@ -349,13 +349,13 @@
             function createIncidentsList(isSorted) {
                 results.innerHTML = '';
                 if (!displayedIncidentsData.length) {
-                    var placeholder = elementFactory('div', 'tt-overflow__placeholder -small',
+                    var placeholder = DomHelpers.elementFactory('div', 'tt-overflow__placeholder -small',
                         'No data for this view, try to move or zoom...');
 
                     results.appendChild(placeholder);
                     return;
                 }
-                var incidentsList = elementFactory('div', 'tt-incidents-list');
+                var incidentsList = DomHelpers.elementFactory('div', 'tt-incidents-list');
 
                 displayedIncidentsData.forEach(function(markerData) {
                     var incidentsItemRow = createIncidentItemRow(markerData);
@@ -425,7 +425,7 @@
                     sortProperty = event.currentTarget.getAttribute('data-sort');
 
                 sortDirection = sortedByValue === sortProperty ?
-                    (!sortDirection || sortDirection === 'desc') ?
+                    !sortDirection || sortDirection === 'desc' ?
                         'asc' :
                         'desc' :
                     'asc';

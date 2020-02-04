@@ -18,10 +18,10 @@ function convertToTimeFormat(secondsValue) {
         return 'No delay';
     }
     var hours = Math.floor(secondsValue / 3600),
-        minutes = Math.floor((secondsValue - (hours * 3600)) / 60),
-        seconds = secondsValue - (hours * 3600) - (minutes * 60);
+        minutes = Math.floor((secondsValue - hours * 3600) / 60),
+        seconds = secondsValue - hours * 3600 - minutes * 60;
 
-    return (hours ? (hours + 'h ') : '') + (minutes ? (minutes + 'min ') : '') + (seconds ? (seconds + 's') : '');
+    return (hours ? hours + 'h ' : '') + (minutes ? minutes + 'min ' : '') + (seconds ? seconds + 's' : '');
 }
 
 function formatAsMetricDistance(distanceMeters) {

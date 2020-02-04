@@ -163,15 +163,17 @@
 
         RoutingService.prototype.drawMarkers = function(locations) {
             var bounds = new tt.LngLatBounds();
-            var maxIndex = locations.length - 1;
-            if (maxIndex < 0) {
+            var maxIndex = routingInputs.length - 1;
+            if (locations.length === 0) {
                 return;
             }
 
-            locations.forEach(function(location, index) {
-                var marker = new tt.Marker(this.waypointMarker(index, maxIndex)).setLngLat(location).addTo(map);
-                markers.push(marker);
-                bounds.extend(tt.LngLat.convert(location));
+            routingInputs.forEach(function(input, index) {
+                if (input.position) {
+                    var marker = new tt.Marker(this.waypointMarker(index, maxIndex)).setLngLat(input.position).addTo(map);
+                    markers.push(marker);
+                    bounds.extend(tt.LngLat.convert(input.position));
+                }
             }, this);
             map.fitBounds(bounds, { duration: 0, padding: 100 });
         };
@@ -193,7 +195,7 @@
             var count = 0;
             routingInputs.forEach(function(routingInput) {
                 if (routingInput.position) {
-                    count++;
+                    count += 1;
                     resultArr.push(routingInput.position);
                     resultStr += routingInput.position.lng + ',' + routingInput.position.lat + ':';
                 }
@@ -252,6 +254,11 @@
             document.getElementById('searchBoxesPlaceholder').appendChild(htmlSearchBox);
             searchBox.on('tomtom.searchbox.resultselected', this.onResultSelected.bind(this));
             searchBox.on('tomtom.searchbox.resultscleared', this.onResultCleared.bind(this));
+            searchBox.getSearchBoxHTML().addEventListener('keyup', function(event) {
+                if (!event.target.value) {
+                    searchBox.fire('tomtom.searchbox.resultscleared');
+                }
+            });
             return htmlSearchBox;
         };
 

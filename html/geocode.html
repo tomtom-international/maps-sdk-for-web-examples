@@ -192,8 +192,8 @@
         };
 
         Geocode.prototype.updateBiasPosition = function() {
-            var lat = map.getCenter().lat.toFixed(6);
-            var lng = map.getCenter().lng.toFixed(6);
+            var lat = Formatters.roundLatLng(map.getCenter().lat);
+            var lng = Formatters.roundLatLng(map.getCenter().lng);
             this.elements.latitude.value = lat;
             this.elements.longitude.value = lng;
             this.state.latitude = lat;

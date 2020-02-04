@@ -302,7 +302,7 @@
                 errorHint.setMessage(error.message);
             });
     }
-
+    //eslint-disable-next-line
     function handleImageLoad() {
         document.querySelector('.js-image-container').classList.remove('-is-loading');
     }
@@ -325,7 +325,7 @@
             }
 
             state[dimension] = value;
-            imageBorder.style[dimension] = (value / 2) + 'px';
+            imageBorder.style[dimension] = value / 2 + 'px';
         };
     }
 
