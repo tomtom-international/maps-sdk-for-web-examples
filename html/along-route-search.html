@@ -30,16 +30,19 @@
     .map-view .searchbox {
         float: left;
     }
+    .input-wrapper {
+        min-height: 52px;
+    }
 </style>
 <body>
     <div class='map-view'>
         <form class='tt-side-panel js-form'>
                 <header class='tt-side-panel__header'>
-                    <div>
+                    <div class='input-wrapper'>
                         <div class='tt-icon icon-spacing -start -black'></div>
                         <div id='startSearchBox' class='tt-form-label searchbox'></div>
                     </div>
-                    <div>
+                    <div class='input-wrapper'>
                         <div class='tt-icon icon-spacing -finish -black'></div>
                         <div id='endSearchBox' class='tt-form-label searchbox'></div>
                     </div>
@@ -286,7 +289,9 @@
         var submitBtn = document.getElementById('submit');
         submitBtn.onclick = function(event) {
             event.preventDefault();
-            resultsManager.loading();
+            if (state.routePoints && query.value) {
+                resultsManager.loading();
+            }
             searchMarkersManager.clear();
             loadingHint.setMessage('Loading...');
             tt.services.alongRouteSearch({
@@ -296,22 +301,24 @@
                 limit: limit.value,
                 route: state.routePoints,
                 spreadingMode: getSpreadingMode()
-            }).go().then(function(response) {
-                loadingHint.hide();
-                focusTab('results');
-                if (response.results && response.results.length > 0) {
-                    resultsManager.success();
-                    var resultList = createResultList(response);
-                    resultsManager.append(resultList);
-                    fitBoundsResults(response.results);
-                } else {
-                    resultsManager.resultsNotFound();
-                    errorHint.setMessage('No results found for given parameters');
-                }
-            }).catch(function(error) {
-                loadingHint.hide();
-                errorHint.setMessage(error);
-            });
+            }).go()
+                .then(function(response) {
+                    loadingHint.hide();
+                    focusTab('results');
+                    if (response.results && response.results.length > 0) {
+                        resultsManager.success();
+                        var resultList = createResultList(response);
+                        resultsManager.append(resultList);
+                        fitBoundsResults(response.results);
+                    } else {
+                        resultsManager.resultsNotFound();
+                        errorHint.setMessage('No results found for given parameters');
+                    }
+                })
+                .catch(function(error) {
+                    loadingHint.hide();
+                    errorHint.setMessage(error);
+                });
         };
     </script>
 </body>

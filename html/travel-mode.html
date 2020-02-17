@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
     <meta charset='UTF-8'>
-    <title>Maps SDK for Web - Hilliness and windingness</title>
+    <title>Maps SDK for Web - Travel Mode</title>
     <meta name='viewport'
           content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
     <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
@@ -14,28 +14,21 @@
         .tt-overlay-panel {
             width: 320px;
         }
-        .legend-label {
-            padding-left: 20px;
-            padding-top: 8px;
-        }
-        .color-label {
-            border-radius: 50%;
-            float: left;
-            height: 10px;
-            margin-top: 13px;
-            padding-right: 8px;
-            width: 10px;
-        }
     </style>
     <div id='map' class='map'>
         <div class='tt-overlay-panel -left-top -medium js-foldable'>
             <div class='tt-form-label'>
-                Hilliness
-                <select class='js-scenario-select tt-select'></select>
-            </div>
-            <div class='tt-form-label'>
-                Windingness
-                <select class='js-scenario-select tt-select'></select>
+                Travel mode
+                <select class='js-category-select tt-select'>
+                        <option value='pedestrian'>Pedestrian</option>
+                        <option value='car'>Car</option>
+                        <option value='truck'>Truck</option>
+                        <option value='bicycle'>Bicycle</option>
+                        <option value='bus'>Bus</option>
+                        <option value='van'>Van</option>
+                        <option value='motorcycle'>Motorcycle</option>
+                        <option value='taxi'>Taxi</option>
+                </select>
             </div>
         </div>
     </div>
@@ -57,58 +50,51 @@
         map.addControl(new tt.FullscreenControl());
         map.addControl(new tt.NavigationControl());
 
-        var state = {
-            selectedHill: 'normal',
-            selectedWind: 'normal',
-            types: {
-                normal: 'normal',
-                low: 'low',
-                high: 'high'
-            },
-            route: undefined
+        var routeColors = {
+            pedestrian: '#ff0000',
+            car: '#f66606',
+            truck: '#f06368',
+            bicycle: '#666666',
+            bus: '#004b7f',
+            van: '#008d8d',
+            motorcycle: '#e94743',
+            taxi: '#5fb935'
         };
-
-        var hillSelector = new TailSelector(state.types, '.js-scenario-select', state.selectedHill).getElement();
-        var windSelector = new TailSelector(state.types, '.js-scenario-select', state.selectedWind).getElement();
+        var travelMode = 'pedestrian';
+        var travelModeSelector = tail.select('.js-category-select', {
+            classNames: 'tt-fake-select',
+            hideSelected: true
+        });
         var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
         var loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
+
         new Foldable('.js-foldable', 'top-right');
-
-        hillSelector.on('change', function(evt) {
-            state.selectedHill = evt.key;
-            serviceCall();
+        map.on('load', function() {
+            travelModeSelector.on('change', handleTravelModeChange);
+            performCalculateRouteRequest();
         });
 
-        windSelector.on('change', function(evt) {
-            state.selectedWind = evt.key;
-            serviceCall();
-        });
+        function handleTravelModeChange(event) {
+            travelMode = event.key;
+            performCalculateRouteRequest();
+        }
 
-        map.on('load', serviceCall);
-
-        function serviceCall() {
-            if (state.route) {
-                map.removeLayer('route');
-                map.removeSource('route');
-                state.route = undefined;
-            }
-
+        function performCalculateRouteRequest() {
+            removeLayer();
             loadingHint.setMessage('Loading...');
-
             tt.services.calculateRoute({
                 key: '${api.key.routing}',
                 traffic: false,
-                locations: '7.4474,46.9484:6.9056,46.9924',
-                routeType: 'thrilling',
-                hilliness: state.selectedHill,
-                windingness: state.selectedWind
+                locations: '4.91015,52.37173:4.89805,52.36357',
+                travelMode: travelMode
             })
                 .go()
                 .then(function(response) {
                     loadingHint.hide();
 
                     var geojson = response.toGeoJson();
-                    state.route = map.addLayer({
+
+                    map.addLayer({
                         'id': 'route',
                         'type': 'line',
                         'source': {
@@ -116,10 +102,10 @@
                             'data': geojson
                         },
                         'paint': {
-                            'line-color': '#f566ff',
+                            'line-color': routeColors[travelMode],
                             'line-width': 6
                         }
-                    }, findFirstBuildingLayerId());
+                    });
 
                     var bounds = new tt.LngLatBounds();
                     geojson.features[0].geometry.coordinates.forEach(function(point) {
@@ -134,15 +120,12 @@
                 });
         }
 
-        function findFirstBuildingLayerId() {
-            var layers = map.getStyle().layers;
-            for (var index in layers) {
-                if (layers[index].type === 'fill-extrusion') {
-                    return layers[index].id;
-                }
+        function removeLayer() {
+            if (!map.getLayer('route')) {
+                return;
             }
-
-            throw new Error('Map style does not contain any layer with fill-extrusion type.');
+            map.removeLayer('route');
+            map.removeSource('route');
         }
     </script>
 </body>

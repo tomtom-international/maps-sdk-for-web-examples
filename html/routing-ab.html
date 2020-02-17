@@ -138,7 +138,9 @@
             if (inputContent.length > 0) {
                 this.setCloseButton();
             } else {
-                if (this.startSearchbox.getSearchBoxHTML().querySelector('.tt-search-box-result-list')) {
+                var resultList = this.startSearchbox.getSearchBoxHTML().querySelector('.tt-search-box-result-list');
+
+                if (resultList || inputContent.length === 0) {
                     return;
                 }
 

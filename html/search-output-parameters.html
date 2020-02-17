@@ -331,7 +331,6 @@
                             this.searchResultsParser.getResultAddress(result),
                             distance ? Formatters.formatAsMetricDistance(distance) : ''
                         );
-
                     this.markers[result.id] = this.createMarker(result);
                     resultItem.appendChild(searchResult);
                     resultItem.setAttribute('data-id', result.id);
@@ -393,6 +392,7 @@
                 language: this.state.language,
                 maxFuzzyLevel: 2,
                 minFuzzyLevel: 1,
+                openingHours: 'nextSevenDays',
                 radius: this.state.radius,
                 view: this.state.view
             };

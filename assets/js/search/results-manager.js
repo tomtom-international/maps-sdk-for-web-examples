@@ -26,9 +26,6 @@ ResultsManager.prototype.success = function() {
 };
 
 ResultsManager.prototype.resultsNotFound = function() {
-    if (!this.resultsPlaceholder.getAttribute('hidden')) {
-        return;
-    }
     this.resultsElement.setAttribute('hidden', 'hidden');
     this.resultsLoader.setAttribute('hidden', 'hidden');
     this.resultsPlaceholder.removeAttribute('hidden');

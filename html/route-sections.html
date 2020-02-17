@@ -187,6 +187,8 @@
         serviceCall();
 
         function serviceCall() {
+            scenarioSelector.disable();
+
             errorHint.hide();
             loadingHint.setMessage('Loading...');
             clearLegend();
@@ -225,6 +227,7 @@
                 })
                 .finally(function() {
                     loadingHint.hide();
+                    scenarioSelector.enable();
                 });
         }
 
