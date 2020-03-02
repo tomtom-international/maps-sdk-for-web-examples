@@ -175,10 +175,7 @@
                 view: 'Unified',
                 radius: this.elements.radius.value,
                 heading: null,
-                position: {
-                    latitude: 50.8515,
-                    longitude: 4.3705
-                },
+                position: [50.8515, 4.3705],
                 isRequesting: false,
                 preferredNumber: null,
                 roadUse: null,
@@ -257,10 +254,7 @@
         ReverseGeocode.prototype.getReverseGeocodeService = function() {
             return tt.services.reverseGeocode({
                 key: '${api.key.search}',
-                position: [
-                    this.state.position.longitude,
-                    this.state.position.latitude
-                ],
+                position: this.state.position,
                 language: this.state.searchLanguage,
                 radius: this.state.radius,
                 heading: this.state.heading,
@@ -299,12 +293,17 @@
 
             var result = response.addresses[0];
             var popupAddress = document.createElement('strong');
-            popupAddress.innerText = result.address.freeformAddress || 'No result found';
+
+            if (result && result.address.freeformAddress) {
+                popupAddress.innerText = result.address.freeformAddress;
+            } else {
+                popupAddress.innerText = 'No address';
+            }
 
             var popupContent = document.createElement('div');
             popupContent.appendChild(popupAddress);
 
-            if (popupAddress.innerText !== 'No result found') {
+            if (popupAddress.innerText !== 'No address') {
                 var details = document.createElement('details');
                 details.setAttribute('class', 'tt-details tt-spacing-top-8');
 
@@ -322,13 +321,12 @@
                 }
                 details.appendChild(parametersTable);
                 popupContent.appendChild(details);
-            } else {
-                this.errorHint.setMessage('No result found for given position');
             }
 
-            this.state.currentMarker = new tt.Marker()
+            var clickPosition = new tt.LngLat(this.state.position[0], this.state.position[1]);
 
-                .setLngLat(result.position)
+            this.state.currentMarker = new tt.Marker()
+                .setLngLat(result && result.position || clickPosition)
                 .addTo(map)
                 .setPopup(new tt.Popup({ offset: [0, -30] })
                     .setDOMContent(popupContent)
@@ -337,15 +335,15 @@
             this.state.currentMarker.getElement().classList.add('marker');
             this.state.currentMarker.getPopup().addTo(map);
 
-            var ne = result.address.boundingBox.northEast;
-            var sw = result.address.boundingBox.southWest;
-            var bounds = new tt.LngLatBounds(sw, ne);
+            if (popupAddress.innerText !== 'No address') {
+                var ne = result.address.boundingBox.northEast;
+                var sw = result.address.boundingBox.southWest;
+                var bounds = new tt.LngLatBounds(sw, ne);
 
-            if (popupAddress.innerText !== 'No result found') {
                 map.fitBounds(new window.AntimeridianHandler().normalizeBoundingBox(bounds),
                     { duration: 1000, padding: 100 });
             } else {
-                map.flyTo({ center: result.position, duration: 1000 });
+                map.flyTo({ center: clickPosition, duration: 1000 });
             }
         };
 
@@ -369,8 +367,7 @@
             this.loadingHint.setMessage('Loading');
 
             var pos = event.lngLat.toArray();
-            this.state.position.longitude = pos[0];
-            this.state.position.latitude = pos[1];
+            this.state.position = pos;
             this.elements.longitude.value = roundLatLng(pos[0]);
             this.elements.latitude.value = roundLatLng(pos[1]);
             this.handleRequest();

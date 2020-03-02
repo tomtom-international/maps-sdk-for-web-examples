@@ -58,11 +58,10 @@
             var result = response.addresses[0];
             var popupAddress = document.createElement('strong');
 
-            if (result.address.freeformAddress) {
+            if (result && result.address.freeformAddress) {
                 popupAddress.innerText = result.address.freeformAddress;
             } else {
-                popupAddress.innerText = 'No result found';
-                this.errorHint.setMessage('No result found for given position');
+                popupAddress.innerText = 'No address';
             }
 
             var popupContent = document.createElement('div');

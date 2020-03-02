@@ -185,11 +185,11 @@
         });
     }
 
-    var ttSearchBox = new tt.plugins.SearchBox(tt.services.fuzzySearch, {
+    var ttSearchBox = new tt.plugins.SearchBox(tt.services, {
         searchOptions: {
             key: '${api.key.search}'
         },
-        filter: function(searchResult) {
+        filterSearchResults: function(searchResult) {
             //we want to filter out search results that don't have polygons attached
             return Boolean(searchResult.dataSources && searchResult.dataSources.geometry &&
                 searchResult.dataSources.geometry.id);

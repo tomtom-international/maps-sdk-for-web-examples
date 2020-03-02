@@ -188,7 +188,6 @@
 
         function serviceCall() {
             scenarioSelector.disable();
-
             errorHint.hide();
             loadingHint.setMessage('Loading...');
             clearLegend();
@@ -221,10 +220,7 @@
 
                     createLegend(sectionsGeojsonLines);
                 })
-                .catch(function(error) {
-                    var serviceError = error && error.data && error.data.error && error.data.error.description;
-                    errorHint.setMessage(serviceError || error && error.message || 'Error occured');
-                })
+                .catch(errorHint.setErrorMessage)
                 .finally(function() {
                     loadingHint.hide();
                     scenarioSelector.enable();

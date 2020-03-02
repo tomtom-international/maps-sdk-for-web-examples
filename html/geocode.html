@@ -230,11 +230,6 @@
         Geocode.prototype.handleSubmit = function(event) {
             event.preventDefault();
 
-            if (!this.state.query) {
-                this.errorHint.setMessage('Query is required');
-                return;
-            }
-
             var callParameters = {
                 key: '${api.key.search}',
                 query: this.state.query,
@@ -243,8 +238,12 @@
             };
 
             this.resultsManager.loading();
-            tabs.clickTab(document.querySelector('[aria-controls="results"]'));
             searchMarkersManager.clear();
+            if (this.state.query) {
+                tabs.clickTab(document.querySelector('[aria-controls="results"]'));
+            } else {
+                this.resultsManager.resultsNotFound();
+            }
 
             if (this.state.isGeobiasActive) {
                 callParameters.radius = this.state.radius;

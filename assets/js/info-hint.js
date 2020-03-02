@@ -32,9 +32,25 @@ InfoHint.prototype.show = function() {
     this.element.classList.remove('-hidden');
 };
 
+InfoHint.prototype.setErrorMessage = function(error) {
+    this.element.innerText = error.message || error.data.error.description;
+    this._createMessage();
+};
+
 InfoHint.prototype.setMessage = function(message) {
-    this.show();
     this.element.innerText = message;
+    this._createMessage();
+};
+
+InfoHint.prototype._createElement = function() {
+    var element = document.createElement('div');
+    element.setAttribute('class', this._getClassList());
+
+    return element;
+};
+
+InfoHint.prototype._createMessage = function() {
+    this.show();
 
     if (!this.duration) {
         return;

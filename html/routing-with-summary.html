@@ -21,14 +21,14 @@
             width: 16px;
         }
         .map-view .icon-spacing {
-            float: left;
             margin-right: 14px;
             margin-top: 24px;
         }
         .map-view .searchbox {
-            float: left;
+            flex: 1;
         }
         .map-view .searchbox-wrapper {
+            display: flex;
             min-height: 52px;
         }
         .map-view .draggable-marker {
@@ -184,8 +184,8 @@
             }
 
             function createSearchBox(type) {
-                var searchBox = new tt.plugins.SearchBox(tt.services.fuzzySearch, {
-                    showSearchIcon: false,
+                var searchBox = new tt.plugins.SearchBox(tt.services, {
+                    showSearchButton: false,
                     searchOptions: {
                         key: '${api.key.search}'
                     },

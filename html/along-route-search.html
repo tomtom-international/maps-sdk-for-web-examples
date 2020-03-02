@@ -32,7 +32,11 @@
         margin-top: 24px;
     }
     .map-view .searchbox {
-        float: left;
+        flex: 1;
+    }
+
+    .tt-side-panel__header > * {
+        display: flex;
     }
     .input-wrapper {
         min-height: 52px;
@@ -43,11 +47,11 @@
         <form class='tt-side-panel js-form'>
                 <header class='tt-side-panel__header'>
                     <div class='input-wrapper'>
-                        <div class='tt-icon icon-spacing -start -black'></div>
+                        <div class='tt-icon icon-spacing -start'></div>
                         <div id='startSearchBox' class='tt-form-label searchbox'></div>
                     </div>
                     <div class='input-wrapper'>
-                        <div class='tt-icon icon-spacing -finish -black'></div>
+                        <div class='tt-icon icon-spacing -finish'></div>
                         <div id='endSearchBox' class='tt-form-label searchbox'></div>
                     </div>
                 </header>
@@ -157,8 +161,8 @@
         }
 
         function createSearchBox(type) {
-            var searchBox = new tt.plugins.SearchBox(tt.services.fuzzySearch, {
-                showSearchIcon: false,
+            var searchBox = new tt.plugins.SearchBox(tt.services, {
+                showSearchButton: false,
                 searchOptions: {
                     key: '${api.key.search}'
                 },
@@ -190,7 +194,7 @@
                 .addTo(map);
             updateRouteIfNeeded();
         }
-        
+
         function getRoute() {
             var startPointLngLat = state.startMarker.getLngLat();
             var endPointLngLat = state.endMarker.getLngLat();

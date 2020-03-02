@@ -91,6 +91,7 @@
         map.on('load', calculateRouteRequest);
 
         function calculateRouteRequest() {
+            errorHint.hide();
             loadingHint.setMessage('Loading...');
 
             tt.services.calculateRoute({
@@ -120,7 +121,7 @@
                 })
                 .catch(function(error) {
                     loadingHint.hide();
-                    errorHint.setMessage(error.message);
+                    errorHint.setErrorMessage(error);
                 })
                 .finally(function() {
                     state.isRequesting = false;

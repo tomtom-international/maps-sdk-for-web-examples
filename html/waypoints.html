@@ -19,7 +19,6 @@
         }
         .tt-icon-size {
             height: 18px !important;
-            padding: 8px;
             width: 18px !important;
         }
         .icon-spacing-right {
@@ -36,9 +35,6 @@
         button.add-stop-btn {
             margin-left: 30px;
             margin-top: 24px;
-        }
-        .tt-search-box-input {
-            width: calc(100% - 25px) !important;
         }
         .remove-btn {
             background-color: transparent;
@@ -69,14 +65,11 @@
             border-radius: 50%;
             color: #ffffff;
             display: flex;
-            height: 18px;
             justify-content: center;
-            text-align: center;
-            width: 25px;
         }
 </style>
 <body>
-    <div id='map' class='map'> 
+    <div id='map' class='map'>
         <div id='foldable' class='tt-overlay-panel -left-top -medium js-foldable'>
             <div id='form'>
                 <div id='searchBoxesPlaceholder' class='tt-form-label'></div>
@@ -146,9 +139,9 @@
 
                     this.drawMarkers(locations.arr);
                 }.bind(this))
-                .catch(function(err) {
+                .catch(function(error) {
                     loadingHint.hide();
-                    infoHint.setMessage(err.data.error.description);
+                    infoHint.setErrorMessage(error);
                 });
         };
 
@@ -240,8 +233,8 @@
         };
 
         RoutingInput.prototype.createSearchBox = function() {
-            var searchBox = new tt.plugins.SearchBox(tt.services.fuzzySearch, {
-                showSearchIcon: false,
+            var searchBox = new tt.plugins.SearchBox(tt.services, {
+                showSearchButton: false,
                 searchOptions: {
                     key: '${api.key.search}'
                 },
@@ -274,17 +267,17 @@
         RoutingInput.prototype.getIconClassName = function(iconType) {
             switch (iconType) {
             case 'start':
-                return 'tt-icon tt-icon-size icon-spacing-right -start -black';
+                return 'tt-icon tt-icon-size icon-spacing-right -start';
             case 'finish':
-                return 'tt-icon tt-icon-size icon-spacing-right -finish -black';
+                return 'tt-icon tt-icon-size icon-spacing-right -finish';
             case 'number':
-                return 'tt-icon-number icon-spacing-right icon-number';
+                return 'tt-icon-number tt-icon-size icon-spacing-right icon-number';
             }
         };
 
         RoutingInput.prototype.createRemoveButton = function() {
             var button = document.createElement('button');
-            button.className = 'tt-icon icon-spacing-left remove-btn -trash -black';
+            button.className = 'tt-icon icon-spacing-left remove-btn -trash';
             button.onclick = function(event) {
                 event.preventDefault();
                 this.container.parentNode.removeChild(this.container);
@@ -401,7 +394,7 @@
         map.on('load', function() {
             routingService.calculateRoute();
         });
-        
+
         new Panel(routingService);
     </script>
 </body>

@@ -43,6 +43,11 @@
         .searchbox-container {
             display: flex;
         }
+
+        .searchbox-container > .tt-search-box {
+            flex: 1;
+            padding-right: 26px;
+        }
         .my-location-button {
             background-image: url("../assets/svg/my-location.svg");
             cursor: pointer;
@@ -65,16 +70,16 @@
         }
 </style>
 <body>
-    <div id='map' class='map'> 
+    <div id='map' class='map'>
         <div id='foldable' class='tt-overlay-panel -left-top -medium js-foldable'>
             <form id=form>
-                <div id='startSearchBox' class='searchbox-container'> 
-                    <div class='tt-icon tt-icon-size icon-spacing-right -start -black'></div>
+                <div id='startSearchBox' class='searchbox-container'>
+                    <div class='tt-icon tt-icon-size icon-spacing-right -start'></div>
                 </div>
                 <div id='finishSearchBox' class='searchbox-container'>
-                    <div class='tt-icon tt-icon-size icon-spacing-right -finish -black'></div>
+                    <div class='tt-icon tt-icon-size icon-spacing-right -finish'></div>
                 </div>
-            </form>    
+            </form>
         </div>
     </div>
     <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
@@ -176,7 +181,7 @@
             if (!this.state.start || !this.state.finish) {
                 return;
             }
-
+            this.errorHint.hide();
             var startPos = this.state.start.join(',');
             var finalPos = this.state.finish.join(',');
 
@@ -205,7 +210,7 @@
         };
 
         RoutingAB.prototype.handleError = function(error) {
-            this.errorHint.setMessage(error.message ? error.message : error.data.error.description);
+            this.errorHint.setErrorMessage(error);
         };
 
         RoutingAB.prototype.drawMarker = function(type) {
@@ -242,8 +247,8 @@
         };
 
         RoutingAB.prototype.createSearchBox = function(type) {
-            var searchBox = new tt.plugins.SearchBox(tt.services.fuzzySearch, {
-                showSearchIcon: false,
+            var searchBox = new tt.plugins.SearchBox(tt.services, {
+                showSearchButton: false,
                 searchOptions: {
                     key: '${api.key.search}'
                 },

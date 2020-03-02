@@ -26,10 +26,12 @@
             margin-top: 24px;
         }
         .map-view .input-wrapper {
+            display: flex;
             min-height: 52px;
         }
         .map-view .searchbox {
             float: left;
+            width: 100%;
         }
         .map-view .supporting-marker {
             align-items: center;
@@ -242,7 +244,7 @@
             });
 
             function addRouteMarkers(type, point) {
-                var lngLat = (point && point[type + 'Point']) || routePoints[type];
+                var lngLat = point && point[type + 'Point'] || routePoints[type];
 
                 if (!routeMarkers[type] && routePoints[type]) {
                     routeMarkers[type] = createMarker(type, lngLat);
@@ -412,7 +414,7 @@
 
             function createSearchBox(type) {
                 var searchBox = new tt.plugins.SearchBox(tt.services.fuzzySearch, {
-                    showSearchIcon: false,
+                    showSearchButton: false,
                     searchOptions: {
                         key: '${api.key.search}'
                     },

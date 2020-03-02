@@ -92,7 +92,7 @@
                 map.removeSource('route');
                 state.route = undefined;
             }
-
+            errorHint.hide();
             loadingHint.setMessage('Loading...');
 
             tt.services.calculateRoute({
@@ -128,9 +128,9 @@
                     map.fitBounds(bounds, { duration: 0, padding: 50 });
 
                 })
-                .catch(function(err) {
+                .catch(function(error) {
                     loadingHint.hide();
-                    errorHint.setMessage(err.message);
+                    errorHint.setErrorMessage(error);
                 });
         }
 

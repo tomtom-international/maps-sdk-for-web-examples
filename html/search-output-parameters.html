@@ -380,11 +380,6 @@
 
         SearchOutput.prototype.handleSubmit = function(event) {
             event.preventDefault();
-            if (!this.state.query) {
-                this.elements.query.focus();
-                this.errorHint.setMessage('Query is required');
-                return;
-            }
             var callParameters = {
                 key: '${api.key.search}',
                 query: this.state.query,

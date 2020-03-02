@@ -13,7 +13,7 @@
     </head>
     <style>
             #foldable {
-                padding: 34px 16px 46px;
+                padding: 34px 16px 44px;
                 width: 320px;
             }
             .icon-spacing-right {
@@ -23,12 +23,13 @@
             .tt-search-box-input {
                 width: calc(100% - 25px) !important;
             }
-            .tt-search-box {
-                width: 210px !important;
-            }
             .map-view .tt-icon.-finish {
                 height: 16px;
                 width: 16px;
+            }
+            .icon-wrapper > .tt-form-label {
+                flex: 1;
+                padding-right: 26px;
             }
             .map-view .draggable-marker {
                 align-items: center;
@@ -46,17 +47,22 @@
                 min-height: 52px;
                 align-items: flex-end;
             }
+            .map-view .icon-spacing {
+                float: left;
+                margin-right: 14px;
+                margin-top: 24px;
+            }
     </style>
     <body>
         <div class='map-view'>
-            <div id='map' class='map'> 
+            <div id='map' class='map'>
                 <div id='foldable' class='tt-overlay-panel -left-top -medium js-foldable'>
                     <div class='icon-wrapper'>
-                        <div class='tt-icon icon-spacing-right -start -black'></div>
+                        <div class='tt-icon icon-spacing -start'></div>
                         <div id='startSearchBox' class='tt-form-label'></div>
                     </div>
                     <div class='icon-wrapper'>
-                        <div class='tt-icon icon-spacing-right -finish -black'></div>
+                        <div class='tt-icon icon-spacing -finish'></div>
                         <div id='finishSearchBox' class='tt-form-label'></div>
                     </div>
                 </div>
@@ -137,8 +143,8 @@
             }
 
             function createSearchBox(type) {
-                var searchBox = new tt.plugins.SearchBox(tt.services.fuzzySearch, {
-                    showSearchIcon: false,
+                var searchBox = new tt.plugins.SearchBox(tt.services, {
+                    showSearchButton: false,
                     searchOptions: {
                         key: '${api.key.search}'
                     },

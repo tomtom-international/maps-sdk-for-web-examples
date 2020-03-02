@@ -36,7 +36,7 @@
 
     var searchApiKey = '${api.key.search}';
 
-    var ttSearchBox = new tt.plugins.SearchBox(tt.services.fuzzySearch, {
+    var ttSearchBox = new tt.plugins.SearchBox(tt.services, {
         searchOptions: {
             key: searchApiKey
         }
@@ -85,8 +85,9 @@
     });
 
     ttSearchBox.on('tomtom.searchbox.resultsfound', function(resp) {
-        searchMarkersManager.draw(resp.data.results);
-        fitToViewport(resp.data.results);
+        var results = resp.data.results.fuzzySearch.results;
+        searchMarkersManager.draw(results);
+        fitToViewport(results);
     });
 
     ttSearchBox.on('tomtom.searchbox.resultselected', function(resp) {

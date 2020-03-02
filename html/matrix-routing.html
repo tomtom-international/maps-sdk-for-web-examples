@@ -308,12 +308,6 @@
             clearMapData();
         }
 
-        function handleMatrixRoutingError(error) {
-            var displayedError = error.error ? error.error.description : error;
-
-            errorHint.setMessage(displayedError);
-        }
-
         function handleSearchResultItemClick(event) {
             var dataAttribute,
                 dataId = 'data-id',
@@ -402,7 +396,7 @@
                         searchCategoryAPIResults: searchCategoryAPIResults.results
                     };
                 })
-                .catch(handleMatrixRoutingError);
+                .catch(errorHint.setErrorMessage);
         }
 
         function removeLayer() {
