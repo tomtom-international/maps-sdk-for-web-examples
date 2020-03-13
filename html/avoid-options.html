@@ -164,7 +164,7 @@
             distanceValueDOMElement.textContent =
                 Formatters.formatAsMetricDistance(summary.lengthInMeters);
             timeValueDOMElement.textContent =
-                Formatters.convertToTimeFormat(summary.travelTimeInSeconds);
+                Formatters.formatToDurationTimeString(summary.travelTimeInSeconds);
         }
 
         function debounce(func, wait, immediate) {
