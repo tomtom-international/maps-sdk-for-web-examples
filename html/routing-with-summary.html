@@ -125,7 +125,7 @@
             var startMarkerElement = createMarkerElement('start');
             var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
             var loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
-            var resultsManager = new window.ResultsManager();
+            var resultsManager = new ResultsManager();
             var detailsWrapper = document.createElement('div');
             var summaryContent = document.createElement('div'), summaryHeader;
             var searchBoxesValues = {};
@@ -210,7 +210,6 @@
                     summaryHeader = DomHelpers.elementFactory('div', 'summary-header', 'Route summary');
                     summaryContent.appendChild(summaryHeader);
                 }
-                var date = new Date(feature.arrivalTime);
                 var detailsHTML =
                     '<div class="summary-details-top">Leave now</div>' +
                     '<div class="summary-details-bottom">' +
@@ -222,7 +221,7 @@
                                 Formatters.formatAsMetricDistance(feature.lengthInMeters) +
                             '</b></span>' +
                             '<span class="summary-details-info -second">Arrive: <b>' +
-                                date.toLocaleTimeString() + ', ' + date.toLocaleDateString() +
+                                Formatters.formatToExpandedDateTimeString(feature.arrivalTime) +
                             '</b></span>' +
                         '</div>' +
                     '</div>';

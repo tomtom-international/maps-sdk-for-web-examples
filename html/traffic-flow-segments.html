@@ -177,10 +177,10 @@
                     '</div>' +
                     '<div class="pop-up-result-title">Travel time:</div>' +
                     '<div class="pop-up-result-traffic -important">with traffic: ' +
-                        formatters.convertToTimeFormat(flowSegmentData.currentTravelTime) +
+                        formatters.formatToDurationTimeString(flowSegmentData.currentTravelTime) +
                     '</div>' +
                     '<div class="pop-up-result-traffic">w/o traffic: ' +
-                        formatters.convertToTimeFormat(flowSegmentData.freeFlowTravelTime) +
+                        formatters.formatToDurationTimeString(flowSegmentData.freeFlowTravelTime) +
                     '</div>' +
                 '</div>';
         }

@@ -81,10 +81,11 @@
                                     'Distance: ' + Formatters.formatAsMetricDistance(feature.lengthInMeters) +
                                 '</div>' +
                                 '<div class="pop-up-result-address">' +
-                                    'Estimated travel time: ' + Formatters.convertToTimeFormat(feature.travelTimeInSeconds) +
+                                    'Estimated travel time: ' +
+                                    Formatters.formatToDurationTimeString(feature.travelTimeInSeconds) +
                                 '</div>' +
                                 '<div class="pop-up-result-address">' +
-                                    'Traffic delay: ' + Formatters.convertToTimeFormat(feature.trafficDelayInSeconds) +
+                                    'Traffic delay: ' + Formatters.formatToDurationTimeString(feature.trafficDelayInSeconds) +
                                 '</div>' +
                             '</div>' +
                         '</div>'

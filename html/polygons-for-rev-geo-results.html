@@ -116,13 +116,18 @@
                     boundingBox = address.address.boundingBox,
                     geometryData = additionalDataResponse.additionalData[0].geometryData,
                     geoJSON = geometryData.features[0],
-                    layer = createLayer(geoJSON, geometryZoom);
+                    fillLayer = createLayer(geoJSON, geometryZoom, 'fill'),
+                    outlineLayer = createLayer(geoJSON, geometryZoom, 'line');
 
                 if (state.selectedAddress === address.address.freeformAddress) {
                     const bBox = new tt.LngLatBounds(boundingBox.southWest, boundingBox.northEast);
                     map.fitBounds(new AntimeridianHandler().normalizeBoundingBox(bBox),
                         { padding: 100, linear: true });
-                    return layerManager.updateLayer(layer)
+
+                    var fillLayerPromise = fillLayerManager.updateLayer(fillLayer),
+                        outlineLayerPromise = outlineLayerManager.updateLayer(outlineLayer);
+
+                    return Promise.all([fillLayerPromise, outlineLayerPromise])
                         .then(function() {
                             popup.setHTML('<strong>' + address.address.freeformAddress + '</strong>');
                         });
@@ -173,26 +178,36 @@
      * createLayer
      * @param {object} geoJSON
      * @param {number} geometryZoom
+     * @param {string} type
      * @return {object}
      */
-    var createLayer = function(geoJSON, geometryZoom) {
-        return {
-            id: geoJSON.id + '|' + geometryZoom,
-            type: 'fill',
+    var createLayer = function(geoJSON, geometryZoom, type) {
+        var layerObject = {
+            id: geoJSON.id + '|' + geometryZoom + '|' + type,
+            type: type,
             source: {
                 type: 'geojson',
                 data: geoJSON
             },
             layout: {},
-            paint: {
-                'fill-color': '#bcd730',
-                'fill-opacity': 0.3
-            }
+            paint: {}
         };
+
+        if (type === 'line') {
+            layerObject.paint['line-color'] = '#004B7F';
+            layerObject.paint['line-width'] = 1;
+        } else {
+            layerObject.paint['fill-color'] = '#ffffff';
+            layerObject.paint['fill-opacity'] = 0.25;
+        }
+
+        return layerObject;
     };
 
     //-- Instances
-    var layerManager = new LayerManager(map);
+    var fillLayerManager = new LayerManager(map);
+    var outlineLayerManager = new LayerManager(map);
+
     var form = {
         geometryZoom: function() {
             return sliderElement.value;

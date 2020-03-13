@@ -64,7 +64,6 @@
             }),
             center,
             centerMarker = null,
-            formatters = Formatters,
             errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map')),
             loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map')),
             markers = {},
@@ -193,24 +192,24 @@
                 resultsWrapper = DomHelpers.elementFactory('div', 'tt-results-wrapper__list');
 
             searchCategoryAPIResults.forEach(function(searchCategoryResult, index) {
-                var matrixSummary = matrixAPIResults[index].routeSummary,
-                    locationId = searchCategoryResult.id,
-                    locationName = searchCategoryResult.poi.name,
-                    matrixData = [
-                        formatters.formatAsMetricDistance(matrixSummary.lengthInMeters),
-                        new Date(matrixSummary.arrivalTime).toLocaleTimeString(),
-                        formatters.convertToTimeFormat(matrixSummary.trafficDelayInSeconds),
-                        formatters.convertToTimeFormat(matrixSummary.liveTrafficIncidentsTravelTimeInSeconds),
-                        formatters.convertToTimeFormat(matrixSummary.historicTrafficTravelTimeInSeconds),
-                        formatters.convertToTimeFormat(matrixSummary.noTrafficTravelTimeInSeconds)
-                    ],
-                    formattedResults = [locationName]
-                        .concat(matrixData.slice(0, 3))
-                        .concat(locationName)
-                        .concat(matrixData.slice(3)),
-                    rowElement = createResultsRowElement(formattedResults, locationId),
-                    resultsRowElement = rowElement.resultsRowElement,
-                    resultsRow = rowElement.resultsRow;
+                var matrixSummary = matrixAPIResults[index].routeSummary;
+                var locationId = searchCategoryResult.id;
+                var locationName = searchCategoryResult.poi.name;
+                var matrixData = [
+                    Formatters.formatAsMetricDistance(matrixSummary.lengthInMeters),
+                    Formatters.formatToTimeString(matrixSummary.arrivalTime),
+                    Formatters.formatToDurationTimeString(matrixSummary.trafficDelayInSeconds),
+                    Formatters.formatToDurationTimeString(matrixSummary.liveTrafficIncidentsTravelTimeInSeconds),
+                    Formatters.formatToDurationTimeString(matrixSummary.historicTrafficTravelTimeInSeconds),
+                    Formatters.formatToDurationTimeString(matrixSummary.noTrafficTravelTimeInSeconds)
+                ];
+                var formattedResults = [locationName]
+                    .concat(matrixData.slice(0, 3))
+                    .concat(locationName)
+                    .concat(matrixData.slice(3));
+                var rowElement = createResultsRowElement(formattedResults, locationId);
+                var resultsRowElement = rowElement.resultsRowElement;
+                var resultsRow = rowElement.resultsRow;
 
                 generatedElements.push(resultsRowElement);
                 resultsWrapper.appendChild(resultsRow);
@@ -376,9 +375,9 @@
 
         function performMatrixRoutingRequest(searchCategoryAPIResults) {
             var destinations = searchCategoryAPIResults.results.map(function(result) {
-                    return formatters.convertToPoint(result.position);
+                    return Formatters.convertToPoint(result.position);
                 }),
-                origins = [formatters.convertToPoint(center)],
+                origins = [Formatters.convertToPoint(center)],
                 callParameters = {
                     key: '${api.key.routing}',
                     computeTravelTimeFor: 'all',

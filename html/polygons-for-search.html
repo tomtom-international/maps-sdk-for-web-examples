@@ -13,7 +13,6 @@
         #foldable {
             width: 320px;
         }
-
         #foldable .tt-search-box {
             width: 100% !important;
             z-index: 2;
@@ -48,6 +47,7 @@
 <script>
     var NO_POLYGON_MESSAGE = 'For the given result there is no polygon attached.';
     var POLYGON_ID = 'searchResultPolygon';
+    var OUTLINE_ID = 'searchResultOutline';
 
     new Foldable('#foldable', 'top-right');
     var roundLatLng = Formatters.roundLatLng;
@@ -79,10 +79,10 @@
         return loadPolygon();
     });
 
-    function clearPolygon() {
-        if (map.getLayer(POLYGON_ID)) {
-            map.removeLayer(POLYGON_ID);
-            map.removeSource(POLYGON_ID);
+    function clearLayer(layerID) {
+        if (map.getLayer(layerID)) {
+            map.removeLayer(layerID);
+            map.removeSource(layerID);
         }
     }
 
@@ -104,10 +104,24 @@
                 data: geoJson
             },
             paint: {
-                'fill-color': '#bcd730',
-                'fill-opacity': 0.3
+                'fill-color': '#ffffff',
+                'fill-opacity': 0.25
             }
         });
+
+        map.addLayer({
+            id: OUTLINE_ID,
+            type: 'line',
+            source: {
+                type: 'geojson',
+                data: geoJson
+            },
+            paint: {
+                'line-color': '#004B7F',
+                'line-width': 1
+            }
+        });
+
         var boundingBox = searchResult.boundingBox || searchResult.viewport;
         boundingBox = new tt.LngLatBounds([
             [boundingBox.topLeftPoint.lng, boundingBox.btmRightPoint.lat],
@@ -158,7 +172,8 @@
         }
 
         return new Promise(function(resolve) {
-            clearPolygon();
+            clearLayer(POLYGON_ID);
+            clearLayer(OUTLINE_ID);
             showLoadingPopup();
             resolve();
         }).then(function() {
@@ -206,7 +221,8 @@
     });
     ttSearchBox.on('tomtom.searchbox.resultscleared', function() {
         searchResult = null;
-        clearPolygon();
+        clearLayer(POLYGON_ID);
+        clearLayer(OUTLINE_ID);
         showStartSearchingPopup();
     });
 </script>

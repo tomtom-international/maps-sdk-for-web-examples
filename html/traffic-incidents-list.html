@@ -335,7 +335,7 @@
                     delaySeconds = properties.delaySeconds,
                     lengthMeters = properties.lengthMeters;
 
-                var incidentDelay = DomHelpers.elementFactory('div', '', formatters.convertToTimeFormat(delaySeconds)),
+                var incidentDelay = DomHelpers.elementFactory('div', '', formatters.formatToDurationTimeString(delaySeconds)),
                     incidentLength = DomHelpers.elementFactory('div', '', formatters.formatAsMetricDistance(lengthMeters)),
                     incidentDetailsContent = createIncidentDetailsContent(properties),
                     incidentsListItem = DomHelpers.elementFactory('div', 'tt-incidents-list__item');
