@@ -40,6 +40,15 @@ function formatToExpandedDateTimeString(date) {
         formatToTimeString(date);
 }
 
+function formatAsImperialDistance(distanceMeters) {
+    var yards = Math.round(distanceMeters * 1.094);
+
+    if (yards >= 1760) {
+        return Math.round(yards / 10) / 100 + ' mi';
+    }
+    return yards + ' yd';
+}
+
 function formatAsMetricDistance(distanceMeters) {
     var distance = Math.round(distanceMeters);
 
@@ -59,6 +68,7 @@ var Formatters = {
     formatToDurationTimeString: formatToDurationTimeString,
     formatToTimeString: formatToTimeString,
     formatToExpandedDateTimeString: formatToExpandedDateTimeString,
+    formatAsImperialDistance: formatAsImperialDistance,
     formatAsMetricDistance: formatAsMetricDistance,
     roundLatLng: roundLatLng
 };

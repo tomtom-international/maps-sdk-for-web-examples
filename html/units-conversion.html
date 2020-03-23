@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+    <head>
+        <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+        <meta charset='UTF-8'>
+        <title>Maps SDK for Web - Units conversion</title>
+        <meta name='viewport'
+            content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+        <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+        <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+        <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-plugin-searchbox/SearchBox.css'/>
+        <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/css-styles/routing.css'/>
+    </head>
+    <style>
+        .map-view .icon {
+            height: 30px;
+            width: 30px;
+        }
+        .map-view .tt-icon.-finish {
+            height: 16px;
+            width: 16px;
+        }
+        .map-view .icon-spacing {
+            float: left;
+            margin-right: 14px;
+            margin-top: 24px;
+        }
+        .map-view .marker {
+            align-items: center;
+            background-color: #4a90e2;
+            border: solid 3px #2faaff;
+            border-radius: 50%;
+            display: flex;
+            height: 32px;
+            justify-content: center;
+            transition: width .1s, height .1s;
+            width: 32px;
+        }
+        .roundaboutExitNumber,
+        .signpostText,
+        .street {
+            font-weight: bold;
+        }
+        .roadnumber {
+            background-color: #ededed;
+            border: 1px solid #cccccc;
+            border-radius: 2px;
+            display: inline-block;
+            line-height: 16px;
+            margin: 0 2px;
+            padding: 0 2px;
+        }
+        .map-view .tt-results-list__item {
+            padding: 0;
+        }
+        div[class^="instructions-header-"] {
+            display: flex;
+            flex-direction: column;
+            font-size: 14px;
+            line-height: 24px;
+            padding: 16px 24px;
+        }
+        div[class^="instructions-list-"] {
+            background-color: #f2f2f2;
+        }
+        div[class^="instructions-list-"].not-visible,
+        .map-view .guidance-marker.not-visible {
+            display: none;
+        }
+        .instructions-overlay {
+            font-size: 14px;
+            line-height: 24px;
+        }
+        .instruction {
+            display: flex;
+            flex-direction: column;
+            padding: 8px 56px;
+        }
+        .instruction:first-of-type {
+            padding-top: 16px;
+        }
+        .instruction:last-of-type {
+            padding-bottom: 16px;
+        }
+        .instruction:hover,
+        div[class^="instructions-header-"]:hover {
+            background-color: #e5e5e5;
+        }
+        .icon-wrapper {
+            position: relative;
+            right: 10px;
+        }
+        .-down {
+            transform: rotate(90deg);
+        }
+        .distance-wrapper {
+            color: #666666;
+            margin-top: 10px;
+            padding: 0 32px;
+            width: 100%;
+        }
+        .instruction-wrapper {
+            display: flex;
+        }
+        .message-wrapper,
+        .distance-wrapper.-instruction {
+            margin-left: 12px;
+        }
+    </style>
+    <body>
+        <div class='map-view'>
+            <form class='tt-side-panel js-form'>
+                <div class='tt-form'>
+                    <header class='tt-side-panel__header'>
+                        <div class='tt-form-label'>
+                            Unit of measurement
+                            <select class='js-unit-select tt-select'></select>
+                        </div>
+                        <div class='tt-form-label'>
+                            Routing language
+                            <select class='js-language-select tt-select'></select>
+                        </div>
+                    </header>
+                </div>
+                <div class='tt-tabs js-tabs'>
+                    <div class='tt-tabs__panel'>
+                        <div class='tt-results-list js-results'></div>
+                        <div class='js-results-loader' hidden='hidden'>
+                            <div class='loader-center'><span class='loader'></span></div>
+                        </div>
+                        <div class='tt-tabs__placeholder js-results-placeholder -small'></div>
+                    </div>
+                </div>
+            </form>
+            <div id='map' class='full-map'></div>
+        </div>
+        <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+        <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/search/dom-helpers.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/search/results-manager.js'></script>
+        <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/tail-selector.js'></script>
+        <script src='/cdn.web-sdk-plugin-searchbox/SearchBox-web.js'></script>
+        <script>
+            var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
+            var loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
+            var resultsManager = new ResultsManager();
+            var instructionsWrapper = document.createElement('div');
+            var instructionsContent = document.createElement('div');
+            var instructionsData = {}, instructionDistances = [], guidance = [];
+            var maneuver = {
+                'ARRIVE': '-arrive',
+                'BEAR_LEFT': '-bear-left',
+                'BEAR_RIGHT': '-bear-right',
+                'DEPART': '-start -black',
+                'ENTER_MOTORWAY': '-motorway',
+                'FOLLOW': '-continue',
+                'KEEP_LEFT': '-keep-left',
+                'KEEP_RIGHT': '-keep-right',
+                'ROUNDABOUT_CROSS': {
+                    1: '-roundabout-left1',
+                    2: '-roundabout-left',
+                    3: '-roundabout-left3'
+                },
+                'ROUNDABOUT_LEFT': {
+                    1: '-roundabout-left1',
+                    2: '-roundabout-left',
+                    3: '-roundabout-left3'
+                },
+                'ROUNDABOUT_RIGHT': {
+                    1: '-roundabout-right1',
+                    2: '-roundabout-right'
+                },
+                'STRAIGHT': '-continue',
+                'TAKE_EXIT': '-continue',
+                'TURN_LEFT': '-turn-left',
+                'TURN_RIGHT': '-turn-right'
+            };
+            var selectorOptions = {
+                languages: {
+                    'af-ZA': 'Afrikaans',
+                    'ar': 'Arabic',
+                    'bg-BG': 'Bulgarian',
+                    'zh-TW': 'Chinese (Taiwan)',
+                    'cs-CZ': 'Czech',
+                    'da-DK': 'Danish',
+                    'nl-NL': 'Dutch',
+                    'en-BG': 'English (Great Britain)',
+                    'en-US': 'English (USA)',
+                    'fi-FI': 'Finnish',
+                    'fr-FR': 'French',
+                    'de-DE': 'German',
+                    'el-GR': 'Greek',
+                    'hu-HU': 'Hungarian',
+                    'id-ID': 'Indonesian',
+                    'it-IT': 'Italian',
+                    'ko-KR': 'Korean',
+                    'lt-LT': 'Lithuanian',
+                    'ms-MY': 'Malay',
+                    'no-NO': 'Norwegian',
+                    'pl-PL': 'Polish',
+                    'pt-BR': 'Portuguese (Brazil)',
+                    'pt-PT': 'Portuguese (Portugal)',
+                    'ru-RU': 'Russian',
+                    'sk-SK': 'Slovak',
+                    'sl-SI': 'Slovenian',
+                    'es-ES': 'Spanish (Castilian)',
+                    'es-MX': 'Spanish (Mexico)',
+                    'sv-SE': 'Swedish',
+                    'th-TH': 'Thai',
+                    'tr-TR': 'Turkish'
+                },
+                units: {
+                    imperial: 'imperial',
+                    metric: 'metric'
+                }
+            };
+            var state = {
+                language: 'en-BG',
+                unit: 'metric'
+            };
+
+            var unitSelectorElement =
+                new TailSelector(selectorOptions.units, '.js-unit-select', state.unit).getElement();
+            var languageSelectorElement =
+                new TailSelector(selectorOptions.languages, '.js-language-select', state.language).getElement();
+
+            var map = tt.map({
+                key: '${api.key.maps}',
+                container: 'map',
+                style: 'tomtom://vector/1/basic-main',
+                dragPan: !isMobileOrTablet(),
+                language: state.language
+            });
+
+            map.addControl(new tt.FullscreenControl());
+            map.addControl(new tt.NavigationControl());
+            map.on('load', function() {
+                bindSelectorEvents();
+                handleServiceCall();
+            });
+
+            function addMarkers(coordinates) {
+                new tt.Marker({ element: createMarkerElement('start') }).setLngLat(coordinates[0]).addTo(map);
+                new tt.Marker({ element: createMarkerElement('finish') }).setLngLat(coordinates[coordinates.length - 1]).addTo(map);
+            }
+
+            function bindEvents() {
+                [].slice.call(document.querySelectorAll('[class^="instructions-header-"]')).forEach(function(group, index) {
+                    group.addEventListener('click', handleGroupHeaderClick.bind(null, index));
+                });
+            }
+
+            function bindSelectorEvents() {
+                unitSelectorElement.on('change', handleUnitChange);
+                languageSelectorElement.on('change', handleLanguageChange);
+            }
+
+            function clearMap() {
+                if (!map.getLayer('route')) {
+                    return;
+                }
+                map.removeLayer('route');
+                map.removeSource('route');
+            }
+
+            function createDistanceWrapper(length, modifier) {
+                var instructionDistanceData = {
+                    length: length,
+                    modifier: modifier || ''
+                };
+
+                instructionDistances.push(instructionDistanceData);
+                return (
+                    '<div class="distance-wrapper ' + (modifier || '') + '">' +
+                        getFormattedDistance(length) +
+                    '</div>'
+                );
+            }
+
+            function createGroupedIndexes(firstIndex, lastIndex) {
+                var array = [];
+
+                for (var i = firstIndex; i < lastIndex + 1; i++) {
+                    array.push(i);
+                }
+                return array;
+            }
+
+            function createGuidanceContent() {
+                instructionsWrapper.innerHTML = '';
+                guidance.instructionGroups.forEach(function(group, index) {
+                    var resultItem = document.createElement('li');
+                    var firstIndex = group.firstInstructionIndex;
+                    var lastIndex = group.lastInstructionIndex;
+
+                    instructionsData[index] = createGroupedIndexes(firstIndex, lastIndex);
+                    resultItem.classList = 'tt-results-list__item';
+                    resultItem.innerHTML = createInstructionsGroupHTML(index);
+                    instructionsWrapper.appendChild(resultItem);
+                });
+                instructionsContent.appendChild(instructionsWrapper);
+                return instructionsContent;
+            }
+
+            function createInstructionDistanceElement(index) {
+                var length = instructionDistances[index].length;
+
+                return DomHelpers.elementFactory('div',
+                    'distance-wrapper ' + instructionDistances[index].modifier,
+                    getFormattedDistance(length)
+                );
+            }
+
+            function createInstructionsGroupHTML(groupIndex) {
+                var instructionsListData = guidance.instructions.slice(instructionsData[groupIndex][0],
+                    instructionsData[groupIndex][instructionsData[groupIndex].length - 1] + 1);
+                var instruction = guidance.instructionGroups[groupIndex];
+
+                return (
+                    '<div class="instructions-header-' + groupIndex + ' with-distance">' +
+                        '<div class="instruction-wrapper">' +
+                            '<div class="icon-wrapper">' +
+                                '<div class="tt-icon -arrow"></div>' +
+                            '</div>' +
+                            '<div>' + createValidHTML(instruction.groupMessage) + '</div>' +
+                        '</div>' +
+                        createDistanceWrapper(instruction.groupLengthInMeters) +
+                    '</div>' +
+                    createInstructionsList(instructionsListData, groupIndex)
+                );
+            }
+
+            function createInstructionsList(instructions, groupIndex) {
+                return (
+                    '<div class="instructions-list-' + groupIndex + ' not-visible">' +
+                        createSingleInstruction(instructions, groupIndex) +
+                    '</div>'
+                );
+            }
+
+            function createMarkerElement(type) {
+                var element = document.createElement('div');
+                var innerElement = document.createElement('div');
+
+                element.className = 'marker';
+                innerElement.className = 'tt-icon -white -' + type;
+                element.appendChild(innerElement);
+                return element;
+            }
+
+            function createSingleInstruction(instructions, groupIndex) {
+                var instructionOverlayHTML = '<div class="instructions-overlay">';
+
+                instructions.forEach(function(instruction, index) {
+                    var instructionNumber = instructionsData[groupIndex][index];
+                    var length = instructions[index + 1] ?
+                        instructions[index + 1].routeOffsetInMeters - instruction.routeOffsetInMeters : 0;
+
+                    instructionOverlayHTML +=
+                    '<div class="instruction ' + (length ? 'with-distance' : '') + '" data-number="' + instructionNumber + '">' +
+                        '<div class="instruction-wrapper">' +
+                            '<div class="icon-wrapper">' +
+                                '<div class="tt-icon ' + (selectRightIcon(instruction) || '') + '"></div>' +
+                            '</div>' +
+                            '<div class="message-wrapper">' +
+                                createValidHTML(instruction.message) +
+                            '</div>' +
+                        '</div>' +
+                        (length ? createDistanceWrapper(length, '-instruction') : '') +
+                    '</div>';
+                });
+                instructionOverlayHTML += '</div>';
+                return instructionOverlayHTML;
+            }
+
+            function createValidHTML(string) {
+                return string.replace(/<([^/].*?)(?=>)(.*?)<\/(.*?)(?=>)/g, '<span class="$1"$2</span');
+            }
+
+            function getFormattedDistance(length) {
+                return state.unit === 'metric' ?
+                    Formatters.formatAsMetricDistance(length) :
+                    Formatters.formatAsImperialDistance(length);
+            }
+            
+            function handleCalculateRouteError() {
+                clearMap();
+                resultsManager.resultsNotFound();
+                errorHint.setMessage('There was a problem calculating the route');
+                loadingHint.hide();
+            }
+
+            function handleCalculateRouteResponse(response) {
+                var geojson = response.toGeoJson();
+                var feature = geojson.features[0];
+                var coordinates = feature.geometry.coordinates;
+                var bounds = new tt.LngLatBounds();
+
+                guidance = feature.properties.guidance;
+                prepareToServiceResponse();
+
+                map.addLayer({
+                    'id': 'route',
+                    'type': 'line',
+                    'source': {
+                        'type': 'geojson',
+                        'data': geojson
+                    },
+                    'paint': {
+                        'line-color': '#4a90e2',
+                        'line-width': 6
+                    }
+                });
+                addMarkers(coordinates);
+                coordinates.forEach(function(point) {
+                    bounds.extend(tt.LngLat.convert(point));
+                });
+                map.fitBounds(bounds, { duration: 0, padding: 150 });
+                loadingHint.hide();
+            }
+
+            function handleGroupHeaderClick(index) {
+                var selectedGroupClassList = document.querySelector('.instructions-list-' + index).classList;
+
+                handleGroupIconPositionChange(index);
+                selectedGroupClassList.toggle('not-visible');
+            }
+
+            function handleGroupIconPositionChange(index) {
+                var groupIconClassList = document.querySelector('.instructions-header-' + index)
+                    .querySelector('.tt-icon').classList;
+            
+                if (groupIconClassList.contains('-down')) {
+                    groupIconClassList.remove('-down');
+                } else {
+                    groupIconClassList.add('-down');
+                }
+            }
+
+            function handleLanguageChange(event) {
+                state.language = event.key;
+                map.setLanguage(state.language);
+                handleServiceCall();
+            }
+
+            function handleServiceCall() {
+                prepareToServiceCall();
+                performCalculateRouteRequest()
+                    .then(handleCalculateRouteResponse)
+                    .catch(handleCalculateRouteError);
+            }
+
+            function handleUnitChange(event) {
+                var distanceWrapperElements = [].slice.call(document.querySelectorAll('.distance-wrapper'));
+
+                state.unit = event.key;
+                distanceWrapperElements.forEach(function(element, index) {
+                    var parentElement = element.parentNode;
+
+                    parentElement.removeChild(element);
+                    parentElement.appendChild(createInstructionDistanceElement(index));
+                });
+            }
+
+            function performCalculateRouteRequest() {
+                return tt.services.calculateRoute({
+                    key: '${api.key.routing}',
+                    instructionsType: 'tagged',
+                    language: state.language,
+                    traffic: false,
+                    locations: '18.6057,53.01533:19.4586,51.75905'
+                }).go();
+            }
+
+            function prepareToServiceCall() {
+                resultsManager.clear();
+                resultsManager.loading();
+                errorHint.hide();
+                loadingHint.setMessage('Loading...');
+            }
+
+            function prepareToServiceResponse() {
+                clearMap();
+                resultsManager.success();
+                resultsManager.append(createGuidanceContent());
+                bindEvents();
+            }
+
+            function selectRightIcon(instruction) {
+                if (instruction.junctionType === 'ROUNDABOUT') {
+                    return maneuver[instruction.maneuver][instruction.roundaboutExitNumber];
+                }
+                return maneuver[instruction.maneuver];
+            }
+        </script>
+    </body>
+</html>
