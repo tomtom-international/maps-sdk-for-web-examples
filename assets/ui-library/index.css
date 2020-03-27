@@ -1395,6 +1395,16 @@ body {
                 border-color: #8dc3eb;
             }
 
+.tt-fake-select.tail-select .select-label.-blocked {
+                pointer-events: none;
+                color: #cccccc;
+                border-bottom: 1px solid #e5e5e5;
+            }
+
+.tt-fake-select.tail-select .select-label.-blocked:after {
+                    content: none;
+                }
+
 .tt-fake-select.tail-select .select-dropdown {
             font-weight: normal;
             margin-top: 6px;

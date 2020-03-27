@@ -229,7 +229,10 @@
             });
 
             map.on('data', function(e) {
-                if (e.sourceId !== 'point-source' || !map.getSource('point-source').loaded()) return;
+                if (e.sourceId !== 'point-source' || !map.getSource('point-source').loaded()) {
+                    return;
+                }
+
                 refreshMarkers();
 
                 if (!eventListenersAdded) {

@@ -50,7 +50,7 @@ EntryPoints.prototype._drawCounter = function() {
 
 EntryPoints.prototype.getEntryPointsAddresses = function() {
     var batchItems = this.poiData.entryPoints.map(function(entryPoint) {
-        return { position: entryPoint.position.lon + ',' + entryPoint.position.lat };
+        return { position: entryPoint.position.lng + ',' + entryPoint.position.lat };
     });
     return this.reverseGeocodeService({
         batchItems: batchItems
@@ -77,7 +77,7 @@ EntryPoints.prototype.renderEntryPoints = function() {
         this.poiData.entryPoints.forEach(function(entryPoint) {
             var entryPointMarker = this.createEntryPointMarker(entryPoint);
             featuresCollection.features.push(createGeoJsonLine(parentMarkerPosition, [
-                entryPoint.position.lon,
+                entryPoint.position.lng,
                 entryPoint.position.lat
             ]));
             entryPointMarker.addTo(this.map);

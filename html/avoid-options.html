@@ -101,6 +101,7 @@
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
     <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
     <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js'></script>
     <script>
         tt.setProductInfo('<your-product-name>', '<your-product-version>');
         var map = tt.map({
@@ -145,7 +146,9 @@
         }
 
         function clearRoute() {
-            if (!map.getLayer('route')) return;
+            if (!map.getLayer('route')) {
+                return;
+            }
             map.removeLayer('route');
             map.removeSource('route');
         }
@@ -173,12 +176,16 @@
                 var context = this, args = arguments;
                 var later = function() {
                     timeout = null;
-                    if (!immediate) func.apply(context, args);
+                    if (!immediate) {
+                        func.apply(context, args);
+                    }
                 };
                 var callNow = immediate && !timeout;
                 clearTimeout(timeout);
                 timeout = setTimeout(later, wait);
-                if (callNow) func.apply(context, args);
+                if (callNow) {
+                    func.apply(context, args);
+                }
             };
         }
 

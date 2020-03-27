@@ -5,7 +5,9 @@ if (!window.tail) {
 function ReplaceWithPolyfill() {
     'use-strict'; // For safari, and IE > 10
     var parent = this.parentNode, i = arguments.length, currentNode;
-    if (!parent) return;
+    if (!parent) {
+        return;
+    }
     if (!i) { // if there are no arguments
         parent.removeChild(this);
     }
@@ -109,6 +111,14 @@ var TailSelector = (function() {
         }
 
         return selectedOptions[0];
+    };
+
+    TailSelector.prototype.block = function() {
+        this.tailElem.label.classList.add('-blocked');
+    };
+
+    TailSelector.prototype.unblock = function() {
+        this.tailElem.label.classList.remove('-blocked');
     };
 
     TailSelector.prototype.replaceOptions = function(newSelectOptions) {

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+    <head>
+        <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+        <meta charset='UTF-8'>
+        <title>Maps SDK for Web - Alternatives with deviation constraints</title>
+        <meta name='viewport'
+            content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+        <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+        <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+        <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/css-styles/routing.css'/>
+    </head>
+    <style>
+        .buttons-wrapper {
+            display: flex;
+            margin-top: 12px;
+        }
+        .form-wrapper {
+            background-color: #ffffff;
+            padding: 24px 16px;
+        }
+        .route-button {
+            background: #ffffff;
+            border: 1px solid #e5e5e5;
+            color: #7a7e80;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: normal;
+            line-height: 1.5;
+            margin: 0;
+            padding: 8px 24px;
+            text-align: center;
+            width: 50%;
+        }
+        .route-button.-checked {
+            background: #e0e2e3;
+            color: #000000;
+        }
+        .route-icon {
+            border-radius: 50%;
+            height: 12px;
+            margin: 5px 8px 0 0;
+            width: 12px;
+        }
+        .route-information {
+            font-family: Noway, Gotham, Arial;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        .route-information div:first-of-type {
+            font-family: Gotham, Helvetica, Arial, sans-serif;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+        .route-marker {
+            align-items: center;
+            background-color: #4a90e2;
+            border: solid 3px #2faaff;
+            border-radius: 50%;
+            display: flex;
+            height: 32px;
+            justify-content: center;
+            transition: width .1s, height .1s;
+            width: 32px;
+        }
+        .route-option-text {
+            color: #7a7e80;
+        }
+        .route-wrapper {
+            cursor: pointer;
+            display: flex;
+            padding: 16px;
+        }
+        .route-wrapper:hover {
+            background: #f3f3f3;
+        }
+        .types-wrapper {
+            display: block;
+            font-size: 13px;
+            font-weight: bold;
+            margin: 32px 0;
+        }
+        .map-view .tt-form-label.-black,
+        .types-wrapper {
+            color: #000000;
+        }
+        .map-view .tt-button.-primary {
+            text-transform: uppercase;
+            width: 100%;
+        }
+        .map-view .tt-side-panel {
+            background: #ececec;
+            display: block;
+        }
+        .map-view .tt-side-panel.scrollable {
+            overflow-y: scroll;
+        }
+        .map-view .tt-tabs__panel {
+            overflow-y: hidden;
+        }
+        .map-view .tt-tabs__panel.-dynamic-content {
+            padding-top: 0;
+        }
+        .map-view .tt-tabs__panel.-dynamic-content .form-wrapper {
+            padding: 0;
+        }
+    </style>
+    <body>
+        <div class='map-view'>
+            <form class='tt-side-panel js-form'>
+                <div class='tt-tabs__panel'>
+                    <div class='form-wrapper'>
+                        <label class='tt-form-label -black js-slider'>
+                            Alternatives (<span class='js-counter -alternatives'>1</span>)
+                            <input class='tt-slider' name='alternatives' type='range' min='0' max='5' value='1'>
+                        </label>
+                        <label class='tt-form-label -black js-slider'>
+                            Min. Deviation Time (<span class='js-counter'>0</span>s)
+                            <input class='tt-slider' name='minDeviationTime' type='range' min='0' max='1366' value='0'>
+                        </label>
+                        <label class='tt-form-label -black js-slider'>
+                            Min. Deviation Distance (<span class='js-counter'>400</span>m)
+                            <input class='tt-slider' name='minDeviationDistance' type='range' min='0' max='20414' value='400'>
+                        </label>
+                        <div class='types-wrapper'>
+                            Alternative type
+                            <div class='buttons-wrapper'>
+                                <div class='route-button -checked' data-route='anyRoute'>Any route</div>
+                                <div class='route-button' data-route='betterRoute'>Better route</div>
+                            </div>
+                        </div>
+                        <input type='submit' id='submit' class='tt-button -primary' name='submit' title='submit'>
+                    </div>
+                </div>
+                <div class='tt-tabs__panel -dynamic-content'></div>
+            </form>
+            <div id='map' class='full-map'></div>
+        </div>
+        <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+        <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/search/slider.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/search/dom-helpers.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+        <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js'></script>
+        <script>
+            var map = tt.map({
+                key: '${api.key.maps}',
+                container: 'map',
+                style: 'tomtom://vector/1/basic-main',
+                dragPan: !isMobileOrTablet()
+            });
+
+            var alternativeTypesInputElement = document.querySelector('.tt-slider[name="alternatives"');
+            var routeButtonsElements = document.querySelectorAll('.route-button');
+            var routesListWrapper = DomHelpers.elementFactory('div', 'form-wrapper');
+            var routesPanelElement = document.querySelector('.tt-tabs__panel.-dynamic-content');
+            var sidePanelElement = document.querySelector('.tt-side-panel');
+            var submitButtonElement = document.querySelector('#submit');
+
+            var numberOfResults = 0;
+            var ROUTE_WIDTH = 4;
+            var ENLARGED_ROUTE_WIDTH = 6;
+            var routeColors = ['#4a90e2', '#4a4c4c', '#f9b023', '#006967', '#F29AC2', '#004B7F'];
+            var routeType = 'anyRoute';
+            var sliderElements = {};
+            var startMarker = null;
+
+            var errorHint = new InfoHint('error', 'bottom-center', 2000).addTo(document.getElementById('map'));
+            var loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
+            var resultHint = new InfoHint('info', 'bottom-center', 2000).addTo(document.getElementById('map'));
+
+            map.addControl(new tt.FullscreenControl());
+            map.addControl(new tt.NavigationControl());
+            map.once('load', function() {
+                addListeners();
+            });
+
+            Array.prototype.slice.call(document.querySelectorAll('.js-slider'))
+                .forEach(function(input) {
+                    var sliderElement = input.querySelector('.tt-slider');
+
+                    new Slider(input);
+                    sliderElements[sliderElement.name] = sliderElement;
+                });
+
+            function addListeners() {
+                Array.prototype.slice.call(routeButtonsElements)
+                    .forEach(function(button) {
+                        button.addEventListener('click', handleRouteTypeChange);
+                    });
+                submitButtonElement.addEventListener('click', handleFormSubmit);
+            }
+
+            function addMarkers(coordinates) {
+                var startPoint = coordinates[0];
+                var endPoint = coordinates[coordinates.length - 1];
+
+                startMarker = new tt.Marker({ element: createMarkerElement('start') }).setLngLat(startPoint).addTo(map);
+                new tt.Marker({ element: createMarkerElement('finish') }).setLngLat(endPoint).addTo(map);
+            }
+
+            function createHintAboutAvailableAlternatives() {
+                if (alternativeTypesInputElement.value <= numberOfResults) {
+                    return;
+                }
+
+                resultHint.setMessage('Only ' + numberOfResults + ' alternative ' +
+                        (numberOfResults !== 1 ? 'routes were' : 'route was') + ' found');
+            }
+
+            function createMarkerElement(type) {
+                var element = document.createElement('div');
+                var innerElement = document.createElement('div');
+
+                element.className = 'route-marker';
+                innerElement.className = 'icon tt-icon -white -' + type;
+                element.appendChild(innerElement);
+
+                return element;
+            }
+
+            function createRouteInformationItem(summary, index) {
+                return (
+                    '<div class="route-wrapper">' +
+                        '<div class="route-icon" style="background:' + routeColors[index] + '"></div>' +
+                        '<div class="route-information">' +
+                            '<div>' + (index ? 'Alternative route ' + index : 'Reference route') + '</div>' +
+                            '<div><span class="route-option-text">Travel distance:</span> ' +
+                                Formatters.formatAsMetricDistance(summary.lengthInMeters) +
+                            '</div>' +
+                            '<div><span class="route-option-text">Travel time:</span> ' +
+                                Formatters.formatToDurationTimeString(summary.travelTimeInSeconds) +
+                            '</div>' +
+                        '</div>' +
+                    '</div>'
+                );
+            }
+
+            function createRouteInformationList(features) {
+                features.forEach(function(feature, index) {
+                    var summary = feature.properties.summary;
+                    var resultListElementWrapper = document.createElement('div');
+                    resultListElementWrapper.innerHTML = createRouteInformationItem(summary, index);
+
+                    resultListElementWrapper.onmouseover = function() {
+                        map.setPaintProperty('route' + index, 'line-width', ENLARGED_ROUTE_WIDTH);
+                    };
+
+                    resultListElementWrapper.onmouseout = function() {
+                        map.setPaintProperty('route' + index, 'line-width', ROUTE_WIDTH);
+                    };
+
+                    routesListWrapper.appendChild(resultListElementWrapper);
+                });
+
+                return routesListWrapper;
+            }
+
+            function handleCalculateRouteError(error) {
+                loadingHint.hide();
+                errorHint.setErrorMessage(error);
+            }
+
+            function handleCalculateRouteResponse(response) {
+                prepareForResultsDisplay();
+
+                var features = response.toGeoJson().features;
+                var routeInformationList = createRouteInformationList(features);
+
+                numberOfResults = features.length - 1;
+                sidePanelElement.classList.add('scrollable');
+                routesPanelElement.appendChild(routeInformationList);
+
+                features.forEach(function(feature, index) {
+                    map.addLayer({
+                        'id': 'route' + index,
+                        'type': 'line',
+                        'source': {
+                            'type': 'geojson',
+                            'data': feature
+                        },
+                        'paint': {
+                            'line-color': routeColors[index],
+                            'line-width': ROUTE_WIDTH
+                        },
+                        'layout': {
+                            'line-cap': 'round',
+                            'line-join': 'round'
+                        }
+                    });
+                });
+
+                var bounds = new tt.LngLatBounds();
+                var coordinates = features[0].geometry.coordinates;
+
+                if (!startMarker) {
+                    addMarkers(coordinates);
+                }
+
+                coordinates.forEach(function(point) {
+                    bounds.extend(tt.LngLat.convert(point));
+                });
+                map.fitBounds(bounds, { duration: 0, padding: 150 });
+                createHintAboutAvailableAlternatives();
+            }
+
+            function handleFormSubmit(event) {
+                event.preventDefault();
+                loadingHint.setMessage('Loading...');
+
+                performCalculateRouteRequest()
+                    .go()
+                    .then(handleCalculateRouteResponse)
+                    .catch(handleCalculateRouteError);
+            }
+
+            function performCalculateRouteRequest() {
+                return tt.services.calculateRoute({
+                    key: '${api.key.routing}',
+                    traffic: false,
+                    locations: '-8.501865,40.110215:-8.423538,40.208555',
+                    supportingPoints: '-8.501865,40.110215:-8.493781,40.151811:-8.464767,40.210592:-8.423538,40.208555',
+                    alternativeType: routeType,
+                    maxAlternatives: sliderElements.alternatives.value,
+                    minDeviationDistance: sliderElements.minDeviationDistance.value,
+                    minDeviationTime: sliderElements.minDeviationTime.value
+                });
+            }
+
+            function prepareForResultsDisplay() {
+                removeLayer();
+                loadingHint.hide();
+                errorHint.hide();
+                resultHint.hide();
+                routesListWrapper.innerHTML = '';
+            }
+
+            function removeLayer() {
+                routeColors.forEach(function(_, index) {
+                    var layerId = 'route' + index;
+
+                    if (!map.getLayer(layerId)) {
+                        return;
+                    }
+
+                    map.removeLayer(layerId);
+                    map.removeSource(layerId);
+                });
+            }
+
+            function handleRouteTypeChange(event) {
+                var selectedRouteTypeButton = event.target;
+
+                Array.prototype.slice.call(routeButtonsElements)
+                    .forEach(function(button) {
+                        button.classList.remove('-checked');
+                    });
+                selectedRouteTypeButton.classList.add('-checked');
+                routeType = selectedRouteTypeButton.dataset.route;
+            }
+        </script>
+    </body>
+</html>

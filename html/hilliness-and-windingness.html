@@ -68,18 +68,18 @@
             route: undefined
         };
 
-        var hillSelector = new TailSelector(state.types, '.js-scenario-select', state.selectedHill).getElement();
-        var windSelector = new TailSelector(state.types, '.js-scenario-select', state.selectedWind).getElement();
+        var hillSelector = new TailSelector(state.types, '.js-scenario-select', state.selectedHill);
+        var windSelector = new TailSelector(state.types, '.js-scenario-select', state.selectedWind);
         var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
         var loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
         new Foldable('.js-foldable', 'top-right');
 
-        hillSelector.on('change', function(evt) {
+        hillSelector.getElement().on('change', function(evt) {
             state.selectedHill = evt.key;
             serviceCall();
         });
 
-        windSelector.on('change', function(evt) {
+        windSelector.getElement().on('change', function(evt) {
             state.selectedWind = evt.key;
             serviceCall();
         });
@@ -92,6 +92,10 @@
                 map.removeSource('route');
                 state.route = undefined;
             }
+
+            hillSelector.block();
+            windSelector.block();
+
             errorHint.hide();
             loadingHint.setMessage('Loading...');
 
@@ -127,10 +131,15 @@
                     });
                     map.fitBounds(bounds, { duration: 0, padding: 50 });
 
+                    hillSelector.unblock();
+                    windSelector.unblock();
                 })
                 .catch(function(error) {
                     loadingHint.hide();
                     errorHint.setErrorMessage(error);
+
+                    hillSelector.unblock();
+                    windSelector.unblock();
                 });
         }
 
