@@ -244,11 +244,6 @@
             document.getElementById('searchBoxesPlaceholder').appendChild(htmlSearchBox);
             searchBox.on('tomtom.searchbox.resultselected', this.onResultSelected.bind(this));
             searchBox.on('tomtom.searchbox.resultscleared', this.onResultCleared.bind(this));
-            searchBox.getSearchBoxHTML().addEventListener('keyup', function(event) {
-                if (!event.target.value) {
-                    searchBox.fire('tomtom.searchbox.resultscleared');
-                }
-            });
             return htmlSearchBox;
         };
 

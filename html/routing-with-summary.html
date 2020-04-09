@@ -129,7 +129,6 @@
             var resultsManager = new ResultsManager();
             var detailsWrapper = document.createElement('div');
             var summaryContent = document.createElement('div'), summaryHeader;
-            var searchBoxesValues = {};
 
             map.addControl(new tt.FullscreenControl());
             map.addControl(new tt.NavigationControl());
@@ -193,17 +192,9 @@
                     placeholder: 'Search for a place...'
                 });
 
-                searchBoxesValues[type] = searchBox.getSearchBoxHTML().querySelector('input.tt-search-box-input').value;
                 document.getElementById(type + 'SearchBox').appendChild(searchBox.getSearchBoxHTML());
                 searchBox.on('tomtom.searchbox.resultselected', onResultSelected.bind(null, type));
                 searchBox.on('tomtom.searchbox.resultscleared', onResultCleared.bind(null, type));
-                searchBox.getSearchBoxHTML().addEventListener('keyup', function(event) {
-                    if (searchBoxesValues[type] && !event.target.value) {
-                        searchBox.fire('tomtom.searchbox.resultscleared');
-                    }
-                    searchBoxesValues[type] = event.target.value;
-                });
-                return searchBox;
             }
 
             function createSummaryContent(feature) {

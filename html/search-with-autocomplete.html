@@ -119,7 +119,7 @@
 
         function handleResultsFound(event) {
             // Display fuzzySearch results if request was triggered by pressing enter
-            if (event.data.results.fuzzySearch && event.data.metadata.triggeredBy === 'submit') {
+            if (event.data.results && event.data.results.fuzzySearch && event.data.metadata.triggeredBy === 'submit') {
                 var results = event.data.results.fuzzySearch.results;
 
                 if (results.length === 0) {
@@ -129,6 +129,10 @@
                 resultsManager.success();
                 fillResultsList(results);
                 fitToViewport(results);
+            }
+
+            if (event.data.errors) {
+                errorHint.setMessage('There was an error returned by the service.');
             }
         }
 
@@ -187,7 +191,7 @@
         }
 
         function handleFuzzyCallForSegment(event, currentCallbackId) {
-            var query = ttSearchBox._inputWrapper.getValue();
+            var query = ttSearchBox.getValue();
             var segmentType = event.data.result.type;
 
             var commonOptions = Object.assign({}, searchOptions, {
@@ -247,7 +251,7 @@
             searchMarkersManager.clear();
             infoHint.setMessage(
                 'No results for "' +
-                ttSearchBox._inputWrapper.getValue() +
+                ttSearchBox.getValue() +
                 '" found nearby. Try changing the viewport.'
             );
         }

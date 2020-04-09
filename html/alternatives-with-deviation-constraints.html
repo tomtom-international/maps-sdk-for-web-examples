@@ -176,9 +176,10 @@
             map.addControl(new tt.NavigationControl());
             map.once('load', function() {
                 addListeners();
+                handleFormSubmit();
             });
 
-            Array.prototype.slice.call(document.querySelectorAll('.js-slider'))
+            [].slice.call(document.querySelectorAll('.js-slider'))
                 .forEach(function(input) {
                     var sliderElement = input.querySelector('.tt-slider');
 
@@ -187,7 +188,7 @@
                 });
 
             function addListeners() {
-                Array.prototype.slice.call(routeButtonsElements)
+                [].slice.call(routeButtonsElements)
                     .forEach(function(button) {
                         button.addEventListener('click', handleRouteTypeChange);
                     });
@@ -308,7 +309,9 @@
             }
 
             function handleFormSubmit(event) {
-                event.preventDefault();
+                if (event) {
+                    event.preventDefault();
+                }
                 loadingHint.setMessage('Loading...');
 
                 performCalculateRouteRequest()
@@ -354,7 +357,7 @@
             function handleRouteTypeChange(event) {
                 var selectedRouteTypeButton = event.target;
 
-                Array.prototype.slice.call(routeButtonsElements)
+                [].slice.call(routeButtonsElements)
                     .forEach(function(button) {
                         button.classList.remove('-checked');
                     });

@@ -298,11 +298,6 @@
             document.getElementById(type + 'SearchBox').appendChild(searchBox.getSearchBoxHTML());
             searchBox.on('tomtom.searchbox.resultselected', onResultSelected.bind(undefined, type));
             searchBox.on('tomtom.searchbox.resultscleared', onResultCleared.bind(undefined, type));
-            searchBox.getSearchBoxHTML().addEventListener('keyup', function(e) {
-                if (e.srcElement.value.length === 0) {
-                    onResultCleared(type);
-                }
-            });
             return searchBox;
         }
 

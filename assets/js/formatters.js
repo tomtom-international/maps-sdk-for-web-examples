@@ -44,7 +44,7 @@ function formatAsImperialDistance(distanceMeters) {
     var yards = Math.round(distanceMeters * 1.094);
 
     if (yards >= 1760) {
-        return Math.round(yards / 10) / 100 + ' mi';
+        return Math.round(yards / 17.6) / 100 + ' mi';
     }
     return yards + ' yd';
 }

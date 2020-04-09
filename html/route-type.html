@@ -78,6 +78,7 @@
                 map.removeSource('route');
                 state.route = undefined;
             }
+            typeSelector.block();
             errorHint.hide();
             loadingHint.setMessage('Loading...');
             tt.services.calculateRoute({
@@ -114,6 +115,9 @@
                 .catch(function(error) {
                     loadingHint.hide();
                     errorHint.setErrorMessage(error);
+                })
+                .finally(function() {
+                    typeSelector.unblock();
                 });
         }
 

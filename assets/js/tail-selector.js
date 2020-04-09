@@ -82,6 +82,18 @@ var TailSelector = (function() {
         this.tailElem = convertToTail.call(this);
 
         this.tailElem.on('change', closeMultipleSelector.bind(this));
+
+        this.tailElemPrototype = Object.getPrototypeOf(this.tailElem);
+        extendTailElementPrototype.call(this);
+    }
+
+    function extendTailElementPrototype() {
+        this.tailElemPrototype.block = function() {
+            this.label.classList.add('-blocked');
+        };
+        this.tailElemPrototype.unblock = function() {
+            this.label.classList.remove('-blocked');
+        };
     }
 
     function TailSelector(selectOptions, selector, defaultKey, options) {
@@ -111,14 +123,6 @@ var TailSelector = (function() {
         }
 
         return selectedOptions[0];
-    };
-
-    TailSelector.prototype.block = function() {
-        this.tailElem.label.classList.add('-blocked');
-    };
-
-    TailSelector.prototype.unblock = function() {
-        this.tailElem.label.classList.remove('-blocked');
     };
 
     TailSelector.prototype.replaceOptions = function(newSelectOptions) {
