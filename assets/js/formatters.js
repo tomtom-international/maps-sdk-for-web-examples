@@ -35,6 +35,22 @@ function formatToTimeString(date) {
     return moment(date).format('HH:mm:ss');
 }
 
+function formatToDateString(date) {
+    return moment(date).format('DD/MM/YYYY');
+}
+
+function formatToShortenedTimeString(date) {
+    return moment(date).format('h:mm A');
+}
+
+function dateTimeStringToObject(dateString, timeString) {
+    if (!dateString.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)) {
+        throw new TypeError('Wrong date format provided. It needs to follow dd/mm/yyyy pattern.');
+    }
+
+    return moment(dateString + timeString, 'DD/MM/YYYYh:mm A').toDate();
+}
+
 // Takes date (of the future day) as a parameter and returns a formatted date (DAY-OF-THE-WEEK, MMM DD, HH:MM:SS)
 function formatToExpandedDateTimeString(date) {
     return moment(date).format('dddd, MMM D, HH:mm:ss');
@@ -70,7 +86,10 @@ var Formatters = {
     formatToExpandedDateTimeString: formatToExpandedDateTimeString,
     formatAsImperialDistance: formatAsImperialDistance,
     formatAsMetricDistance: formatAsMetricDistance,
-    roundLatLng: roundLatLng
+    roundLatLng: roundLatLng,
+    formatToDateString: formatToDateString,
+    formatToShortenedTimeString: formatToShortenedTimeString,
+    dateTimeStringToObject: dateTimeStringToObject
 };
 
 window.Formatters = window.Formatters || Formatters;
