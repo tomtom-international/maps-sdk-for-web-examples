@@ -209,7 +209,10 @@
             return Boolean(searchResult.dataSources && searchResult.dataSources.geometry &&
                 searchResult.dataSources.geometry.id);
         },
-        noResultsMessage: 'No results with a polygon found.'
+        labels: {
+            noResultsMessage: 'No results with a polygon found',
+            placeholder: 'Query e.g. Washington'
+        }
     });
     document.getElementById('searchBoxPlaceholder').appendChild(ttSearchBox.getSearchBoxHTML());
     ttSearchBox.on('tomtom.searchbox.resultselected', function(event) {

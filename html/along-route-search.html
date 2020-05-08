@@ -68,7 +68,7 @@
                             <div class='tt-params-box__content'>
                                 <label class='tt-form-label'>
                                     Query
-                                    <input id='query' class='tt-input' name='query' placeholder='Query eg. pizza'>
+                                    <input id='query' class='tt-input' name='query' placeholder='Query e.g. pizza'>
                                 </label>
                                 <label class='tt-form-label js-slider'>
                                     Max detour time in seconds (<span id='maxDetourTimeLabel' class='js-counter'>900</span>)
@@ -166,7 +166,9 @@
                 searchOptions: {
                     key: '${api.key.search}'
                 },
-                placeholder: 'Search for a place...'
+                labels: {
+                    placeholder: 'Query e.g. Washington'
+                }
             });
             document.getElementById(type + 'SearchBox').appendChild(searchBox.getSearchBoxHTML());
             searchBox.on('tomtom.searchbox.resultselected', onResultSelected.bind(undefined, type));

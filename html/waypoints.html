@@ -238,7 +238,9 @@
                 searchOptions: {
                     key: '${api.key.search}'
                 },
-                placeholder: 'Search for a place...'
+                labels: {
+                    placeholder: 'Query e.g. Washington'
+                }
             });
             var htmlSearchBox = searchBox.getSearchBoxHTML();
             document.getElementById('searchBoxesPlaceholder').appendChild(htmlSearchBox);

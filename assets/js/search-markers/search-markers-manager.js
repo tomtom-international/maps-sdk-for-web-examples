@@ -91,7 +91,7 @@ SearchMarkersManager.prototype.draw = function(poiList) {
             entryPoints: poi.entryPoints
         };
 
-        var marker = new window.SearchMarker(poiOpts, this._options);
+        var marker = new SearchMarker(poiOpts, this._options);
         marker.onClick(function(clickedMarker) {
             if (this._lastClickedMarker && this._lastClickedMarker !== clickedMarker) {
                 this._lastClickedMarker.clearEntryPoints();
@@ -115,7 +115,6 @@ SearchMarkersManager.prototype.openPopup = function(markerId) {
             current.togglePopup();
         }
     }
-
     this.markers[markerId].togglePopup();
 };
 

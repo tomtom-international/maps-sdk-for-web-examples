@@ -252,7 +252,9 @@
                 searchOptions: {
                     key: '${api.key.search}'
                 },
-                placeholder: 'Search for a place...'
+                labels: {
+                    placeholder: 'Query e.g. Washington'
+                }
             });
             document.getElementById(type + 'SearchBox').appendChild(searchBox.getSearchBoxHTML());
             searchBox.on('tomtom.searchbox.resultselected', this.onResultSelected.bind(this, type));
