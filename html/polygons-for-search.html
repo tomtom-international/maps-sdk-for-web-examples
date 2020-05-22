@@ -215,13 +215,24 @@
         }
     });
     document.getElementById('searchBoxPlaceholder').appendChild(ttSearchBox.getSearchBoxHTML());
+
     ttSearchBox.on('tomtom.searchbox.resultselected', function(event) {
-        event.origin.preventDefault();
-
         searchResult = event.data.result;
-
-        return loadPolygon();
+        loadPolygon();
     });
+
+    ttSearchBox.on('tomtom.searchbox.resultsfound', function(event) {
+        if (event.data.metadata.triggeredBy === 'submit') {
+            if (event.data && event.data.results &&
+                event.data.results.fuzzySearch.results[0]) {
+                searchResult = event.data.results.fuzzySearch.results[0];
+                loadPolygon();
+            } else {
+                errorHint.setMessage('No result found');
+            }
+        }
+    });
+
     ttSearchBox.on('tomtom.searchbox.resultscleared', function() {
         searchResult = null;
         clearLayer(POLYGON_ID);

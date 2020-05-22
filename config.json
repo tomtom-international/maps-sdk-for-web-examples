@@ -8,9 +8,9 @@
         "extendedSearch": "<your extended search key>"
     },
     "cdn": {
-        "web-sdk-maps": "https://api.tomtom.com/maps-sdk-for-web/cdn/5.x/5.55.3/maps",
-        "web-sdk-services": "https://api.tomtom.com/maps-sdk-for-web/cdn/5.x/5.55.3/services",
-        "web-sdk-plugin-searchbox": "https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/SearchBox/2.23.1/",
+        "web-sdk-maps": "https://api.tomtom.com/maps-sdk-for-web/cdn/5.x/5.56.0/maps",
+        "web-sdk-services": "https://api.tomtom.com/maps-sdk-for-web/cdn/5.x/5.56.0/services",
+        "web-sdk-plugin-searchbox": "https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/SearchBox/2.24.0/",
         "web-sdk-plugin-pancontrols": "https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/PanControls/1.0.11/",
         "web-sdk-plugin-zoomcontrols": "https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/ZoomControls/1.0.10/",
         "web-sdk-plugin-minimap": "https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/Minimap/1.0.3/"

@@ -153,8 +153,26 @@
                 });
 
                 document.getElementById(type + 'SearchBox').appendChild(searchBox.getSearchBoxHTML());
-                searchBox.on('tomtom.searchbox.resultselected', onResultSelected.bind(null, type));
                 searchBox.on('tomtom.searchbox.resultscleared', onResultCleared.bind(null, type));
+
+                searchBox.on('tomtom.searchbox.resultsfound', function(event) {
+                    if (event.data.metadata.triggeredBy === 'submit') {
+                        if (event.data && event.data.results &&
+                            event.data.results.fuzzySearch.results[0]) {
+                            onResultSelected(type, event.data.results.fuzzySearch.results[0]);
+                        } else {
+                            errorHint.setMessage('No result found');
+                        }
+                    }
+                });
+
+                searchBox.on('tomtom.searchbox.resultselected', function(event) {
+                    if (event.data && event.data.result) {
+                        onResultSelected(type, event.data.result);
+                    }
+                });
+
+                return searchBox;
             }
 
             function getDraggedMarkerPosition(type) {
@@ -237,9 +255,8 @@
                 }
             }
 
-            function onResultSelected(type, event) {
-                var position = event.data.result.position;
-
+            function onResultSelected(type, result) {
+                var position = result.position;
                 updateMapView(type, position);
             }
 

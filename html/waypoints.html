@@ -244,8 +244,25 @@
             });
             var htmlSearchBox = searchBox.getSearchBoxHTML();
             document.getElementById('searchBoxesPlaceholder').appendChild(htmlSearchBox);
-            searchBox.on('tomtom.searchbox.resultselected', this.onResultSelected.bind(this));
             searchBox.on('tomtom.searchbox.resultscleared', this.onResultCleared.bind(this));
+
+            searchBox.on('tomtom.searchbox.resultsfound', function(event) {
+                if (event.data.metadata.triggeredBy === 'submit') {
+                    if (event.data && event.data.results &&
+                        event.data.results.fuzzySearch.results[0]) {
+                        this.onResultSelected(event.data.results.fuzzySearch.results[0]);
+                    } else {
+                        infoHint.setMessage('No result found');
+                    }
+                }
+            }.bind(this));
+
+            searchBox.on('tomtom.searchbox.resultselected', function(event) {
+                if (event.data && event.data.result) {
+                    this.onResultSelected(event.data.result);
+                }
+            }.bind(this));
+
             return htmlSearchBox;
         };
 
@@ -315,7 +332,7 @@
         };
 
         RoutingInput.prototype.onResultSelected = function(result) {
-            this.position = result.data.result.position;
+            this.position = result.position;
             this.routingService.calculateRoute();
         };
 

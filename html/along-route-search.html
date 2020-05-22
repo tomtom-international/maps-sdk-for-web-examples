@@ -171,7 +171,23 @@
                 }
             });
             document.getElementById(type + 'SearchBox').appendChild(searchBox.getSearchBoxHTML());
-            searchBox.on('tomtom.searchbox.resultselected', onResultSelected.bind(undefined, type));
+
+            searchBox.on('tomtom.searchbox.resultsfound', function(event) {
+                if (event.data.metadata.triggeredBy === 'submit') {
+                    if (event.data && event.data.results &&
+                        event.data.results.fuzzySearch.results[0]) {
+                        onResultSelected(type, event.data.results.fuzzySearch.results[0]);
+                    } else {
+                        errorHint.setMessage('No result found');
+                    }
+                }
+            });
+
+            searchBox.on('tomtom.searchbox.resultselected', function(event) {
+                if (event.data && event.data.result) {
+                    onResultSelected(type, event.data.result);
+                }
+            });
         }
 
         function createMarkerElement(type) {
@@ -183,16 +199,15 @@
             return element;
         }
 
-        function onResultSelected(type, event) {
+        function onResultSelected(type, result) {
             searchMarkersManager.clear();
             focusTab('options');
             var currentMarker = this.state[type + 'Marker'];
             if (currentMarker) {
                 currentMarker.remove();
             }
-            var searchResult = event.data.result;
             this.state[type + 'Marker'] = new tt.Marker({element: createMarkerElement(type)})
-                .setLngLat(searchResult.position)
+                .setLngLat(result.position)
                 .addTo(map);
             updateRouteIfNeeded();
         }
