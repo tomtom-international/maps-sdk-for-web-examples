@@ -306,7 +306,7 @@
                 coordinates.forEach(function(point) {
                     bounds.extend(tt.LngLat.convert(point));
                 });
-                map.fitBounds(bounds, { duration: 0, padding: 150 });
+                map.fitBounds(bounds, { duration: 0, padding: 50 });
                 loadingHint.hide();
             }
 

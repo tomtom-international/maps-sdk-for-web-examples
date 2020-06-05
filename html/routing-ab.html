@@ -205,6 +205,9 @@
                             'line-width': 8
                         }
                     }, this.findFirstBuildingLayerId());
+
+                    var coordinates = geojson.features[0].geometry.coordinates;
+                    this.updateRoutesBounds(coordinates);
                 }.bind(this))
                 .catch(this.handleError.bind(this));
         };
@@ -213,7 +216,7 @@
             this.errorHint.setErrorMessage(error);
         };
 
-        RoutingAB.prototype.drawMarker = function(type) {
+        RoutingAB.prototype.drawMarker = function(type, viewport) {
             if (this.state.marker[type]) {
                 this.state.marker[type].remove();
             }
@@ -229,10 +232,10 @@
                 .setLngLat(this.state[type])
                 .addTo(map);
 
-            this.updateBounds();
+            this.updateBounds(viewport);
         };
 
-        RoutingAB.prototype.updateBounds = function() {
+        RoutingAB.prototype.updateBounds = function(viewport) {
             bounds = new tt.LngLatBounds();
 
             if (this.state.start) {
@@ -241,8 +244,26 @@
             if (this.state.finish) {
                 bounds.extend(tt.LngLat.convert(this.state.finish));
             }
+
+            if (viewport) {
+                bounds.extend(tt.LngLat.convert(viewport.topLeftPoint));
+                bounds.extend(tt.LngLat.convert(viewport.btmRightPoint));
+            }
+
             if (!bounds.isEmpty()) {
-                map.fitBounds(bounds, { duration: 0, padding: 100 });
+                map.fitBounds(bounds, { duration: 0, padding: 50 });
+            }
+        };
+
+        RoutingAB.prototype.updateRoutesBounds = function(coordinates) {
+            bounds = new tt.LngLatBounds();
+
+            coordinates.forEach(function(point) {
+                bounds.extend(tt.LngLat.convert(point));
+            });
+                        
+            if (!bounds.isEmpty()) {
+                map.fitBounds(bounds, { duration: 0, padding: 50 });
             }
         };
 
@@ -287,7 +308,7 @@
                 this.setCloseButton();
             }
 
-            this.drawMarker(type);
+            this.drawMarker(type, result.viewport);
             this.calculateRoute();
         };
 

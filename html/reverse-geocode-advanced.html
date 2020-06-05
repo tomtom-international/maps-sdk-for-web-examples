@@ -34,7 +34,6 @@
     <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/tabs.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/languages.js'></script>
-    <script data-showable type='text/javascript' src='../assets/js/search/geopolitical-views.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/antimeridian-handler.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/buttons-group.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/dom-helpers.js'></script>
@@ -70,9 +69,6 @@
                         <div class='tt-params-box__content'>
                             <label class='tt-form-label'>Language
                                 <select class='js-language-select tt-select'></select>
-                            </label>
-                            <label class='tt-form-label'>Geopolitical view
-                                <select class='js-geo-view-select tt-select'></select>
                             </label>
                             <label class='tt-form-label js-radius-slider'>Radius (<span class='js-counter'>10000</span>m)
                                 <input class='tt-slider' name='radius' type='range' min='0' max='100000' value='10000'>
@@ -147,7 +143,6 @@
         new SidePanel('.tt-side-panel', map);
         var radiusSlider = new Slider(document.querySelector('.js-radius-slider'));
         var languageSelector = new TailSelector(searchLanguages, '.js-language-select', 'en-US');
-        var geopolSelector = new TailSelector(searchGeopoliticalViews, '.js-geo-view-select', 'Unified');
         var roadUseSelector = new TailSelector(
             roadUseOptions,
             '.js-road-use-select',
@@ -172,7 +167,6 @@
 
             this.state = {
                 searchLanguage: 'en-US',
-                view: 'Unified',
                 radius: this.elements.radius.value,
                 heading: null,
                 position: [50.8515, 4.3705],
@@ -193,7 +187,6 @@
             this.elements = {
                 radius: radiusSlider,
                 languageSelector: languageSelector.getElement(),
-                geopolSelector: geopolSelector.getElement(),
                 headingSelector: headingDirectionGroup,
                 preferredNumber: document.querySelector('.js-house-number'),
                 roadUse: roadUseSelector.getElement()
@@ -229,12 +222,6 @@
                 this.handleRequest();
             }.bind(this));
 
-            this.elements.geopolSelector.on('change', function(selected) {
-                map.setGeopoliticalView(selected.key);
-                this.state.view = selected.key;
-                this.handleRequest();
-            }.bind(this));
-
             Array.prototype.slice.call(document.querySelectorAll('.tt-checkbox'))
                 .forEach(function(checkbox) {
                     checkbox.addEventListener('change', function(event) {
@@ -260,7 +247,6 @@
                 heading: this.state.heading,
                 roadUse: this.state.roadUse,
                 allowFreeformNewline: this.state.allowNewLines,
-                view: this.state.view,
                 returnMatchType: this.state.matchType,
                 returnRoadUse: this.state.returnRoadUse,
                 returnSpeedLimit: this.state.speedLimit,

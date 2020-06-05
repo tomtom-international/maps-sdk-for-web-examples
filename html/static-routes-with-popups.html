@@ -108,6 +108,7 @@
                     .then(function(response) {
                         var features = response.toGeoJson().features;
 
+                        var coordinates = [];
                         features.forEach(function(feature, index) {
                             map.addLayer({
                                 'id': 'route' + index,
@@ -122,18 +123,20 @@
                                 }
                             });
                             map.on('mouseover', 'route' + index, onPopupTrigger);
+                            coordinates = coordinates.concat(feature.geometry.coordinates);
                         });
                         addMarkers(features[0]);
-                        var bounds = new tt.LngLatBounds();
-                        var coordinates = features[0].geometry.coordinates;
-                        var lngLat = coordinates[Math.floor(coordinates.length / 2)];
-                        var summary = features[0].properties.summary;
 
+                        var firstFeatureCoordinates = features[0].geometry.coordinates;
+                        var lngLat = firstFeatureCoordinates[Math.floor(firstFeatureCoordinates.length / 2)];
+                        var summary = features[0].properties.summary;
                         createPopup(summary, lngLat);
+
+                        var bounds = new tt.LngLatBounds();
                         coordinates.forEach(function(point) {
                             bounds.extend(tt.LngLat.convert(point));
                         });
-                        map.fitBounds(bounds, { duration: 0, padding: 150 });
+                        map.fitBounds(bounds, { duration: 0, padding: 50 });
                         infoHint.setMessage('Hover over the route to display a popup with route information');
                     });
             }

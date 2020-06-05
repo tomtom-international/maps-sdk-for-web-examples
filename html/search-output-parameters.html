@@ -43,10 +43,6 @@
                                 Language
                                 <select class='js-language-select tt-select'></select>
                             </label>
-                            <label class='tt-form-label'>
-                                Geopolitical view
-                                <select class='js-geo-view-select tt-select'></select>
-                            </label>
                             <div class='tt-form-label -group'>
                                 Set of search indices
                                 <div class='tt-checkable-input'>
@@ -155,7 +151,6 @@
     <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/dom-helpers.js'></script>
-    <script data-showable type='text/javascript' src='../assets/js/search/geopolitical-views.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/languages.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/results-manager.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/search-results-parser.js'></script>
@@ -182,13 +177,8 @@
         map.addControl(new tt.NavigationControl());
         new SidePanel('.tt-side-panel', map);
         new Slider(document.querySelector('.js-slider'));
-        var geopolSelector = new TailSelector(searchGeopoliticalViews, '.js-geo-view-select', 'Unified');
         var languageSelector = new TailSelector(searchLanguages, '.js-language-select', 'en-GB');
         var tabs = new Tabs('.js-tabs');
-
-        geopolSelector.getElement().on('change', function(selected) {
-            map.setGeopoliticalView(selected.key);
-        });
 
         function SearchOutput() {
             this.centerMarker = null;
@@ -213,8 +203,7 @@
                 isGeobiasActive: true,
                 language: 'en-GB',
                 radius: this.elements.radius.value,
-                query: this.elements.query.value,
-                view: 'Unified'
+                query: this.elements.query.value
             };
             this.marker.className = 'tt-icon -location';
             this.initializeStateWithCheckboxesValues();
@@ -252,7 +241,7 @@
             this.elements.longitude.addEventListener('change', this.updateInputValue.bind(this, 'longitude'));
             this.elements.radius.addEventListener('change', this.updateInputValue.bind(this, 'radius'));
             this.elements.query.addEventListener('change', this.updateInputValue.bind(this, 'query'));
-            this.elements.view.on('change', this.updateSelectValue.bind(this, 'view'));
+
             map.on('load', this.updateBiasPosition.bind(this));
             map.on('moveend', this.updateBiasPosition.bind(this));
         };
@@ -276,14 +265,12 @@
             var list = '<ul class="popup-details-wrapper">';
 
             for (var property in properties) {
-                if (this.shouldCreateLiElement(properties, property)) {
-                    list +=
-                        '<li>' +
-                            property + (typeof properties[property] !== 'object' ?
-                            ': ' + properties[property] :
-                            this.createUlElement(properties[property])) +
-                        '</li>';
-                }
+                list +=
+                    '<li>' +
+                        property + (typeof properties[property] !== 'object' ?
+                        ': ' + properties[property] :
+                        this.createUlElement(properties[property])) +
+                    '</li>';
             }
             list += '</ul>';
             return list;
@@ -388,8 +375,7 @@
                 maxFuzzyLevel: 2,
                 minFuzzyLevel: 1,
                 openingHours: 'nextSevenDays',
-                radius: this.state.radius,
-                view: this.state.view
+                radius: this.state.radius
             };
 
             if (this.state.isGeobiasActive) {
@@ -446,8 +432,7 @@
                 geobiasToggle: document.querySelector('.js-bias-toggle'),
                 indices: document.querySelectorAll('input[name="indices"]'),
                 language: languageSelector.getElement(),
-                postcode: document.querySelectorAll('input[name="postcode"]'),
-                view: geopolSelector.getElement()
+                postcode: document.querySelectorAll('input[name="postcode"]')
             };
         };
 
@@ -468,10 +453,6 @@
 
         SearchOutput.prototype.shouldCreateDOMElement = function(name) {
             return name && name !== 'submit' && name !== 'postcode' && name !== 'indices';
-        };
-
-        SearchOutput.prototype.shouldCreateLiElement = function(properties, property) {
-            return (property !== 'id' || property === 'id' && typeof properties.id === 'number') && property !== 'info';
         };
 
         SearchOutput.prototype.toggleGeoBias = function() {

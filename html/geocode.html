@@ -35,10 +35,6 @@
                                 Language
                                 <select class='js-language-select tt-select'></select>
                             </label>
-                            <label class='tt-form-label'>
-                                Geopolitical view
-                                <select class='js-geo-view-select tt-select'></select>
-                            </label>
                             <label class='tt-form-label js-slider'>
                                 Limit (<span class='js-counter'>10</span>)
                                 <input class='tt-slider' name='limit' type='range' min='1' max='100' value='10'>
@@ -98,7 +94,6 @@
     <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/tabs.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/results-manager.js'></script>
-    <script data-showable type='text/javascript' src='../assets/js/search/geopolitical-views.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/languages.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/slider.js'></script>
@@ -132,11 +127,6 @@
             });
 
         var languageSelector = new TailSelector(searchLanguages, '.js-language-select', 'en-GB');
-        var geopolSelector = new TailSelector(searchGeopoliticalViews, '.js-geo-view-select', 'Unified');
-
-        geopolSelector.getElement().on('change', function(selected) {
-            this.map.setGeopoliticalView(selected.key);
-        }.bind(this));
 
         function Geocode() {
             this.domHelpers = DomHelpers;
@@ -148,7 +138,6 @@
 
             this.elements = {
                 language: languageSelector.getElement(),
-                view: geopolSelector.getElement(),
                 biasContainer: document.querySelector('.js-bias-container'),
                 biasPlaceholder: document.querySelector('.js-bias-placeholder'),
                 biasControls: document.querySelector('.js-bias-controls'),

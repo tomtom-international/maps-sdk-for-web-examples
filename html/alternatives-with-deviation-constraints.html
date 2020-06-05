@@ -113,15 +113,15 @@
                     <div class='form-wrapper'>
                         <label class='tt-form-label -black js-slider'>
                             Alternatives (<span class='js-counter -alternatives'>1</span>)
-                            <input class='tt-slider' name='alternatives' type='range' min='0' max='5' value='1'>
+                            <input class='tt-slider' name='alternatives' type='range' min='1' max='5' value='1'>
                         </label>
                         <label class='tt-form-label -black js-slider'>
                             Min. Deviation Time (<span class='js-counter'>0</span>s)
                             <input class='tt-slider' name='minDeviationTime' type='range' min='0' max='1366' value='0'>
                         </label>
                         <label class='tt-form-label -black js-slider'>
-                            Min. Deviation Distance (<span class='js-counter'>400</span>m)
-                            <input class='tt-slider' name='minDeviationDistance' type='range' min='0' max='20414' value='400'>
+                            Min. Deviation Distance (<span class='js-counter'>0</span>m)
+                            <input class='tt-slider' name='minDeviationDistance' type='range' min='0' max='20414' value='0'>
                         </label>
                         <div class='types-wrapper'>
                             Alternative type
@@ -275,6 +275,8 @@
                 sidePanelElement.classList.add('scrollable');
                 routesPanelElement.appendChild(routeInformationList);
 
+                var coordinates = [];
+
                 features.forEach(function(feature, index) {
                     map.addLayer({
                         'id': 'route' + index,
@@ -292,10 +294,11 @@
                             'line-join': 'round'
                         }
                     });
+
+                    coordinates = coordinates.concat(feature.geometry.coordinates);
                 });
 
                 var bounds = new tt.LngLatBounds();
-                var coordinates = features[0].geometry.coordinates;
 
                 if (!startMarker) {
                     addMarkers(coordinates);
@@ -304,7 +307,7 @@
                 coordinates.forEach(function(point) {
                     bounds.extend(tt.LngLat.convert(point));
                 });
-                map.fitBounds(bounds, { duration: 0, padding: 150 });
+                map.fitBounds(bounds, { duration: 0, padding: 50 });
                 createHintAboutAvailableAlternatives();
             }
 

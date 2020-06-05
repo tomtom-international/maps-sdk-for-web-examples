@@ -137,6 +137,12 @@
                         }
                     }, this.findFirstBuildingLayerId());
 
+                    var coordinates = geojson.features[0].geometry.coordinates;
+                    if (geojson.features[0].properties.segmentSummary.length > 1) {
+                        coordinates = [].concat.apply([], coordinates);
+                    }
+
+                    this.updateRoutesBounds(coordinates);
                     this.drawMarkers(locations.arr);
                 }.bind(this))
                 .catch(function(error) {
@@ -163,6 +169,12 @@
                     var marker = new tt.Marker(this.waypointMarker(index, maxIndex)).setLngLat(input.position).addTo(map);
                     markers.push(marker);
                     bounds.extend(tt.LngLat.convert(input.position));
+
+                    if (input.viewport) {
+                        input.viewport.forEach(function(viewport) {
+                            bounds.extend(tt.LngLat.convert(viewport));
+                        });
+                    }
                 }
             }, this);
             map.fitBounds(bounds, { duration: 0, padding: 100 });
@@ -211,6 +223,18 @@
                 container.appendChild(number);
             }
             return container;
+        };
+
+        RoutingService.prototype.updateRoutesBounds = function(coordinates) {
+            var bounds = new tt.LngLatBounds();
+
+            coordinates.forEach(function(point) {
+                bounds.extend(tt.LngLat.convert(point));
+            });
+
+            if (!bounds.isEmpty()) {
+                map.fitBounds(bounds, { duration: 0, padding: 100 });
+            }
         };
 
         function RoutingInput(options) {
@@ -328,11 +352,13 @@
 
         RoutingInput.prototype.onResultCleared = function() {
             this.position = undefined;
+            this.viewport = undefined;
             this.routingService.calculateRoute();
         };
 
         RoutingInput.prototype.onResultSelected = function(result) {
             this.position = result.position;
+            this.viewport = [result.viewport.topLeftPoint, result.viewport.btmRightPoint];
             this.routingService.calculateRoute();
         };
 
