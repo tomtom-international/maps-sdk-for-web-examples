@@ -1426,6 +1426,10 @@ body {
             background-color: #f2f2f2;
         }
 
+.tt-fake-select.tail-select .select-dropdown > .dropdown-inner > ul:last-child {
+            margin-bottom: 3px;
+        }
+
 .tt-fake-select.tail-select.active .select-label {
             box-shadow: none;
         }

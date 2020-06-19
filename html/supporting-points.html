@@ -111,6 +111,7 @@
     <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/dom-helpers.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/searchbox-enter-submit.js'></script>
     <script>
         tt.setProductInfo('<your-product-name>', '<your-product-version>');
         var map = tt.map({
@@ -274,7 +275,7 @@
         }
 
         // handling searchbox input
-        function onResultSelected(type, result) {
+        function onResultSelected(result, type) {
             var position = result.position;
             route[type] = [position.lng, position.lat];
             drawRoute(true);
@@ -301,19 +302,12 @@
             searchBox.on('tomtom.searchbox.resultscleared', onResultCleared.bind(undefined, type));
 
             searchBox.on('tomtom.searchbox.resultsfound', function(event) {
-                if (event.data.metadata.triggeredBy === 'submit') {
-                    if (event.data && event.data.results &&
-                        event.data.results.fuzzySearch.results[0]) {
-                        onResultSelected(type, event.data.results.fuzzySearch.results[0]);
-                    } else {
-                        errorHint.setMessage('No result found');
-                    }
-                }
+                handleEnterSubmit(event, onResultSelected.bind(this), errorHint, type);
             });
 
             searchBox.on('tomtom.searchbox.resultselected', function(event) {
                 if (event.data && event.data.result) {
-                    onResultSelected(type, event.data.result);
+                    onResultSelected(event.data.result, type);
                 }
             });
 

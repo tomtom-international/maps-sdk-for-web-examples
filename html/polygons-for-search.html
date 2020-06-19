@@ -43,6 +43,7 @@
 <script data-showable type='text/javascript' src='../assets/js/antimeridian-handler.js'></script>
 <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
 <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
+<script data-showable type='text/javascript' src='../assets/js/search/searchbox-enter-submit.js'></script>
 <script src='/cdn.web-sdk-plugin-searchbox/SearchBox-web.js'></script>
 <script>
     var NO_POLYGON_MESSAGE = 'For the given result there is no polygon attached.';
@@ -63,8 +64,6 @@
     map.on('zoomend', function() {
         document.querySelector('#mapZoom').innerText = Number(map.getZoom()).toFixed(2);
     });
-
-    var searchResult = null;
 
     var popup = new tt.Popup({ className: 'tt-popup', closeOnClick: false });
     showStartSearchingPopup();
@@ -166,7 +165,7 @@
         }
     }
 
-    function loadPolygon() {
+    function loadPolygon(searchResult) {
         if (!searchResult) {
             return;
         }
@@ -217,24 +216,14 @@
     document.getElementById('searchBoxPlaceholder').appendChild(ttSearchBox.getSearchBoxHTML());
 
     ttSearchBox.on('tomtom.searchbox.resultselected', function(event) {
-        searchResult = event.data.result;
-        loadPolygon();
+        loadPolygon(event.data.result);
     });
 
     ttSearchBox.on('tomtom.searchbox.resultsfound', function(event) {
-        if (event.data.metadata.triggeredBy === 'submit') {
-            if (event.data && event.data.results &&
-                event.data.results.fuzzySearch.results[0]) {
-                searchResult = event.data.results.fuzzySearch.results[0];
-                loadPolygon();
-            } else {
-                errorHint.setMessage('No result found');
-            }
-        }
+        handleEnterSubmit(event, loadPolygon.bind(this));
     });
 
     ttSearchBox.on('tomtom.searchbox.resultscleared', function() {
-        searchResult = null;
         clearLayer(POLYGON_ID);
         clearLayer(OUTLINE_ID);
         showStartSearchingPopup();

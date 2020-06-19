@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+    <head>
+        <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+        <meta charset='UTF-8'>
+        <title>Maps SDK for Web - Circle Waypoints</title>
+        <meta name='viewport'
+            content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+        <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+        <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+        <style>
+            .waypoint-container {
+                margin-bottom: 40px;
+            }
+            .waypoint-header {
+                font-weight: bold;
+            }
+            .waypoint-address {
+                color: #666666;
+                font-weight: 400;
+                margin: 14px 0 14px 0;
+            }
+            .disabled {
+                opacity: 0.3;
+            }
+            .waypoint-marker {
+                align-items: center;
+                background-color: #4a90e2;
+                border: solid 3px #2faaff;
+                border-radius: 50%;
+                color: #ffffff;
+                font-size: 14px;
+                font-weight: bold;
+                height: 32px !important;
+                justify-content: center;
+                text-align: center;
+                width: 32px !important;
+            }
+        </style>
+    </head>
+    <body>
+        <div class='map-view'>
+            <form class='tt-side-panel js-form'>
+                <div class='tt-tabs js-tabs'>
+                    <div class='tt-tabs__panel'>
+                        <div class='tt-params-box'>
+                            <div class='tt-params-box__content' id='box-content'>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div id='map' class='full-map'></div>
+        </div>
+        <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+        <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/search/slider.js'></script>
+        <script src='https://cdnjs.cloudflare.com/ajax/libs/Turf.js/5.1.5/turf.min.js'></script>
+
+        <script>
+            var RADIUS_MIN_VAL = 1;
+            var RADIUS_MAX_VAL = 20000;
+            var START_POSITION = {lat: 52.27264, lng: 8.0498};
+            var FINAL_POSITION = {lat: 52.37317, lng: 4.89066};
+
+            var map = tt.map({
+                key: '${api.key.maps}',
+                container: 'map',
+                style: 'tomtom://vector/1/basic-main',
+                dragPan: !isMobileOrTablet(),
+                zoom: 8.256,
+                center: [6.473151, 52.277461]
+            });
+
+            map.addControl(new tt.FullscreenControl());
+            map.addControl(new tt.NavigationControl());
+
+            var routingInputs = [];
+            var markers = [];
+            var circles = [];
+            var route;
+
+            var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
+            var loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
+
+            function RoutingService() {}
+
+            RoutingService.prototype.calculateRoute = function() {
+                loadingHint.setMessage('Loading...');
+
+                tt.services.calculateRoute({
+                    key: '${api.key.routing}',
+                    traffic: false,
+                    locations: this.getLocations()
+                })
+                    .go()
+                    .then(function(response) {
+                        loadingHint.hide();
+
+                        if (route) {
+                            this.removeLayerAndSource('route');
+                            route = undefined;
+                        }
+
+                        var geojson = response.toGeoJson();
+                        route = map.addLayer({
+                            'id': 'route',
+                            'type': 'line',
+                            'source': {
+                                'type': 'geojson',
+                                'data': geojson
+                            },
+                            'paint': {
+                                'line-color': '#2faaff',
+                                'line-width': 6
+                            }
+                        }, this.findFirstBuildingLayerId());
+
+                        var coordinates = geojson.features[0].geometry.coordinates;
+                        if (geojson.features[0].properties.segmentSummary.length > 1) {
+                            coordinates = [].concat.apply([], coordinates);
+                        }
+
+                        this.updateRoutesBounds(coordinates);
+                    }.bind(this))
+                    .catch(function(error) {
+                        loadingHint.hide();
+                        errorHint.setErrorMessage(error);
+                    });
+            };
+
+            RoutingService.prototype.clearCircleOfIndex = function(index) {
+                var layerId = 'circle-' + index;
+                if (circles.indexOf(layerId) !== -1) {
+                    this.removeLayerAndSource(layerId + '-border');
+                    this.removeLayerAndSource(layerId + '-fill');
+
+                    circles = circles.filter(function(circleId) {
+                        return layerId !== circleId;
+                    });
+                }
+            };
+
+            RoutingService.prototype.removeLayerAndSource = function(name) {
+                map.removeLayer(name);
+                map.removeSource(name);
+            };
+
+            RoutingService.prototype.drawCircles = function() {
+                routingInputs.forEach(function(input) {
+                    this.clearCircleOfIndex(input.index);
+
+                    if (input.active) {
+                        this.drawCircle(input);
+                    }
+                }, this);
+            };
+
+            RoutingService.prototype.drawCircle = function(input) {
+                var layerId = 'circle-' + input.index;
+
+                var circle = turf.circle([input.position.lng, input.position.lat], input.position.radius / 1000);
+                map.addLayer({
+                    id: layerId + '-fill',
+                    type: 'fill',
+                    source: {
+                        type: 'geojson',
+                        data: circle
+                    },
+                    paint: {
+                        'fill-color': '#2eaafc',
+                        'fill-opacity': 0.5
+                    }
+                });
+                map.addLayer({
+                    id: layerId + '-border',
+                    type: 'line',
+                    source: {
+                        type: 'geojson',
+                        data: circle
+                    },
+                    paint: {
+                        'line-color': '#2eaafc',
+                        'line-width': 2
+                    }
+                });
+                circles.push(layerId);
+            };
+
+            RoutingService.prototype.drawMarkers = function() {
+                markers.forEach(function(marker) {
+                    marker.remove();
+                });
+
+                markers.push(
+                    new tt.Marker(this.waypointMarker('start')).setLngLat(START_POSITION).addTo(map)
+                );
+                markers.push(
+                    new tt.Marker(this.waypointMarker('finish')).setLngLat(FINAL_POSITION).addTo(map)
+                );
+            };
+
+            RoutingService.prototype.findFirstBuildingLayerId = function() {
+                var layers = map.getStyle().layers;
+                for (var index in layers) {
+                    if (layers[index].type === 'fill-extrusion') {
+                        return layers[index].id;
+                    }
+                }
+
+                throw new Error('Map style does not contain any layer with fill-extrusion type.');
+            };
+
+            RoutingService.prototype.getLocations = function() {
+                var resultArr = [];
+
+                resultArr.push(START_POSITION);
+
+                routingInputs.forEach(function(routingInput) {
+                    if (routingInput.active) {
+                        var pos = routingInput.position;
+                        resultArr.push('circle(' + pos.lng + ',' + pos.lat + ',' + pos.radius + ')');
+                    }
+                });
+
+                resultArr.push(FINAL_POSITION);
+
+                return resultArr;
+            };
+
+            RoutingService.prototype.waypointMarker = function(type) {
+                var container = document.createElement('div');
+                container.className = 'waypoint-marker';
+                if (type === 'start') {
+                    container.className += ' tt-icon -start -white';
+                } else if (type === 'finish') {
+                    container.className += ' tt-icon -finish -white';
+                }
+                return container;
+            };
+
+            RoutingService.prototype.updateRoutesBounds = function(coordinates) {
+                var bounds = new tt.LngLatBounds();
+
+                coordinates.forEach(function(point) {
+                    bounds.extend(tt.LngLat.convert(point));
+                });
+
+                if (!bounds.isEmpty()) {
+                    map.fitBounds(bounds, { duration: 0, padding: 50 });
+                }
+            };
+
+            function RoutingInput(options) {
+                this.options = options;
+                this.active = true;
+
+                this.index = options.index;
+                this.position = options.position;
+
+                this.container = this.createContainer();
+
+                var checkableInputContainer = this.createCheckableInputContainer();
+
+                this.checkbox = this.createCheckbox();
+                checkableInputContainer.appendChild(this.checkbox);
+
+                var waypointHeader = this.createWaypointHeader();
+                checkableInputContainer.appendChild(waypointHeader);
+                this.container.appendChild(checkableInputContainer);
+
+                this.waypointAddress = this.createWaypointAddress();
+                this.container.appendChild(this.waypointAddress);
+
+                this.slider = this.createRadiusSlider();
+                this.container.appendChild(this.slider);
+            }
+
+            RoutingInput.prototype.createContainer = function() {
+                var container = document.createElement('div');
+                container.className = 'tt-form-label waypoint-container';
+                return container;
+            };
+
+            RoutingInput.prototype.createCheckableInputContainer = function() {
+                var checkableInputContainer = document.createElement('div');
+                checkableInputContainer.className = 'tt-checkable-input';
+                return checkableInputContainer;
+            };
+
+            RoutingInput.prototype.createCheckbox = function() {
+                var input = document.createElement('input');
+                input.setAttribute('class', 'tt-checkbox');
+                input.setAttribute('id', 'checkbox-' + this.index);
+                input.setAttribute('type', 'checkbox');
+                input.setAttribute('checked', this.active);
+
+                input.addEventListener('change', function(event) {
+                    this.active = Boolean(event.target.checked);
+                    this.updateState();
+                    this.onchange(event);
+                }.bind(this));
+
+                return input;
+            };
+
+            RoutingInput.prototype.createWaypointHeader = function() {
+                var waypointHeader = document.createElement('div');
+                waypointHeader.setAttribute('class', 'waypoint-header');
+                waypointHeader.innerText = 'Waypoint ' + (this.index + 1);
+
+                var label = document.createElement('label');
+                label.setAttribute('class', 'tt-label -full');
+                label.setAttribute('for', 'checkbox-' + this.index);
+                label.appendChild(waypointHeader);
+
+                return label;
+            };
+
+            RoutingInput.prototype.createWaypointAddress = function() {
+                var waypointAddressElem = document.createElement('div');
+                waypointAddressElem.setAttribute('class', 'waypoint-address');
+                waypointAddressElem.innerText = this.options.address;
+
+                return waypointAddressElem;
+            };
+
+            RoutingInput.prototype.createRadiusSlider = function() {
+                var container = this.createRadiusSliderContainer();
+                var label = this.createRadiusSliderLabel();
+                this.radiusSliderInput = this.createRadiusSliderInput();
+
+                container.appendChild(label);
+                container.appendChild(this.radiusSliderInput);
+
+                new Slider(container);
+
+                return container;
+            };
+
+            RoutingInput.prototype.createRadiusSliderContainer = function() {
+                var sliderContainer = document.createElement('div');
+                sliderContainer.className = 'tt-form-label -black js-slider tt-spacing-top-12';
+                return sliderContainer;
+            };
+
+            RoutingInput.prototype.createRadiusSliderInput = function() {
+                var input = document.createElement('input');
+                input.setAttribute('class', 'tt-slider');
+                input.setAttribute('id', 'radius-input-' + this.index);
+                input.setAttribute('type', 'range');
+                input.setAttribute('min', RADIUS_MIN_VAL);
+                input.setAttribute('max', RADIUS_MAX_VAL);
+                input.setAttribute('value', this.position.radius);
+
+                input.onchange = function(event) {
+                    this.position.radius = Number(event.target.value);
+                    this.onchange(event);
+                }.bind(this);
+
+                return input;
+            };
+
+            RoutingInput.prototype.createRadiusSliderLabel = function() {
+                var labelValue = document.createElement('span');
+                labelValue.setAttribute('class', 'js-counter');
+                labelValue.innerText = this.position.radius;
+
+                var labelText = document.createElement('strong');
+                labelText.innerHTML = 'Radius (' + labelValue.outerHTML + ' m)';
+
+                var label = document.createElement('label');
+                label.setAttribute('class', 'tt-label -full');
+                label.setAttribute('for', 'radius-input-' + this.index);
+                label.appendChild(labelText);
+
+                return label;
+            };
+
+            RoutingInput.prototype.updateState = function() {
+                if (this.active) {
+                    this.radiusSliderInput.removeAttribute('disabled');
+                    this.waypointAddress.classList.remove('disabled');
+                    this.slider.classList.remove('disabled');
+                } else {
+                    this.radiusSliderInput.setAttribute('disabled', true);
+                    this.waypointAddress.classList.add('disabled');
+                    this.slider.classList.add('disabled');
+                }
+            };
+
+            function Panel(routingService) {
+                this.routingService = routingService;
+                this.container = document.getElementById('box-content');
+                this.createInputs();
+
+                var submitButton = this.createSubmitButton();
+                this.container.appendChild(submitButton);
+            }
+
+            Panel.prototype.createInputs = function() {
+                routingInputs = [
+                    new RoutingInput({
+                        address: 'K330, 4840 Schapen, Germany',
+                        index: 0,
+                        position: {lat: 52.419722, lng: 7.5387364, radius: 1956}
+                    }),
+                    new RoutingInput({
+                        address: 'Kerkloolaan, 7152BN, Eibergen, Netherlands',
+                        index: 1,
+                        position: {lat: 52.090988, lng: 6.675485, radius: 8003}
+                    }),
+                    new RoutingInput({
+                        address: 'Vanen 14A, 3882RH, Putten, Netherlands',
+                        index: 2,
+                        position: {lat: 52.26071, lng: 5.60942, radius: 9503}
+                    })
+                ];
+
+                routingInputs.forEach(function(routingInput) {
+                    var routingService = this.routingService;
+                    routingInput.onchange = function() {
+                        routingService.clearCircleOfIndex(routingInput.index);
+                        if (routingInput.active) {
+                            routingService.drawCircle(routingInput);
+                        }
+                    };
+
+                    this.container.appendChild(routingInput.container);
+                }.bind(this));
+            };
+
+            Panel.prototype.createSubmitButton = function() {
+                var container = document.createElement('div');
+                container.className = 'tt-spacing-top-36';
+
+                var button = document.createElement('input');
+                button.setAttribute('type', 'submit');
+                button.className = 'tt-button -primary';
+                button.onclick = function(event) {
+                    event.preventDefault();
+                    this.routingService.calculateRoute();
+                }.bind(this);
+
+                container.appendChild(button);
+                return container;
+            };
+
+            var routingService = new RoutingService();
+            new Panel(routingService);
+
+            map.once('load', function() {
+                routingService.drawMarkers();
+                routingService.calculateRoute();
+                routingService.drawCircles();
+            });
+
+        </script>
+    </body>
+</html>

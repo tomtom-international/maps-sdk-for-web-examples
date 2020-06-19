@@ -67,6 +67,9 @@
             display: flex;
             justify-content: center;
         }
+        .tt-search-box-input {
+            width: calc(100% - 15px) !important;
+        }
 </style>
 <body>
     <div id='map' class='map'>
@@ -81,6 +84,7 @@
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/searchbox-enter-submit.js'></script>
     <script src='/cdn.web-sdk-plugin-searchbox/SearchBox-web.js'></script>
     <script>
         var MAX_ROUTING_INPUTS = 7;
@@ -96,7 +100,7 @@
         var routingInputs = [];
         var route;
         var markers = [];
-        var infoHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
+        var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
         var loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
 
         function RoutingService() {}
@@ -147,7 +151,7 @@
                 }.bind(this))
                 .catch(function(error) {
                     loadingHint.hide();
-                    infoHint.setErrorMessage(error);
+                    errorHint.setErrorMessage(error);
                 });
         };
 
@@ -271,14 +275,7 @@
             searchBox.on('tomtom.searchbox.resultscleared', this.onResultCleared.bind(this));
 
             searchBox.on('tomtom.searchbox.resultsfound', function(event) {
-                if (event.data.metadata.triggeredBy === 'submit') {
-                    if (event.data && event.data.results &&
-                        event.data.results.fuzzySearch.results[0]) {
-                        this.onResultSelected(event.data.results.fuzzySearch.results[0]);
-                    } else {
-                        infoHint.setMessage('No result found');
-                    }
-                }
+                handleEnterSubmit(event, this.onResultSelected.bind(this), errorHint);
             }.bind(this));
 
             searchBox.on('tomtom.searchbox.resultselected', function(event) {
@@ -373,7 +370,7 @@
         Panel.prototype.createWaypoint = function() {
             var length = routingInputs.length;
             if (length === MAX_ROUTING_INPUTS) {
-                infoHint.setMessage('You cannot add more waypoints in this example, but ' +
+                errorHint.setMessage('You cannot add more waypoints in this example, but ' +
                 'the Routing service supports up to 150 waypoints.');
                 return;
             }

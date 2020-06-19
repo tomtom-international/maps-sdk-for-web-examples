@@ -117,6 +117,7 @@
     <script data-showable type='text/javascript' src='../assets/js/search/tabs.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/results-manager.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/searchbox-enter-submit.js'></script>
     <script src='/cdn.web-sdk-plugin-searchbox/SearchBox-web.js'></script>
     <script>
         var state = {
@@ -173,19 +174,12 @@
             document.getElementById(type + 'SearchBox').appendChild(searchBox.getSearchBoxHTML());
 
             searchBox.on('tomtom.searchbox.resultsfound', function(event) {
-                if (event.data.metadata.triggeredBy === 'submit') {
-                    if (event.data && event.data.results &&
-                        event.data.results.fuzzySearch.results[0]) {
-                        onResultSelected(type, event.data.results.fuzzySearch.results[0]);
-                    } else {
-                        errorHint.setMessage('No result found');
-                    }
-                }
+                handleEnterSubmit(event, onResultSelected.bind(this), errorHint, type);
             });
 
             searchBox.on('tomtom.searchbox.resultselected', function(event) {
                 if (event.data && event.data.result) {
-                    onResultSelected(type, event.data.result);
+                    onResultSelected(event.data.result, type);
                 }
             });
         }
@@ -199,7 +193,7 @@
             return element;
         }
 
-        function onResultSelected(type, result) {
+        function onResultSelected(result, type) {
             searchMarkersManager.clear();
             focusTab('options');
             var currentMarker = this.state[type + 'Marker'];

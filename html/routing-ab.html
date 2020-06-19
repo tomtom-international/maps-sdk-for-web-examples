@@ -86,6 +86,7 @@
     <script src='/cdn.web-sdk-services/services-web.min.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/searchbox-enter-submit.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
     <script>
         var map = tt.map({
@@ -261,7 +262,7 @@
             coordinates.forEach(function(point) {
                 bounds.extend(tt.LngLat.convert(point));
             });
-                        
+
             if (!bounds.isEmpty()) {
                 map.fitBounds(bounds, { duration: 0, padding: 50 });
             }
@@ -280,19 +281,12 @@
             document.getElementById(type + 'SearchBox').appendChild(searchBox.getSearchBoxHTML());
 
             searchBox.on('tomtom.searchbox.resultsfound', function(event) {
-                if (event.data.metadata.triggeredBy === 'submit') {
-                    if (event.data && event.data.results &&
-                        event.data.results.fuzzySearch.results[0]) {
-                        this.onResultSelected(type, event.data.results.fuzzySearch.results[0]);
-                    } else {
-                        this.errorHint.setMessage('No result found');
-                    }
-                }
+                handleEnterSubmit(event, this.onResultSelected.bind(this), this.errorHint, type);
             }.bind(this));
 
             searchBox.on('tomtom.searchbox.resultselected', function(event) {
                 if (event.data && event.data.result) {
-                    this.onResultSelected(type, event.data.result);
+                    this.onResultSelected(event.data.result, type);
                 }
             }.bind(this));
             searchBox.on('tomtom.searchbox.resultscleared', this.onResultCleared.bind(this, type));
@@ -300,7 +294,7 @@
             return searchBox;
         };
 
-        RoutingAB.prototype.onResultSelected = function(type, result) {
+        RoutingAB.prototype.onResultSelected = function(result, type) {
             var pos = result.position;
             this.state[type] = [pos.lng, pos.lat];
 

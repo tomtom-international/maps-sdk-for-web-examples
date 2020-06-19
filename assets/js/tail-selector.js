@@ -64,7 +64,7 @@ var TailSelector = (function() {
             this.selectorElem,
             Object.assign({
                 classNames: 'tt-fake-select',
-                hideSelected: true
+                hideSelected: Boolean(this.options.multiple)
             }, this.options
             ));
 
