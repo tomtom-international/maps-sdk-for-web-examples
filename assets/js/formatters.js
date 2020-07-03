@@ -20,7 +20,7 @@ function formatToDurationTimeString(secondsValue) {
     if (secondsValue > 3600 * 24) {
         return miliseconds.format('d [day] h [h] m [m]');
     } else if (secondsValue > 3600) {
-        return miliseconds.format('h [h] m [m] s [s]');
+        return miliseconds.format('H [h] m [m] s [s]');
     } else if (secondsValue > 60) {
         return miliseconds.format('m [m] s [s]');
     } else if (secondsValue > 0) {
@@ -56,6 +56,10 @@ function formatToExpandedDateTimeString(date) {
     return moment(date).format('dddd, MMM D, HH:mm:ss');
 }
 
+function formatToDateTimeString(date) {
+    return moment(date).format('MMM D, HH:mm:ss');
+}
+
 function formatAsImperialDistance(distanceMeters) {
     var yards = Math.round(distanceMeters * 1.094);
 
@@ -89,7 +93,8 @@ var Formatters = {
     roundLatLng: roundLatLng,
     formatToDateString: formatToDateString,
     formatToShortenedTimeString: formatToShortenedTimeString,
-    dateTimeStringToObject: dateTimeStringToObject
+    dateTimeStringToObject: dateTimeStringToObject,
+    formatToDateTimeString: formatToDateTimeString
 };
 
 window.Formatters = window.Formatters || Formatters;
