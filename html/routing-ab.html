@@ -169,8 +169,8 @@
         RoutingAB.prototype.handleRevGeoResponse = function(response) {
             var place = response.addresses[0];
             this.state.start = [place.position.lng, place.position.lat];
-            this.startSearchboxInput.value = place.address.freeformAddress;
-            this.onResultSelected('start');
+            this.startSearchbox.setValue(place.address.freeformAddress);
+            this.onResultSelected(place, 'start');
         };
 
         RoutingAB.prototype.calculateRoute = function() {

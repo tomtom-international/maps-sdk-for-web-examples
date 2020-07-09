@@ -250,7 +250,8 @@
             this.elements.geobiasToggle.removeAttribute('disabled');
             this.elements.radius.min = 0;
             this.elements.radius.value = 0;
-            this.elements.radius.dispatchEvent(new Event('change'));
+            var event = this.getCrossBrowserDispatchEvent('change');
+            this.elements.radius.dispatchEvent(event);
             header.removeAttribute('hidden');
 
             if (serviceType === 'geometrySearch') {
@@ -263,7 +264,7 @@
                 this.elements.geobiasToggle.checked = true;
                 this.elements.radius.min = 1;
                 this.elements.radius.value = 10000;
-                this.elements.radius.dispatchEvent(new Event('change'));
+                this.elements.radius.dispatchEvent(event);
                 if (!this.state.isGeobiasActive) {
                     this.toggleGeoBias();
                 }
@@ -428,8 +429,18 @@
             var maxFuzzyLevelValue = this.elements.maxFuzzyLevel.value;
             if (this.elements.minFuzzyLevel.value > maxFuzzyLevelValue) {
                 this.elements.minFuzzyLevel.value = maxFuzzyLevelValue;
-                this.elements.minFuzzyLevel.dispatchEvent(new Event('change'));
+                var event = this.getCrossBrowserDispatchEvent('change');
+                this.elements.minFuzzyLevel.dispatchEvent(event);
             }
+        };
+
+        Search.prototype.getCrossBrowserDispatchEvent = function(eventName) {
+            if (typeof Event === 'function') {
+              return new Event(eventName);
+            }
+            var event = document.createEvent('Event');
+            event.initEvent(eventName, true, true);
+            return event;
         };
 
         new Search();
