@@ -1,0 +1,13 @@
+.tt-link{
+    color:#1692e4;
+    font-family:Gotham, Helvetica, Arial, sans-serif;
+    font-size:13px;
+}
+
+    .tt-link:hover{
+        font-weight:bold;
+    }
+
+    .tt-link:visited{
+        color:#004b7f;
+    }

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge'/>
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Setting custom map style</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+    <style>
+        .tt-button [type="file"] {
+            display: none;
+        }
+    </style>
+    <div id='map' class='map'>
+        <div class='tt-overlay-panel -left-top -medium js-foldable'>
+            <div class="upload-form">
+                <div class='form-description'>You can upload a JSON file with a style definition
+                    (created with <a class="tt-link" href="https://developer.tomtom.com/maps-api/map-styler" target='_blank' rel='noopener'>Map Styler</a>)
+                    in order to change the style of the map dynamically.</div>
+                <div class='tt-spacing-top-12'>
+                    <label class='tt-button -primary'>
+                        Choose file
+                        <input type='file' accept='.json' class='js-file-input'/>
+                    </label>
+                </div>
+                <div class='js-uploaded-style tt-spacing-top-12' hidden>
+                    <strong>Uploaded style:</strong> <span class='js-uploaded-file-name'></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type="text/javascript" src='../assets/js/info-hint.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script data-showable type="text/javascript" src='../assets/js/foldable.js'></script>
+    <script>
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            center: [-96, 41],
+            zoom: 4,
+            dragPan: !isMobileOrTablet()
+        });
+        map.addControl(new tt.FullscreenControl());
+
+        new Foldable('.js-foldable', 'top-right');
+        var errorHint = new InfoHint('error', 'bottom-center', 5000)
+            .addTo(map.getContainer());
+
+        var fileInput = document.querySelector('.js-file-input');
+        fileInput.onclick = function() {
+            this.value = null;
+        };
+        fileInput.onchange = function(event) {
+            var file = event.target.files[0];
+            if (file) {
+                document.querySelector('.js-uploaded-style').removeAttribute('hidden');
+                document.querySelector('.js-uploaded-file-name').innerText = file.name;
+                var fileReader = new FileReader();
+                fileReader.onloadend = function() {
+                    try {
+                        var style = JSON.parse(fileReader.result);
+                        map.setStyle(style);
+                    } catch (error) {
+                        errorHint.setMessage('Couldn\'t parse JSON file');
+                    }
+                };
+                fileReader.readAsText(file);
+            }
+        };
+    </script>
+</body>
+</html>

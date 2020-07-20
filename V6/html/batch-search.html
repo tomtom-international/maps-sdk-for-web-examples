@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Batch Search</title>
+    <meta name='viewport' content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css' />
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/icons-css/poi.css'/>
+</head>
+<body>
+    <div class='map-view'>
+        <form class='tt-side-panel js-form'>
+            <div role='tabpanel' class='tt-tabs__panel' id='options'>
+                <div class='tt-params-box'>
+                    <header class='tt-params-box__header'>
+                        Batch Search parameters
+                    </header>
+                    <div class='tt-params-box__content'>
+                        <label class='tt-form-label tt-spacing-top-24'>
+                            Locations
+                            <select class='js-locations-select tt-select'></select>
+                        </label>
+                        <div class='tt-spacing-top-12'>
+                            <div class='js-locations-container tt-filters-container'></div>
+                        </div>
+                        <div class="js-locations-container"></div>
+                        <div class='tt-spacing-top-24'>
+                            <label class='tt-form-label'>Categories</label>
+                            <div class="js-categories-container"></div>
+                        </div>
+                        <div class='tt-spacing-top-24'>
+                            <input type='submit' class='tt-button -primary tt-spacing-top-24' name='submit'
+                                value='Submit'>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div id='map' class='full-map'></div>
+    </div>
+    <script data-showable type='text/javascript' src='../assets/js/search/search-results-parser.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/side-panel.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+    <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/tail-selector.js'></script>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/side-panel.js'></script>
+    <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search-markers/search-marker.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search-markers/search-markers-manager.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script>
+        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            center: [12.374761, 51.49912573429843],
+            zoom: 3,
+            dragPan: !isMobileOrTablet()
+        });
+        map.addControl(new tt.FullscreenControl({ container: document.querySelector('body') }));
+        map.addControl(new tt.NavigationControl());
+        new SidePanel('.tt-side-panel', map);
+        var searchMarkersManager = new SearchMarkersManager(map);
+
+        var documentFragment = document.createDocumentFragment();
+
+        var categories = {
+            museum: 'Museum',
+            restaurant: 'Restaurant',
+            hospital: 'Hospital',
+            stadium: 'Stadium',
+            hotel: 'Hotel'
+        };
+
+        var locations = {
+            London: { lat: 51.5, lon: -0.116667 },
+            Paris: { lat: 48.866667, lon: 2.35 },
+            Rome: { lat: 41.883333, lon: 12.483333 },
+            Warsaw: { lat: 52.232222, lon: 21.008333 },
+            Amsterdam: { lat: 52.366667, lon: 4.9 }
+        };
+
+        var locationSelector = new TailSelector(
+            Object.keys(locations),
+            '.js-locations-select',
+            undefined, {
+                multiple: true,
+                placeholder: 'Add locations from the list',
+                multiShowCount: false,
+                multiContainer: '.js-locations-container'
+            }
+        );
+
+        Object.keys(categories).forEach(function(key) {
+            var input = document.createElement('input');
+            input.setAttribute('class', 'tt-checkbox category-checkbox');
+            input.setAttribute('id', categories[key]);
+            input.setAttribute('name', 'category');
+            input.setAttribute('unchecked', true);
+            input.setAttribute('type', 'checkbox');
+
+            var label = document.createElement('label');
+            label.setAttribute('class', 'tt-label');
+            label.setAttribute('for', categories[key]);
+            label.innerText = categories[key];
+            documentFragment.appendChild(input);
+            documentFragment.appendChild(label);
+        });
+
+        var categoriesContainer = document.querySelector('.js-categories-container');
+        categoriesContainer.appendChild(documentFragment);
+
+        function BatchSearch() {
+            this.errorHint = new InfoHint('error', 'bottom-center', 5000)
+                .addTo(document.getElementById('map'));
+
+            this.elements = {
+                loadingPopup: new tt.Popup({ className: 'tt-popup', closeOnClick: false }),
+                locationSelector: locationSelector.getElement(),
+                form: document.querySelector('.js-form')
+            };
+
+            [].slice.call(document.querySelectorAll('input')).forEach(function(input) {
+                this.elements[input.name] = input;
+            }.bind(this));
+
+            this.state = {
+                markers: {},
+                clusters: []
+            };
+
+            this.bindEvents();
+        }
+
+        BatchSearch.prototype.bindEvents = function() {
+            map.on('moveend', this.refreshMarkers.bind(this));
+            map.on('data', function(e) {
+                if (map.getSource('point-source')) {
+                    if (e.sourceId !== 'point-source' || !e.isSourceLoaded || e.sourceDataType === 'metadata') {
+                        return;
+                    }
+
+                    this.refreshMarkers();
+                }
+            }.bind(this));
+
+            map.on('click', 'clusters', function(e) {
+                var features = map.queryRenderedFeatures(e.point, { layers: ['clusters'] });
+                var clusterId = features[0].properties.cluster_id;
+                map.getSource('point-source').getClusterExpansionZoom(clusterId, function(err, zoom) {
+                    if (err) {
+                        return;
+                    }
+                    map.easeTo({
+                        center: features[0].geometry.coordinates,
+                        zoom: zoom + 0.5
+                    });
+                });
+            });
+
+            map.on('mouseenter', 'clusters', function() {
+                map.getCanvas().style.cursor = 'pointer';
+            });
+
+            map.on('mouseleave', 'clusters', function() {
+                map.getCanvas().style.cursor = '';
+            });
+
+            this.elements.submit.addEventListener('click', this.handleSubmit.bind(this));
+            this.elements.form.addEventListener('submit', this.handleSubmit.bind(this));
+        };
+
+        BatchSearch.prototype.refreshMarkers = function() {
+            searchMarkersManager.clear();
+            var poiList = [];
+            var duplicatesDetector = {};
+            map.querySourceFeatures('point-source').forEach(function(feature) {
+                if (feature.properties && !feature.properties.cluster) {
+                    var result = JSON.parse(feature.properties.result);
+                    if (!duplicatesDetector[result.id]) {
+                        poiList.push(result);
+                        duplicatesDetector[result.id] = result.id;
+                    }
+                }
+            });
+            searchMarkersManager.draw(poiList);
+        };
+
+        BatchSearch.prototype.showLoadingPopup = function() {
+            this.elements.loadingPopup.setHTML('<strong>Loading...</strong>');
+            if (!this.elements.loadingPopup.isOpen()) {
+                this.elements.loadingPopup.setLngLat(map.getCenter());
+                this.elements.loadingPopup.addTo(map);
+            }
+        };
+
+        BatchSearch.prototype.handleSubmit = function(event) {
+            event.preventDefault();
+            var chosenLocations = Array.apply(null, document.querySelectorAll('div[class=select-handle]'))
+                .map(function(item) {
+                    return locations[item.innerHTML];
+                });
+
+            var chosenCategories = document.querySelectorAll('input[name=category]:checked');
+
+            if (chosenLocations.length === 0 || chosenCategories.length === 0) {
+                this.errorHint.setMessage('Insufficient parameters - please, select at least one location and one category.');
+            } else {
+                this.showLoadingPopup();
+                var callParameters = Array.apply(null, chosenCategories)
+                    .map(function(input) {
+                        return chosenLocations.map(function(location) {
+                            return {
+                                center: [location.lon, location.lat],
+                                query: input.id,
+                                limit: 20,
+                                language: 'en-GB'
+                            };
+                        });
+                    }).reduce(function(acc, curr) {
+                        return acc.concat(curr);
+                    }, []);
+
+                searchMarkersManager.clear();
+
+                tt.services.categorySearch({
+                    batchMode: 'sync',
+                    key: '${api.key.search}',
+                    batchItems: callParameters
+                })
+
+                    .then(this.handleResponse.bind(this))
+                    .catch(this.handleError.bind(this));
+            }
+        };
+
+        BatchSearch.prototype.handleResponse = function(response) {
+            this.elements.loadingPopup.remove();
+            searchMarkersManager.clear();
+            var results = [];
+            this.poiList = [];
+            var that = this;
+            if (response.batchItems.length > 0) {
+                response.batchItems.forEach(function(chunk) {
+                    chunk.results.forEach(function(result) {
+                        that.poiList.push(result);
+                        results.push({
+                            type: 'Feature',
+                            geometry: {
+                                type: 'Point',
+                                coordinates: [result.position.lng, result.position.lat]
+                            },
+                            properties: {
+                                result: JSON.stringify(result)
+                            }
+                        });
+                    });
+                });
+                map.fitBounds(this.getMarkersBounds(results), {padding: 50});
+                this.updateMarkersLayer(results);
+            } else {
+                this.errorHint.setMessage('No results found for this query.');
+                this.removeMarkersLayer();
+            }
+        };
+
+        BatchSearch.prototype.getMarkersBounds = function(results) {
+            var bounds = new tt.LngLatBounds();
+
+            results.forEach(function(result) {
+                var lnglat = result.geometry.coordinates;
+                bounds.extend(new tt.LngLat(lnglat[0], lnglat[1]));
+            });
+            return bounds;
+        };
+
+        BatchSearch.prototype.handleError = function(error) {
+            this.errorHint.setMessage(error.message);
+        };
+
+        BatchSearch.prototype.removeMarkersLayer = function() {
+            map.removeLayer('clusters');
+            map.removeLayer('cluster-count');
+            map.removeSource('point-source');
+        };
+
+        BatchSearch.prototype.updateMarkersLayer = function(results) {
+            if (map.getSource('point-source')) {
+                this.removeMarkersLayer();
+            }
+
+            map.addSource('point-source', {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    features: results
+                },
+                cluster: true,
+                clusterMaxZoom: 14,
+                clusterRadius: 50
+            });
+
+            map.addLayer({
+                id: 'clusters',
+                type: 'circle',
+                source: 'point-source',
+                filter: ['has', 'point_count'],
+                paint: {
+                    'circle-color': [
+                        'step',
+                        ['get', 'point_count'],
+                        '#EC619F',
+                        4,
+                        '#008D8D',
+                        7,
+                        '#004B7F'
+                    ],
+                    'circle-radius': [
+                        'step',
+                        ['get', 'point_count'],
+                        15,
+                        4,
+                        20,
+                        7,
+                        25
+                    ],
+                    'circle-stroke-width': 1,
+                    'circle-stroke-color': 'white',
+                    'circle-stroke-opacity': 1
+                }
+            });
+
+            map.addLayer({
+                id: 'cluster-count',
+                type: 'symbol',
+                source: 'point-source',
+                filter: ['has', 'point_count'],
+                layout: {
+                    'text-field': '{point_count_abbreviated}',
+                    'text-font': ['Noto-Bold'],
+                    'text-size': 16
+                },
+                paint: {
+                    'text-color': 'white'
+                }
+            });
+        };
+
+        new BatchSearch();
+    </script>
+</body>
+</html>

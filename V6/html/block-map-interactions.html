@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Block map interactions</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+    <div id='map' class='map'></div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script>
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            center: [-0.10506, 51.51419],
+            zoom: 13,
+
+            // Disable interactions.
+            doubleClickZoom: false,
+            scrollZoom: false,
+            dragPan: false,
+            boxZoom: false,
+            dragRotate: false,
+            touchZoomRotate: false,
+            touchPitch: false,
+            pitchWithRotate: false
+        });
+        map.addControl(new tt.FullscreenControl());
+    </script>
+</body>
+</html>

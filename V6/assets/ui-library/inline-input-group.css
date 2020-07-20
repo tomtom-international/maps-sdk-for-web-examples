@@ -1,0 +1,18 @@
+.tt-inline-input-group{
+    display:flex;
+    margin-left:-8px;
+    margin-right:-8px;
+}
+
+    .tt-inline-input-group > .tt-form-label{
+        flex-grow:1;
+        margin-left:8px;
+        margin-right:8px;
+        margin-top:0;
+    }
+
+    .tt-inline-input-group > .tt-label{
+        margin-left:8px;
+        margin-right:8px;
+        margin-top:0;
+    }

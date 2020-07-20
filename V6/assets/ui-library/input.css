@@ -1,0 +1,71 @@
+.tt-input{
+    border:none;
+    border-bottom:1px solid #e5e5e5;
+    color:#000000;
+    font-family:Gotham, Helvetica, Arial, sans-serif;
+    font-size:15px;
+    font-weight:normal;
+    height:36px;
+    outline:none;
+    padding:0 12px;
+    text-overflow:ellipsis;
+    transition:border-color .2s ease;
+}
+
+    .tt-input:focus{
+        border-color:#8dc3eb;
+    }
+
+    .tt-input:hover{
+        border-color:#8dc3eb;
+    }
+
+    .tt-input::-webkit-input-placeholder{
+        color:#666666;
+    }
+
+    .tt-input::-moz-placeholder{
+        color:#666666;
+    }
+
+    .tt-input:-ms-input-placeholder{
+        color:#666666;
+    }
+
+    .tt-input::-ms-input-placeholder{
+        color:#666666;
+    }
+
+    .tt-input::placeholder{
+        color:#666666;
+    }
+
+    .tt-input[disabled]{
+        background-color:#ffffff;
+        border-color:#e5e5e5;
+        color:#cccccc;
+        -webkit-user-select:none;
+           -moz-user-select:none;
+            -ms-user-select:none;
+                user-select:none;
+    }
+
+    .tt-input[disabled]::-webkit-input-placeholder{
+            color:#cccccc;
+        }
+
+    .tt-input[disabled]::-moz-placeholder{
+            color:#cccccc;
+        }
+
+    .tt-input[disabled]:-ms-input-placeholder{
+            color:#cccccc;
+        }
+
+    .tt-input[disabled]::-ms-input-placeholder{
+            color:#cccccc;
+        }
+
+    .tt-input[disabled]::placeholder{
+            color:#cccccc;
+        }

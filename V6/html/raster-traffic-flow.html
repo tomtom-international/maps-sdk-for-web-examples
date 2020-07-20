@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Raster traffic flow</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+    <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
+    <div id='map' class='map'>
+        <div class='tt-overlay-panel -left-top -medium js-foldable'>
+            <div class='tt-form'>
+                <label class='tt-form-label tt-spacing-top-24'>
+                    Traffic flow style
+                    <select class='js-style-select tt-select'>
+                        <option value='relative0' selected>relative0</option>
+                        <option value='relative0-dark'>relative0-dark</option>
+                        <option value='absolute'>absolute</option>
+                        <option value='relative'>relative</option>
+                        <option value='relative-delay'>relative-delay</option>
+                        <option value='reduced-sensitivity'>reduced-sensitivity</option>
+                    </select>
+                </label>
+            </div>
+        </div>
+    </div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script>
+        var state = {
+            style: 'relative0'
+        };
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            style: getStyle(),
+            center: [2.340822, 48.855462],
+            zoom: 10,
+            dragPan: !isMobileOrTablet()
+        });
+
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+        new Foldable('.js-foldable', 'top-right');
+
+        var styleSelect = tail.select('.js-style-select', {
+            classNames: 'tt-fake-select',
+            hideSelected: true
+        });
+
+        styleSelect.on('change', function(event) {
+            state.style = event.value;
+            map.setStyle(getStyle());
+        });
+
+        function getStyle() {
+            var getTilesForEndpoint = function(endpoint) {
+                return ['a', 'b', 'c', 'd'].map(function(hostname) {
+                    return endpoint.replace('{cyclingHostname}', hostname);
+                });
+            };
+            var mapEndpoint = 'https://{cyclingHostname}.api.tomtom.com/map/1/tile/basic/' +
+                       'main/{z}/{x}/{y}.png?tileSize=512&key=${api.key.maps}';
+            var trafficEndpoint = 'https://{cyclingHostname}.api.tomtom.com/traffic/map/4/tile/flow/' + state.style +
+                                  '/{z}/{x}/{y}.png?tileSize=512&key=${api.key.trafficFlow}';
+            var labelsEndpoint = 'https://{cyclingHostname}.api.tomtom.com/map/1/tile/labels/main/{z}/{x}/{y}.png' +
+                                  '?tileSize=512&key=${api.key.maps}';
+
+            return {
+                'version': 8,
+                'sources': {
+                    'raster-tiles-map': {
+                        'type': 'raster',
+                        'tiles': getTilesForEndpoint(mapEndpoint),
+                        'tileSize': 256
+                    },
+                    'raster-tiles-traffic': {
+                        'type': 'raster',
+                        'tiles': getTilesForEndpoint(trafficEndpoint),
+                        'tileSize': 256
+                    },
+                    'raster-tiles-labels': {
+                        'type': 'raster',
+                        'tiles': getTilesForEndpoint(labelsEndpoint),
+                        'tileSize': 256
+                    }
+                },
+                'layers': [
+                    {
+                        'id': 'raster-layer-map',
+                        'type': 'raster',
+                        'source': 'raster-tiles-map'
+                    },
+                    {
+                        'id': 'raster-layer-traffic',
+                        'type': 'raster',
+                        'source': 'raster-tiles-traffic'
+                    },
+                    {
+                        'id': 'raster-layer-labels',
+                        'type': 'raster',
+                        'source': 'raster-tiles-labels'
+                    }
+                ]
+            };
+        }
+    </script>
+</body>
+</html>

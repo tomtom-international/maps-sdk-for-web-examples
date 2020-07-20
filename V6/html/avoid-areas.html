@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Avoid areas</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+    <style>
+        .tt-overlay-panel {
+            width: 320px;
+        }
+        .tt-form {
+            border-bottom: 1px solid rgba(0, 0, 0, .14);
+            margin: 0 9px;
+            padding: 12px 0 30px;
+        }
+        .tt-checkable-input .tt-checkbox + .tt-label.-full,
+        .summary {
+            color: #666666;
+            font-size: 15px;
+        }
+        .summary {
+            margin: 22px 9px 0;
+        }
+        .summary-details {
+            margin: 5px 0;
+        }
+        .distance-value,
+        .time-value {
+            color: rgb(0, 0, 0);
+        }
+        .header {
+            font-size: 14px;
+            font-weight: bold;
+            margin-left: 9px;
+        }
+        .static-marker {
+            align-items: center;
+            background-color: #4a90e2;
+            border: solid 3px #2faaff;
+            border-radius: 50%;
+            display: flex;
+            height: 32px;
+            justify-content: center;
+            transition: width .1s, height .1s;
+            width: 32px;
+        }
+    </style>
+    <div id='map' class='map'>
+        <div class='tt-overlay-panel -left-top -medium js-foldable'>
+            <div class='header'>
+                Avoid areas
+            </div>
+            <div class='tt-form'>
+                <div class='tt-checkable-input'>
+                    <input id='area1' class='tt-checkbox' type='checkbox' checked>
+                    <label for='area1' class='tt-label -full'>Area 1</label>
+                </div>
+                <div class='tt-checkable-input'>
+                    <input id='area2' class='tt-checkbox' type='checkbox'>
+                    <label for='area2' class='tt-label -full'>Area 2</label>
+                </div>
+            </div>
+            <div class='summary'>
+                <div class='summary-details'>
+                    Travel distance: <span class='distance-value'></span>
+                </div>
+                <div class='summary-details'>
+                    Travel time: <span class='time-value'></span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/Turf.js/5.1.5/turf.min.js'></script>
+    <script>
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            dragPan: !window.isMobileOrTablet(),
+            zoom: 9.21,
+            center: [52.21965, 5.42056]
+        });
+
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        var avoidAreas = {
+            area1: {
+                southWestCorner: {
+                    latitude: 52.22554,
+                    longitude: 5.06415
+                },
+                northEastCorner: {
+                    latitude: 52.36845,
+                    longitude: 5.24528
+                }
+            },
+            area2: {
+                southWestCorner: {
+                    latitude: 52.15002,
+                    longitude: 5.86386
+                },
+                northEastCorner: {
+                    latitude: 52.28362,
+                    longitude: 6.00346
+                }
+            }
+        };
+
+        var routePoints = {
+            start: [4.843907, 52.385583],
+            finish: [6.78716, 52.26138]
+        };
+
+        var chosenAreas = {
+            area1: avoidAreas.area1
+        };
+
+        var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
+        var loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
+        new Foldable('.js-foldable', 'top-right');
+
+        var elements = {
+            checkboxArea1: document.querySelector('#area1'),
+            checkboxArea2: document.querySelector('#area2'),
+            distanceValueElement: document.querySelector('.distance-value'),
+            timeValueElement: document.querySelector('.time-value')
+        };
+
+        elements.checkboxArea1.addEventListener('change', handleCheckboxChange);
+        elements.checkboxArea2.addEventListener('change', handleCheckboxChange);
+
+        map.on('load', serviceCall);
+
+        drawMarkers();
+
+        function handleCheckboxChange(event) {
+            var areaName = event.target.id;
+
+            if (event.target.checked) {
+                chosenAreas[areaName] = avoidAreas[areaName];
+            } else {
+                delete chosenAreas[areaName];
+                removeLayer(areaName);
+                removeLayer(areaName + '-border');
+            }
+
+            serviceCall();
+        }
+
+        function removeLayer(layerId) {
+            if (map.getLayer(layerId)) {
+                map.removeLayer(layerId);
+                map.removeSource(layerId);
+            }
+        }
+
+        function drawAreas() {
+            Object.keys(chosenAreas).forEach(function(key) {
+                if (!map.getLayer(key)) {
+                    drawAreaPolygon(key);
+                }
+            });
+        }
+
+        function drawAreaPolygon(areaName) {
+            var area = avoidAreas[areaName];
+
+            var areaPolygon = turf.bboxPolygon([
+                area.southWestCorner.longitude,
+                area.southWestCorner.latitude,
+                area.northEastCorner.longitude,
+                area.northEastCorner.latitude
+            ]);
+
+            map.addLayer({
+                id: areaName,
+                type: 'fill',
+                source: {
+                    type: 'geojson',
+                    data: areaPolygon
+                },
+                paint: {
+                    'fill-color': '#2eaafc',
+                    'fill-opacity': 0.5
+                }
+            });
+            map.addLayer({
+                id: areaName + '-border',
+                type: 'line',
+                source: {
+                    type: 'geojson',
+                    data: areaPolygon
+                },
+                paint: {
+                    'line-color': '#2eaafc',
+                    'line-width': 2
+                }
+            });
+
+        }
+
+        function drawMarkers() {
+            var startPoint = tt.LngLat.convert(routePoints.start);
+            var finishPoint = tt.LngLat.convert(routePoints.finish);
+
+            new tt.Marker({ element: createMarkerElement('start') }).setLngLat(startPoint).addTo(map);
+            new tt.Marker({ element: createMarkerElement('finish') }).setLngLat(finishPoint).addTo(map);
+        }
+
+        function createSummaryContent(summary) {
+            elements.distanceValueElement.textContent =
+                Formatters.formatAsMetricDistance(summary.lengthInMeters);
+            elements.timeValueElement.textContent =
+                Formatters.formatToDurationTimeString(summary.travelTimeInSeconds);
+        }
+
+        function getChosenAreas() {
+            var areasArray = [];
+
+            Object.keys(chosenAreas).forEach(function(key) {
+                areasArray.push(chosenAreas[key]);
+            });
+
+            return areasArray;
+        }
+
+        function createMarkerElement(type) {
+            var element = document.createElement('div');
+            var innerElement = document.createElement('div');
+
+            element.className = 'static-marker';
+            innerElement.className = 'tt-icon -white -' + type;
+            element.appendChild(innerElement);
+            return element;
+        }
+
+        function blockCheckboxes(value) {
+            elements.checkboxArea1.disabled = value;
+            elements.checkboxArea2.disabled = value;
+        }
+
+        function serviceCall() {
+            removeLayer('route');
+            errorHint.hide();
+            loadingHint.setMessage('Loading...');
+
+            blockCheckboxes(true);
+
+            tt.services.calculateRoute({
+                key: '${api.key.routing}',
+                traffic: false,
+                locations: [routePoints.start, routePoints.finish],
+                avoidAreas: getChosenAreas()
+            })
+                .then(function(response) {
+                    loadingHint.hide();
+                    var geojson = response.toGeoJson();
+
+                    map.addLayer({
+                        'id': 'route',
+                        'type': 'line',
+                        'source': {
+                            'type': 'geojson',
+                            'data': geojson
+                        },
+                        'paint': {
+                            'line-color': '#4a90e2',
+                            'line-width': 6
+                        }
+                    });
+
+                    drawAreas();
+
+                    var bounds = new tt.LngLatBounds();
+                    geojson.features[0].geometry.coordinates.forEach(function(point) {
+                        bounds.extend(tt.LngLat.convert(point));
+                    });
+
+                    map.fitBounds(bounds, { duration: 0, padding: { left: 350, bottom: 50, top: 50, right: 50 }});
+
+                    createSummaryContent(geojson.features[0].properties.summary);
+                })
+                .catch(function(error) {
+                    loadingHint.hide();
+                    errorHint.setErrorMessage(error);
+                })
+                .finally(function() {
+                    blockCheckboxes(false);
+                });
+        }
+    </script>
+</body>
+</html>

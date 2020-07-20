@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Traffic layers</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/icons-css/traffic-incidents.css'/>
+</head>
+<body>
+    <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
+    <div id='map' class='map'>
+        <div class='tt-overlay-panel -left-top -medium js-foldable' style='width: 200px;'>
+            <div class='tt-form'>
+                <div class='tt-spacing-top-24'>
+                    <label class='tt-form-label'>Traffic layers</label>
+                    <input type='checkbox' class='tt-checkbox layer-checkbox' id='incidents' checked='true'>
+                    <label class='tt-label' for="incidents">Incidents</label>
+                    <input type='checkbox' class='tt-checkbox layer-checkbox' id='flow' checked='true'>
+                    <label class='tt-label' for="flow">Flow</label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script>
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            center: [-0.12634, 51.50276],
+            zoom: 13,
+            stylesVisibility: {
+                trafficIncidents: true,
+                trafficFlow: true
+            },
+            dragPan: !isMobileOrTablet()
+        });
+
+        //bind events
+        document.querySelector('#flow').addEventListener('change', function(event) {
+            if (event.target.checked) {
+                map.showTrafficFlow();
+            } else {
+                map.hideTrafficFlow();
+            }
+        });
+
+        document.querySelector('#incidents').addEventListener('change', function(event) {
+            if (event.target.checked) {
+                map.showTrafficIncidents();
+            } else {
+                map.hideTrafficIncidents();
+            }
+        });
+
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        new Foldable('.js-foldable', 'top-right');
+    </script>
+</body>
+</html>

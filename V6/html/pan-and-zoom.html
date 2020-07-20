@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - pan and zoom plugin</title>
+    <meta name='viewport'
+        content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-plugin-pancontrols/PanControls.css'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-plugin-zoomcontrols/ZoomControls.css'/>
+</head>
+<body>
+    <script src='/cdn.web-sdk-plugin-pancontrols/PanControls-web.js'></script>
+    <script src='/cdn.web-sdk-plugin-zoomcontrols/ZoomControls-web.js'></script>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <div id='map' class='map'></div>
+
+    <style>
+        .margin-left-30 {
+            margin-left: 30px;
+        }
+    </style>
+    <script>
+        var ttZoomControls = new tt.plugins.ZoomControls({
+            className: 'margin-left-30'
+        });
+        var ttPanControls = new tt.plugins.PanControls();
+
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            dragPan: !isMobileOrTablet()
+        });
+        map.addControl(new tt.FullscreenControl());
+
+        map.addControl(ttZoomControls, 'top-left');
+        map.addControl(ttPanControls, 'top-left');
+    </script>
+</body>
+</html>

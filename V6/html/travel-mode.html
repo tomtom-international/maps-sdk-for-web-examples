@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Travel Mode</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+    <style>
+        .tt-overlay-panel {
+            width: 320px;
+        }
+    </style>
+    <div id='map' class='map'>
+        <div class='tt-overlay-panel -left-top -medium js-foldable'>
+            <div class='tt-form-label'>
+                Travel mode
+                <select class='js-category-select tt-select'>
+                        <option value='pedestrian'>Pedestrian</option>
+                        <option value='car'>Car</option>
+                        <option value='truck'>Truck</option>
+                        <option value='bicycle'>Bicycle</option>
+                        <option value='bus'>Bus</option>
+                        <option value='van'>Van</option>
+                        <option value='motorcycle'>Motorcycle</option>
+                        <option value='taxi'>Taxi</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/tail-selector.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+    <script>
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            zoom: 7,
+            dragPan: !isMobileOrTablet()
+        });
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        var routeColors = {
+            pedestrian: '#ff0000',
+            car: '#f66606',
+            truck: '#f06368',
+            bicycle: '#666666',
+            bus: '#004b7f',
+            van: '#008d8d',
+            motorcycle: '#e94743',
+            taxi: '#5fb935'
+        };
+        var travelMode = 'pedestrian';
+        var travelModeSelector = tail.select('.js-category-select', {
+            classNames: 'tt-fake-select',
+            hideSelected: true
+        });
+        var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
+        var loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
+
+        new Foldable('.js-foldable', 'top-right');
+        map.on('load', function() {
+            travelModeSelector.on('change', handleTravelModeChange);
+            performCalculateRouteRequest();
+        });
+
+        function handleTravelModeChange(event) {
+            travelMode = event.key;
+            performCalculateRouteRequest();
+        }
+
+        function performCalculateRouteRequest() {
+            removeLayer();
+            loadingHint.setMessage('Loading...');
+            tt.services.calculateRoute({
+                key: '${api.key.routing}',
+                traffic: false,
+                locations: '4.91015,52.37173:4.89805,52.36357',
+                travelMode: travelMode
+            })
+
+                .then(function(response) {
+                    loadingHint.hide();
+
+                    var geojson = response.toGeoJson();
+
+                    map.addLayer({
+                        'id': 'route',
+                        'type': 'line',
+                        'source': {
+                            'type': 'geojson',
+                            'data': geojson
+                        },
+                        'paint': {
+                            'line-color': routeColors[travelMode],
+                            'line-width': 6
+                        }
+                    });
+
+                    var bounds = new tt.LngLatBounds();
+                    geojson.features[0].geometry.coordinates.forEach(function(point) {
+                        bounds.extend(tt.LngLat.convert(point));
+                    });
+                    map.fitBounds(bounds, { duration: 0, padding: 50 });
+
+                })
+                .catch(function(err) {
+                    loadingHint.hide();
+                    errorHint.setMessage(err.message);
+                });
+        }
+
+        function removeLayer() {
+            if (!map.getLayer('route')) {
+                return;
+            }
+            map.removeLayer('route');
+            map.removeSource('route');
+        }
+    </script>
+</body>
+</html>

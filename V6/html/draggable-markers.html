@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Draggable marker</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+    <div id='map' class='map'></div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
+    <script>
+        var roundLatLng = Formatters.roundLatLng;
+        var center = [4.890659, 52.373154];
+        var popup = new tt.Popup({
+            offset: 35
+        });
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            dragPan: !isMobileOrTablet(),
+            center: center,
+            zoom: 14
+        });
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        var marker = new tt.Marker({
+            draggable: true
+        }).setLngLat(center).addTo(map);
+
+        function onDragEnd() {
+            var lngLat = marker.getLngLat();
+            lngLat = new tt.LngLat(roundLatLng(lngLat.lng), roundLatLng(lngLat.lat));
+
+            popup.setHTML(lngLat.toString());
+            popup.setLngLat(lngLat);
+            marker.setPopup(popup);
+            marker.togglePopup();
+        }
+
+        marker.on('dragend', onDragEnd);
+    </script>
+</body>
+</html>

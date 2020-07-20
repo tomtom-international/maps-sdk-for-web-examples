@@ -1,0 +1,84 @@
+.roundaboutExitNumber,
+.signpostText,
+.street{
+    font-weight:bold;
+}
+.roadnumber{
+    background-color:undefined;
+    border:undefined;
+    border-radius:2px;
+    display:inline-block;
+    line-height:16px;
+    margin:0 2px;
+    padding:0 2px;
+}
+.summary-header{
+    border-bottom:undefined;
+    font-size:16px;
+    font-weight:bold;
+    padding:24px;
+}
+div[class^="instructions-header-"]{
+    display:flex;
+    flex-direction:column;
+    font-size:14px;
+    line-height:24px;
+    padding:16px 24px;
+}
+div[class^="instructions-header-"]:hover{
+        background-color:undefined;
+    }
+div[class^="instructions-list-"]{
+    background-color:undefined;
+}
+div[class^="instructions-list-"].not-visible{
+        display:none;
+    }
+.instructions-overlay{
+    font-size:14px;
+    line-height:24px;
+}
+.instruction{
+    display:flex;
+    flex-direction:column;
+    padding:8px 56px;
+}
+.instruction:first-of-type{
+        padding-top:16px;
+    }
+.instruction:last-of-type{
+        padding-bottom:16px;
+    }
+.instruction:hover{
+        background-color:undefined;
+    }
+.icon-wrapper{
+    position:relative;
+    right:10px;
+}
+.-down{
+    transform:rotate(90deg);
+}
+.distance-wrapper{
+    color:undefined;
+    margin-top:10px;
+    padding:0 32px;
+    width:100%;
+}
+.instruction-wrapper{
+    display:flex;
+}
+.message-wrapper,
+.distance-wrapper.-instruction{
+    margin-left:12px;
+}
+div[class^="guidance-marker-"]{
+    background-color:undefined;
+    border:undefined;
+    border-radius:50%;
+    height:20px;
+    width:20px;
+}
+.popup-content{
+    padding:0 10px;
+}

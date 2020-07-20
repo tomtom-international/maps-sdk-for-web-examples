@@ -1,0 +1,73 @@
+.tt-foldable{
+    background-color:#ffffff;
+    max-height:999px;
+    max-width:100%;
+    transition:max-height .2s ease,
+        max-width .2s ease;
+}
+
+    .tt-foldable:before{
+        background-color:#ffffff;
+        content:"";
+        display:block;
+        height:100%;
+        left:0;
+        opacity:0;
+        position:absolute;
+        top:0;
+        transition:opacity .2s ease;
+        width:100%;
+        z-index:-1;
+    }
+
+    .tt-foldable.-open{
+        overflow:hidden;
+    }
+
+    .tt-foldable.-open:before{
+            z-index:1;
+        }
+
+    .tt-foldable.-folded{
+        max-height:0;
+        max-width:32px;
+        padding-left:24px;
+        padding-right:24px;
+        transition:max-height .2s ease,
+            max-width .2s .2s ease;
+    }
+
+    .tt-foldable.-folded:before{
+            opacity:1;
+            transition:opacity .2s ease;
+            z-index:1;
+        }
+
+    .tt-foldable.-folded .tt-foldable__button{
+            right:18px;
+            top:18px;
+            transform:rotate(-180deg);
+            transition:left .2s ease;
+            background-color:transparent;
+        }
+
+    .tt-foldable__button{
+        background-color:transparent;
+        background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg width='12px' height='12px' viewBox='0 0 12 12' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'%3E%3Ctitle%3EShape Copy 3%3C/title%3E%3Cdesc%3ECreated with Sketch.%3C/desc%3E%3Cg id='Shape-Copy-3' stroke='none' stroke-width='1' fill='none' fill-rule='evenodd'%3E%3Cpolygon fill='%239B9B9B' transform='translate%286.000000%2C 3.000000%29 scale%28-1%2C 1%29 rotate%2890.000000%29 translate%28-6.000000%2C -3.000000%29 ' points='9 -1.59 7.8582996 -3 3 3 7.8582996 9 9 7.59 5.29149798 3'/%3E%3Cpolygon id='Shape-Copy-4' fill='%239B9B9B' transform='translate%286.000000%2C 9.000000%29 scale%28-1%2C 1%29 rotate%2890.000000%29 translate%28-6.000000%2C -9.000000%29 ' points='9 4.41 7.8582996 3 3 9 7.8582996 15 9 13.59 5.29149798 9'/%3E%3C/g%3E%3C/svg%3E");
+        background-repeat:no-repeat;
+        border:0;
+        cursor:pointer;
+        height:12px;
+        position:absolute;
+        width:12px;
+        z-index:2;
+    }
+
+    .tt-foldable__button:focus{
+            outline:none;
+        }
+
+    .tt-foldable__button.-top-right{
+            right:16px;
+            top:16px;
+        }

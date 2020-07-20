@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+    <head>
+        <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+        <meta charset='UTF-8'>
+        <title>Maps SDK for Web - Traffic Incidents List</title>
+        <meta name='viewport' content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+        <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+        <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+        <link rel='stylesheet' type='text/css' href='../assets/ui-library/icons-css/poi.css'/>
+        <link rel='stylesheet' type='text/css' href='../assets/ui-library/icons-css/traffic-incidents.css'/>
+        <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js'></script>
+        <script src='https://cdn.jsdelivr.net/npm/javascript-debounce@1.0.1/dist/javascript-debounce.min.js'></script>
+        <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+        <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/search/dom-helpers.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/search/side-panel.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/traffic/incidents-details-manager.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/traffic/incident-marker.js'></script>
+
+    </head>
+    <style>
+    .tt-icon-number {
+        align-items: center;
+        color: #ffffff;
+        display: flex;
+        justify-content: center;
+    }
+    .tt-traffic-cluster__header {
+        color: #000000;
+        font-size: 14px;
+        font-weight: bold;
+        min-width: 320px;
+        padding: 0 8px 20px;
+    }
+    .tt-traffic-cluster__list.-header {
+        border-bottom: 1px solid #e5ebf0;
+        border-top: 1px solid #e5ebf0;
+        display: flex;
+        font-weight: bold;
+        padding: 5px 0;
+    }
+    .tt-traffic-cluster__list.-header > div {
+        padding: 0 8px;
+        width: 20%;
+    }
+    .tt-traffic-cluster__list.-header > div:nth-of-type(2) {
+        width: 60%;
+    }
+    .tt-traffic-cluster__footer {
+        color: #a2a2a2;
+        padding: 12px 8px 8px;
+    }
+    .tt-traffic-cluster__item {
+        display: flex;
+        padding: 8px 0;
+    }
+    .tt-traffic-cluster__item > div {
+        color: #666666;
+        padding: 0 8px;
+        width: 20%;
+    }
+    .tt-traffic-cluster__item > div:nth-of-type(2) {
+        width: 60%;
+    }
+    .tt-traffic-cluster__item > div:nth-of-type(2) > p {
+        line-height: 13px;
+        margin: 0;
+    }
+    </style>
+    <body>
+        <div class='map-view'>
+            <div class='tt-side-panel'>
+                <header class='tt-side-panel__header -traffic'></header>
+                <div class='tt-overflow'>
+                    <div class='js-results'></div>
+                </div>
+            </div>
+            <div id='map' class='full-map'></div>
+        </div>
+        <script>
+            tt.setProductInfo('<your-product-name>', '<your-product-version>');
+            var TRAFFIC_INCIDENTS_STYLE = 's0';
+            var map = tt.map({
+                key: '${api.key.maps}',
+                container: 'map',
+                style: 'https://api.tomtom.com/style/1/style/${hostedStylesVersion}?map=basic_main&traffic_incidents=incidents_' +
+                    TRAFFIC_INCIDENTS_STYLE,
+                stylesVisibility: {
+                    trafficIncidents: true
+                },
+                center: [19.457216, 51.759445],
+                zoom: 10,
+                dragPan: !isMobileOrTablet()
+            });
+
+            map.addControl(new tt.FullscreenControl({ container: document.querySelector('body') }));
+            map.addControl(new tt.NavigationControl());
+            var displayedIncidentsData = [],
+                formatters = Formatters;
+            var iconsMapping = {
+                'Unknown': 'danger',
+                'Accident': 'accident',
+                'Fog': 'fog',
+                'Dangerous Conditions': 'danger',
+                'Rain': 'rain',
+                'Ice': 'ice',
+                'Jam': 'incident',
+                'Lane Closed': 'laneclosed',
+                'Road Closed': 'roadclosed',
+                'Road Works': 'roadworks',
+                'Wind': 'wind',
+                'Flooding': 'flooding',
+                'Detour': 'detour',
+                'Cluster': ''
+            };
+
+            var incidentsData = {};
+
+            var incidentsMarkers = null,
+                results = document.querySelector('.js-results'),
+                selectedClass = '-selected',
+                selectedIncidentId = '',
+                sortDirection,
+                sortedByValue;
+
+            new SidePanel('.tt-side-panel', map);
+
+            map.on('load', function() {
+                new IncidentsDetailsManager(map, tt.services, {
+                    key: '${api.key.maps}',
+                    incidentMarkerFactory: function() {
+                        return new IncidentMarker({
+                            iconsMapping: iconsMapping,
+                            onSelected: makeResultItemSelected
+                        });
+                    },
+                    style: TRAFFIC_INCIDENTS_STYLE,
+                    onDetailsUpdated: function(data) {
+                        incidentsMarkers = data.markers;
+                        incidentsData = convertToGeoJson(data.trafficIncidents);
+
+                        createIncidentHeader();
+                        displayedIncidentsData = createDisplayedIncidentsData();
+                        createIncidentsList(false);
+                    }
+                });
+            });
+
+            function calculateClusteredIncidentsDelay(clusterIncidentData) {
+                var featureDelay,
+                    features = clusterIncidentData.features,
+                    finalDelay = 0,
+                    length = features.length;
+
+                for (var i = 0; i < length; i++) {
+                    featureDelay = features[i].properties.delaySeconds || 0;
+                    finalDelay += featureDelay;
+                }
+                return finalDelay;
+            }
+
+            function compareIncidentCategory(a, b) {
+                var firstValue = a.properties[sortedByValue],
+                    secondValue = b.properties[sortedByValue],
+                    modifier = sortDirection === 'asc' ? 1 : -1;
+
+                if (typeof firstValue === 'string') {
+                    return modifier * firstValue.localeCompare(secondValue);
+                }
+                return modifier * (firstValue - secondValue);
+            }
+
+            function convertToGeoJson(data) {
+                return data.toGeoJson().features.reduce(function(result, feature) {
+                    var current = {};
+
+                    current[feature.properties.id] = feature;
+                    return Object.assign(result, current);
+                }, {});
+            }
+
+            function createDisplayedIncidentsData() {
+                var array = [];
+
+                for (var incidentId in incidentsData) {
+                    var incident = incidentsData[incidentId],
+                        properties = incident.properties;
+
+                    if (isDescribedAsCluster(properties)) {
+                        properties.from = properties.features[0].properties.from;
+                        properties.to = properties.features[0].properties.to;
+                        properties.delaySeconds = calculateClusteredIncidentsDelay(properties);
+                    }
+                    if (!properties.delaySeconds) {
+                        properties.delaySeconds = 0;
+                    }
+                    array.push(incident);
+                }
+                if (sortedByValue && sortDirection) {
+                    array.sort(compareIncidentCategory);
+                }
+                return array;
+            }
+
+            function createIncidentDetailsContent(properties) {
+                var incidentDetailsElement = DomHelpers.elementFactory('div', '');
+
+                incidentDetailsElement.innerHTML =
+                    '<div class="tt-incidents-details">' +
+                        '<div class="tt-traffic-icon -details">' +
+                            '<div class="tt-icon-circle-' + properties.incidentSeverity + ' -small">' +
+                                (isDescribedAsCluster(properties) ?
+                                    '<div class="tt-icon-number">' +
+                                    (properties.clusterSize > 99 ? '99+' : properties.clusterSize) :
+                                    '<div class="tt-icon-' + iconsMapping[properties.incidentCategory] + '">') + '</div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div>' +
+                            (properties.roadNumber ? '<b>' + properties.roadNumber + '</b>' : '') +
+                            '<div>' + properties.from + '</div>' +
+                            '<div>' + properties.to + '</div>' +
+                        '<div>' +
+                    '</div>';
+                return incidentDetailsElement;
+            }
+
+            function createIncidentHeader() {
+                var headerNames = [
+                        {
+                            text: 'Incident',
+                            attribute: 'from'
+                        },
+                        {
+                            text: 'Delay',
+                            attribute: 'delaySeconds'
+                        },
+                        {
+                            text: 'Length',
+                            attribute: 'lengthMeters'
+                        }
+                    ],
+                    incidentHeader = document.querySelector('.tt-side-panel__header');
+
+                incidentHeader.innerHTML = '';
+                headerNames.forEach(function(headerName) {
+                    var headerElement = DomHelpers.elementFactory('div', ''),
+                        sortIcon = headerName.attribute === sortedByValue ?
+                            sortDirection === 'asc' ?
+                                '<span class="tt-button -sortable">' +
+                                    '<span class="tt-icon -sort -brown"></span>' +
+                                '</span>' :
+                                '<span class="tt-button -sortable">' +
+                                    '<span class="tt-icon -sort -brown -desc"></span>' +
+                                '</span>' :
+                            '<span class="tt-button -sortable">' +
+                                '<span class="tt-icon -sort"></span>' +
+                            '</span>';
+
+                    headerElement.innerHTML = headerName.text + sortIcon;
+                    headerElement.setAttribute('data-sort', headerName.attribute);
+                    headerElement.addEventListener('click', handleIncidentsSort);
+                    incidentHeader.appendChild(headerElement);
+                });
+            }
+
+            function createIncidentItemRow(markerData) {
+                var properties = markerData.properties,
+                    delaySeconds = properties.delaySeconds,
+                    lengthMeters = properties.lengthMeters;
+
+                var incidentDelay = DomHelpers.elementFactory('div', '', formatters.formatToDurationTimeString(delaySeconds)),
+                    incidentLength = DomHelpers.elementFactory('div', '', formatters.formatAsMetricDistance(lengthMeters)),
+                    incidentDetailsContent = createIncidentDetailsContent(properties),
+                    incidentsListItem = DomHelpers.elementFactory('div', 'tt-incidents-list__item');
+
+                incidentsListItem.setAttribute('data-id', properties.id);
+                incidentsListItem.appendChild(incidentDetailsContent);
+                incidentsListItem.appendChild(incidentDelay);
+                incidentsListItem.appendChild(incidentLength);
+                return incidentsListItem;
+            }
+
+            function createIncidentsList(isSorted) {
+                results.innerHTML = '';
+                if (!displayedIncidentsData.length) {
+                    var placeholder = DomHelpers.elementFactory('div', 'tt-overflow__placeholder -small',
+                        'No data for this view, try to move or zoom...');
+
+                    results.appendChild(placeholder);
+                    return;
+                }
+                var incidentsList = DomHelpers.elementFactory('div', 'tt-incidents-list');
+
+                displayedIncidentsData.forEach(function(markerData) {
+                    var incidentsItemRow = createIncidentItemRow(markerData);
+
+                    incidentsList.appendChild(incidentsItemRow);
+                });
+                incidentsList.addEventListener('click', handleResultItemClick);
+                results.appendChild(incidentsList);
+                var selectedIncidentElement = document.querySelector('div[data-id="' + selectedIncidentId + '"]');
+
+                if (selectedIncidentId && selectedIncidentElement) {
+                    selectedIncidentElement.classList.add(selectedClass);
+                } else {
+                    selectedIncidentId = '';
+                }
+                if (isSorted) {
+                    document.querySelector('.js-results').scrollTop = 0;
+                }
+            }
+
+            function findParentNodeId(element, dataId) {
+                if (element.getAttribute(dataId)) {
+                    return element.getAttribute(dataId);
+                }
+                while (element.parentNode) {
+                    element = element.parentNode;
+                    if (element.getAttribute(dataId)) {
+                        return element.getAttribute(dataId);
+                    }
+                }
+                return null;
+            }
+
+            function handleIncidentsSort(event) {
+                var actualMarkersData = displayedIncidentsData,
+                    sortProperty = event.currentTarget.getAttribute('data-sort');
+
+                sortDirection = sortedByValue === sortProperty ?
+                    !sortDirection || sortDirection === 'desc' ?
+                        'asc' :
+                        'desc' :
+                    'asc';
+                sortedByValue = sortProperty;
+                displayedIncidentsData = actualMarkersData.sort(compareIncidentCategory);
+                createIncidentHeader();
+                createIncidentsList(true);
+            }
+
+            function handleResultItemClick(event) {
+                var target = event.target,
+                    markerId = findParentNodeId(target, 'data-id'),
+                    selectedIncidentElementClassList = document.querySelector('div[data-id="' + markerId + '"]').classList;
+
+                if (selectedIncidentElementClassList.contains(selectedClass)) {
+                    return;
+                }
+                for (var marker in incidentsMarkers) {
+                    var currentMarker = incidentsMarkers[marker];
+
+                    if (currentMarker.getPopup().isOpen()) {
+                        currentMarker.togglePopup();
+                    }
+                }
+                var selectedMarker = incidentsMarkers[markerId];
+
+                if (!selectedMarker.getPopup().isOpen()) {
+                    selectedMarker.togglePopup();
+                }
+                selectedMarker.getPopup().once('close', function() {
+                    document.querySelector('div[data-id="' + markerId + '"]').classList.remove(selectedClass);
+                    selectedIncidentId = '';
+                });
+            }
+
+            function isDescribedAsCluster(features) {
+                return Boolean(features.features && features.clusterSize);
+            }
+
+            function makeResultItemSelected(markerId) {
+                var selectedIncidentElementClassList = document.querySelector('div[data-id="' + markerId + '"]').classList,
+                    selectedMarker = incidentsMarkers[markerId],
+                    offsetY = Math.floor(selectedMarker.getPopup().getElement().getBoundingClientRect().height * 0.5);
+                selectedIncidentId = markerId;
+                map.flyTo({
+                    center: incidentsMarkers[markerId].getLngLat(),
+                    offset: [0, offsetY],
+                    speed: 0.5
+                });
+                [].slice.call(document.querySelectorAll('.tt-incidents-list__item'))
+                    .forEach(function(DOMElement) {
+                        DOMElement.classList.remove(selectedClass);
+                    });
+                selectedIncidentElementClassList.add(selectedClass);
+            }
+        </script>
+    </body>
+</html>

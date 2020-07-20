@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Raster map</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+    <div id='map' class='map'></div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script>
+        var endpoint = 'https://{cyclingHostname}.api.tomtom.com/map/1/tile/basic/' +
+                       'main/{z}/{x}/{y}.png?tileSize=512&key=${api.key.maps}';
+        var tiles = ['a', 'b', 'c', 'd'].map(function(hostname) {
+            return endpoint.replace('{cyclingHostname}', hostname);
+        });
+
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            style: {
+                'version': 8,
+                'sources': {
+                    'raster-tiles': {
+                        'type': 'raster',
+                        'tiles': tiles,
+                        'tileSize': 256
+                    }
+                },
+                'layers': [
+                    {
+                        'id': 'raster-tiles-layer',
+                        'type': 'raster',
+                        'source': 'raster-tiles'
+                    }
+                ]
+            },
+            dragPan: !isMobileOrTablet()
+        });
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+    </script>
+</body>
+</html>

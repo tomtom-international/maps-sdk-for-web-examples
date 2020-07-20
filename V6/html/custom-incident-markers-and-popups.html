@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Custom incident markers and popups</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+    <div id='map' class='map'></div>
+    <style>
+        .custom-img {
+            border-radius: 50%;
+            border-style: solid;
+            border-width: 3px;
+            width: 40px;
+        }
+        .tt-road-shield {
+            background-color: #c0c0c0;
+            border-radius: 3px;
+            color: #ffffff;
+            display: inline-block;
+            font-family: Arial, sans-serif;
+            margin-bottom: 5px;
+            margin-left: 10px;
+            padding: 2px 4px;
+        }
+        .tt-incident-category {
+            font-family: Gotham, Arial, sans-serif;
+            font-size: 1.3em;
+            font-weight: bold;
+            padding-top: 10px;
+            text-transform: capitalize;
+        }
+        .details-header {
+            align-items: center;
+            display: flex;
+        }
+        .details-content {
+            padding-top: 10px;
+        }
+        .tt-popup {
+            padding-top: 12px;
+        }
+        .tt-traffic-details.-column {
+            align-items: unset;
+            flex-direction: column;
+        }
+        .details-content label {
+            display: inline-block;
+            font-weight: bold;
+        }
+        .-moderate {
+            border-color: #d01b00;
+        }
+        .-major {
+            border-color: #890202;
+        }
+        .-minor {
+            border-color: #ff7110;
+        }
+        .-unknown,
+        .-undefined {
+            border-color: #999999;
+        }
+    </style>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js'></script>
+    <script>
+        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+        var photosMapping = {
+            'default': 'default.png',
+            'jam': 'jam.png',
+            'roadworks': 'road_works.png',
+            'closed': 'road_closed.png'
+        };
+
+        var map = tt.map({
+            key: '${api.key.maps}',
+            style: '${styles.custom.incidents.markers.style}',
+            container: 'map',
+            center: [-0.12634, 51.50276],
+            zoom: 14,
+            dragPan: !isMobileOrTablet(),
+            stylesVisibility: {
+                trafficIncidents: true
+            },
+            // This transformRequest property is used to add the `tags` parameter to the Vector Incident Tiles urls.
+            // The `id` is an on-demand tag that is needed to match tile data with Incident Details.
+            // https://developer.tomtom.com/traffic-api/traffic-api-documentation-traffic-incidents/vector-incident-tiles
+            transformRequest: function(url, resourceType) {
+                if (resourceType === 'Tile' && url.indexOf('incidents') > -1) {
+                    return {
+                        url: url + '&tags=[id,icon_category,description,delay,road_type,left_hand_traffic,' +
+                             'magnitude,traffic_road_coverage,clustered,probability_of_occurrence,' +
+                             'number_of_reports,last_report_time,end_date]'
+                    };
+                }
+            }
+        });
+
+        var state = {
+            popup: undefined,
+            popupIncidentLayer: undefined,
+            featureId: undefined,
+            loadingPopup: false
+        };
+
+        var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
+        var loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
+        loadingHint.setMessage('Loading...');
+
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        map.on('load', function() {
+            getIncidentLayers().forEach(function(layerId) {
+                map.on('click', layerId, function(event) {
+                    onIncidentClick(event, layerId);
+                });
+            });
+
+            performIncidentDetailsRequest().then(function(incidentDetailsResponse) {
+                var detailsFeatures = incidentDetailsResponse.toGeoJson().features;
+
+                if (detailsFeatures.length) {
+                    var feature = detailsFeatures[0];
+                    map.setCenter(feature.geometry.coordinates);
+                    map.setZoom(15);
+                }
+
+                state.popup = new tt.Popup({ className: 'tt-popup', offset: 20 })
+                    .setHTML('Click on any incident marker to open a popup.')
+                    .setLngLat(map.getCenter())
+                    .addTo(map);
+            }).catch(function(error) {
+                errorHint.setMessage(error);
+            }).finally(function() {
+                loadingHint.hide();
+            });
+        });
+
+        // This handler typically would be throttled for a better performance
+        map.on('zoom', function() {
+            if (state.popupIncidentLayer) {
+                var zoom = map.getZoom();
+                var minZoom = state.popupIncidentLayer.minzoom || 14;
+                var maxZoom = state.popupIncidentLayer.maxzoom;
+
+                if (zoom <= minZoom || maxZoom && zoom >= maxZoom || getSelectedRenderedFeatures().length === 0) {
+                    closePopup();
+                } else if (zoom >= 18) {
+                    updatePopupPosition();
+                }
+            }
+        });
+
+        function onIncidentClick(event, layerId) {
+            if (state.loadingPopup) {
+                return;
+            }
+            state.loadingPopup = true;
+            var feature = event.features[0];
+            state.featureId = feature.properties.id;
+            map.panTo(feature.geometry.coordinates, {duration: 200});
+
+            performIncidentDetailsRequest().then(function(incidentDetailsResponse) {
+                var detailsFeatures = incidentDetailsResponse.toGeoJson().features;
+                addPopup(feature, detailsFeatures);
+                state.popupIncidentLayer = map.getLayer(layerId);
+            }).catch(function(error) {
+                errorHint.setMessage(error);
+            }).finally(function() {
+                state.loadingPopup = false;
+            });
+        }
+
+        function performIncidentDetailsRequest() {
+            return tt.services.incidentDetails({
+                key: '${api.key.trafficIncidents}',
+                boundingBox: map.getBounds(),
+                style: 's0',
+                zoomLevel: Math.round(map.getZoom()),
+                trafficModelID: '-1',
+                expandCluster: true
+            });
+        }
+
+        function getIncidentLayers() {
+            return map.getStyle().layers.filter(function(layer) {
+                return layer.source === 'vectorTilesIncidents' && layer.type === 'symbol';
+            }).map(function(layer) {
+                return layer.id;
+            });
+        }
+
+        function addPopup(feature, detailsFeatures) {
+            var details;
+
+            if (detailsFeatures) {
+                detailsFeatures.forEach(function(detailFeature) {
+                    if (detailFeature.properties.id === feature.properties.id) {
+                        details = detailFeature.properties;
+                    }
+                });
+            }
+
+            closePopup();
+            state.popup = new tt.Popup({
+                offset: [0, -20], className: 'tt-popup'
+            })
+                .setLngLat(feature.geometry.coordinates)
+                .setHTML(createCustomPopupHTML(feature.properties, details))
+                .addTo(map);
+        }
+
+        function createCustomPopupHTML(properties, details) {
+            var photo = photosMapping[properties.description_0] || photosMapping.default;
+
+            var description = details.description || properties.description_0;
+            return (
+                '<div class="tt-traffic-details -column">' +
+                    '<div class="details-header">' +
+                        '<img class="custom-img -' +
+                        details.incidentSeverity + '" src="../assets/images/custom-incident-markers/' + photo + '">' +
+                        '<div>' +
+                            (details.roadNumber ? '<div class="tt-road-shield">' + details.roadNumber + '</div>' : '') +
+                        '</div>' +
+                    '</div>' +
+                    '<div class="tt-traffic-description">' +
+                        '<div class="tt-incident-category">' + description + '</div>' +
+                    '</div>' +
+                    createCustomPopupDetailsContentHTML(details) +
+                '</div>'
+            );
+        }
+
+        function createCustomPopupDetailsContentHTML(details) {
+            if (!details) {
+                return '';
+            }
+            return (
+                '<div class="details-content">' +
+                    '<div>' +
+                        (details.delaySeconds ?
+                            '<div><label>Delay:</label> ' +
+                                Formatters.formatToDurationTimeString(details.delaySeconds) + '</div>' :
+                            '') +
+                        '<div>' +
+                            '<label>Traffic length:</label> ' +
+                            Formatters.formatAsMetricDistance(details.lengthMeters) +
+                        '</div>' +
+                    '</div>' +
+                    '<div><label>From:</label> ' + details.from + '</div>' +
+                    '<div><label>To:</label> ' + details.to + '</div>' +
+                '</div>'
+            );
+        }
+
+        function getSelectedRenderedFeatures() {
+            if (!state.featureId) {
+                return [];
+            }
+            return map.queryRenderedFeatures().filter(function(feature) {
+                return feature.properties.id === state.featureId;
+            });
+        }
+
+        function updatePopupPosition() {
+            if (state.popup && state.featureId) {
+                var features = getSelectedRenderedFeatures();
+
+                if (features.length) {
+                    state.popup.setLngLat(features[0].geometry.coordinates);
+                }
+            }
+        }
+
+        function closePopup() {
+            if (state.popup) {
+                state.popup.remove();
+            }
+            state.popup = undefined;
+            state.popupIncidentLayer = undefined;
+            state.incidentId = undefined;
+        }
+    </script>
+</body>
+</html>

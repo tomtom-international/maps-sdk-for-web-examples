@@ -1,0 +1,76 @@
+.tt-side-panel{
+    background-color:#f2f2f2;
+    box-shadow:0 4px 24px 0 rgba(0, 0, 0, .16);
+    display:flex;
+    flex-direction:column;
+    font-family:Gotham, Helvetica, Arial, sans-serif;
+    height:100vh;
+    justify-content:space-between;
+    overflow:visible;
+    margin:0;
+    width:376px;
+    z-index:1;
+}
+
+    .tt-side-panel.-folded{
+        display:none;
+    }
+
+    .tt-side-panel__close-button{
+        cursor:pointer;
+        position:absolute;
+        right:20px;
+        top:50%;
+        transform:translateY(-50%) rotate(-90deg);
+    }
+
+    .tt-side-panel__footer{
+        background-color:#ffffff;
+        border-bottom:1px solid #e5e5e5;
+        flex-basis:36px;
+        min-height:36px;
+        position:relative;
+    }
+
+    .tt-side-panel__header{
+        background-color:#ffffff;
+        padding:24px 24px 24px 16px;
+    }
+
+    .tt-side-panel__header.-traffic{
+            background-color:white;
+            box-shadow:0 5px 12px 0 rgba(0, 0, 0, .09);
+            display:flex;
+            min-height:67px;
+            padding:24px 16px;
+            position:relative;
+            z-index:1;
+        }
+
+    .tt-side-panel__header.-traffic > div{
+                cursor:pointer;
+                font-size:14px;
+                font-weight:bold;
+                width:27.5%;
+            }
+
+    .tt-side-panel__header.-traffic > div:first-child{
+                    width:45%;
+                }
+.tt-reveal-side-panel{
+    background-color:#ffffff;
+    box-shadow:0 4px 24px 0 rgba(0, 0, 0, .16);
+    height:40px;
+    left:10px;
+    position:absolute;
+    bottom:10px;
+    width:40px;
+    z-index:1;
+}
+.tt-reveal-side-panel .tt-icon{
+        cursor:pointer;
+        left:15px;
+        position:absolute;
+        top:50%;
+        transform:translateY(-50%) rotate(90deg);
+    }

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Truck load types</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+    <style>
+        .icon {
+            background-size: cover;
+            height: 30px;
+            width: 30px;
+        }
+        .tt-icon-size {
+            height: 18px !important;
+            padding: 8px;
+            width: 18px !important;
+        }
+        .icon-spacing-right {
+            margin-right: 12px;
+            margin-top: 22px;
+        }
+        .icon-spacing-left {
+            margin-left: 12px;
+            margin-top: 24px;
+        }
+        .route-marker {
+            align-items: center;
+            background-color: #4a90e2;
+            border: solid 3px #2faaff;
+            border-radius: 50%;
+            display: flex;
+            height: 32px;
+            justify-content: center;
+            transition: width .1s, height .1s;
+            width: 32px;
+        }
+        .tt-overlay-panel {
+            width: 320px;
+        }
+    </style>
+</head>
+<body>
+    <div id='map' class='map'>
+        <div class='tt-overlay-panel -left-top -medium js-foldable'>
+            <div class='tt-form-label'>
+                Scenario
+                <select class='js-scenario-select tt-select'></select>
+            </div>
+        </div>
+    </div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/tail-selector.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+    <script>
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            zoom: 10,
+            dragPan: !isMobileOrTablet(),
+            center: [-74.0260, 40.71912]
+        });
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        var usaLocations = [[-74.00723, 40.71305], [-74.04411, 40.7175]];
+        var euLocations = [[13.41144, 52.52343], [17.33585, 49.54916]];
+        var usaCenter = [-74.0260, 40.71912];
+        var euCenter = [15.553983, 51.069245];
+
+        var scenarios = {
+            usaNoRestriction: {
+                locations: usaLocations,
+                center: usaCenter,
+                zoom: 10
+            },
+            usaExplosives: {
+                locations: usaLocations,
+                center: usaCenter,
+                zoom: 10,
+                vehicleLoadType: 'USHazmatClass1'
+            },
+            usaCompressedGas: {
+                locations: usaLocations,
+                center: usaCenter,
+                zoom: 10,
+                vehicleLoadType: 'USHazmatClass2'
+            },
+            euNoRestriction: {
+                locations: euLocations,
+                center: euCenter,
+                zoom: 6
+            },
+            euExplosives: {
+                locations: euLocations,
+                center: euCenter,
+                zoom: 6,
+                vehicleLoadType: 'otherHazmatExplosive'
+            }
+        };
+
+        var options = {
+            usaNoRestriction: 'USA - no restrictions',
+            usaCompressedGas: 'USA - compressed gas',
+            usaExplosives: 'USA - explosives',
+            euNoRestriction: 'EU - no restrictions',
+            euExplosives: 'EU - explosives'
+        };
+
+        var scenarioSelected = 'usaExplosives';
+        var scenarioSelector = new TailSelector(options, '.js-scenario-select').getElement();
+        var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
+        var loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
+
+        new Foldable('.js-foldable', 'top-right');
+        map.on('load', function() {
+            scenarioSelector.on('change', handleTravelModeChange);
+            performCalculateRouteRequest();
+        });
+
+        function handleTravelModeChange(event) {
+            scenarioSelector.block();
+            scenarioSelected = event.key;
+            performCalculateRouteRequest();
+        }
+
+        function performCalculateRouteRequest() {
+            removeLayer();
+            loadingHint.setMessage('Loading...');
+
+            var scenario = scenarios[scenarioSelected];
+            var locations = scenario.locations;
+
+            tt.services.calculateRoute({
+                key: '${api.key.routing}',
+                locations: locations,
+                vehicleLoadType: scenario.vehicleLoadType,
+                travelMode: 'truck',
+                sectionType: 'country'
+            })
+                .then(function(response) {
+                    loadingHint.hide();
+
+                    var geojson = response.toGeoJson();
+
+                    map.addLayer({
+                        'id': 'route',
+                        'type': 'line',
+                        'source': {
+                            'type': 'geojson',
+                            'data': geojson
+                        },
+                        'paint': {
+                            'line-color': '#4a90e2',
+                            'line-width': 6
+                        }
+                    });
+
+                    map.setCenter(scenario.center);
+                    map.setZoom(scenario.zoom);
+                    drawMarker('start', locations[0]);
+                    drawMarker('finish', locations[1]);
+                })
+                .catch(function(err) {
+                    loadingHint.hide();
+                    errorHint.setMessage(err.message);
+                }).finally(function() {
+                    scenarioSelector.unblock();
+                });
+        }
+
+        var drawMarker = (function() {
+            var markers = {};
+
+            return function(type, point) {
+                if (markers[type]) {
+                    markers[type].remove();
+                }
+
+                var marker = document.createElement('div');
+                var innerElement = document.createElement('div');
+
+                marker.className = 'route-marker';
+                innerElement.className = 'icon tt-icon -white -' + type;
+                marker.appendChild(innerElement);
+
+                markers[type] = new tt.Marker({ element: marker })
+                    .setLngLat(point)
+                    .addTo(map);
+            };
+        })();
+
+        function removeLayer() {
+            if (map.getLayer('route')) {
+                map.removeLayer('route');
+                map.removeSource('route');
+            }
+        }
+    </script>
+</body>
+</html>

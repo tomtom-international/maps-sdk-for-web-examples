@@ -1,0 +1,52 @@
+.tt-info-hint{
+    border-radius:0;
+    color:#ffffff;
+    font-family:Gotham, Helvetica, Arial, sans-serif;
+    font-weight:bold;
+    opacity:.87;
+    padding:12px 16px;
+    transition-delay:0s;
+    visibility:visible;
+}
+
+    .tt-info-hint:before{
+        background-repeat:no-repeat;
+        content:"";
+        display:inline-block;
+        height:17px;
+        padding-right:8px;
+        transform:translateY(4px);
+        width:24px;
+    }
+
+    .tt-info-hint.-bottom-center{
+        bottom:10px;
+        left:50%;
+        position:absolute;
+        transform:translateX(-50%);
+    }
+
+    .tt-info-hint.-error{
+        background-color:#ec453d;
+        color:#ffffff;
+    }
+
+    .tt-info-hint.-error:before{
+            background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg width='16px' height='17px' viewBox='0 0 16 17' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'%3E%3Ctitle%3EGroup%3C/title%3E%3Cdesc%3ECreated with Sketch.%3C/desc%3E%3Cg id='only_entity_results' stroke='none' stroke-width='1' fill='none' fill-rule='evenodd'%3E%3Cg id='start-copy-5' transform='translate%28-338.000000%2C -26.000000%29' fill='%23FFFFFF'%3E%3Cg id='Group-Copy-3' transform='translate%28314.000000%2C 15.000000%29'%3E%3Cg id='Group' transform='translate%2824.000000%2C 11.000000%29'%3E%3Cg id='Alert'%3E%3Cpath d='M8%2C16.5 C3.581722%2C16.5 0%2C12.918278 0%2C8.5 C0%2C4.081722 3.581722%2C0.5 8%2C0.5 C12.418278%2C0.5 16%2C4.081722 16%2C8.5 C16%2C12.918278 12.418278%2C16.5 8%2C16.5 Z M7.496%2C9.644 L8.504%2C9.644 L9.068%2C4.34 L9.068%2C4.1 L6.932%2C4.1 L6.932%2C4.34 L7.496%2C9.644 Z M7.028%2C12.5 L8.972%2C12.5 L8.972%2C10.58 L7.028%2C10.58 L7.028%2C12.5 Z' id='Combined-Shape'/%3E%3C/g%3E%3C/g%3E%3C/g%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+    .tt-info-hint.-info{
+        background-color:#98c6e8;
+        color:#ffffff;
+    }
+
+    .tt-info-hint.-info:before{
+            background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg width='16px' height='16px' viewBox='0 0 16 16' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'%3E%3Ctitle%3ECombined Shape%3C/title%3E%3Cdesc%3ECreated with Sketch.%3C/desc%3E%3Cg id='on/off-copy' stroke='none' stroke-width='1' fill='none' fill-rule='evenodd'%3E%3Cg id='info_message' transform='translate%28-521.000000%2C -560.000000%29' fill='%23FFFFFF' fill-rule='nonzero'%3E%3Cpath d='M529%2C576 C524.581722%2C576 521%2C572.418278 521%2C568 C521%2C563.581722 524.581722%2C560 529%2C560 C533.418278%2C560 537%2C563.581722 537%2C568 C537%2C572.418278 533.418278%2C576 529%2C576 Z M528%2C565.03552 L530.08%2C565.03552 L530.08%2C563 L528%2C563 L528%2C565.03552 Z M528.052%2C572.49529 L530.028%2C572.49529 L530.028%2C566.49529 L528.052%2C566.49529 L528.052%2C572.49529 Z' id='Combined-Shape'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+    .tt-info-hint.-hidden{
+        opacity:0;
+        transition:visibility 0s .2s ease,
+            opacity .2s ease;
+        visibility:hidden;
+    }

@@ -1,0 +1,49 @@
+.tt-overlay-panel{
+    background-color:#ffffff;
+    border-radius:0;
+    box-shadow:0 4px 24px 0 rgba(0, 0, 0, .16);
+    font-family:Gotham, Helvetica, Arial, sans-serif;
+    padding:24px 16px;
+    z-index:1;
+}
+
+    .tt-overlay-panel__close{
+        background:none;
+        border:1px solid transparent;
+        outline:none;
+        position:absolute;
+        right:0;
+        top:0;
+    }
+
+    .tt-overlay-panel__close:focus{
+            border:1px solid #94b106;
+        }
+
+    .tt-overlay-panel__close:before{
+            content:"×";
+            display:block;
+        }
+
+    .tt-overlay-panel.-center{
+        left:50%;
+        position:absolute;
+        top:50%;
+        transform:translate(-50%, -50%);
+    }
+
+    .tt-overlay-panel.-left-top{
+        left:16px;
+        position:absolute;
+        top:16px;
+    }
+
+    .tt-overlay-panel.-right-top{
+        position:absolute;
+        right:16px;
+        top:16px;
+    }
+
+    .tt-overlay-panel.-medium{
+        max-width:300px;
+    }

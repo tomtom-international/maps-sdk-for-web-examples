@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Vector traffic flow</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+    <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
+    <div id='map' class='map'>
+        <div class='tt-overlay-panel -left-top -medium js-foldable'>
+            <div class='tt-form'>
+                <label class='tt-form-label tt-spacing-top-24'>
+                    Traffic flow style
+                    <select class='js-style-select tt-select'>
+                        <option value='relative0' selected>relative0</option>
+                        <option value='relative0-dark'>relative0-dark</option>
+                    </select>
+                </label>
+            </div>
+        </div>
+    </div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script>
+        var state = {
+            style: 'relative0'
+        };
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            style: getCurrentStyleUrl(),
+            stylesVisibility: {
+                trafficFlow: true
+            },
+            center: [2.340822, 48.855462],
+            zoom: 10,
+            dragPan: !isMobileOrTablet()
+        });
+
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        new Foldable('.js-foldable', 'top-right');
+
+        var styleSelect = tail.select('.js-style-select', {
+            classNames: 'tt-fake-select',
+            hideSelected: true
+        });
+
+        styleSelect.on('change', function(event) {
+            state.style = event.value;
+            map.setStyle(getCurrentStyleUrl());
+        });
+
+        function getCurrentStyleUrl() {
+            return 'https://api.tomtom.com/style/1/style/${hostedStylesVersion}?map=basic_main' +
+                      '&traffic_flow=flow_' + state.style + '&key=${api.key.maps}';
+        }
+    </script>
+</body>
+</html>

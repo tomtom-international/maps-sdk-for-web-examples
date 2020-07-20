@@ -1,0 +1,25 @@
+.tt-controls-group{
+    border:1px solid #ececec;
+    border-radius:undefined;
+    display:inline-block;
+    margin-top:10px;
+    padding:24px 12px;
+    position:relative;
+    width:100%;
+}
+
+    .tt-controls-group__title{
+        background:undefined;
+        left:10px;
+        padding:0 4px;
+        position:absolute;
+        top:-10px;
+    }
+
+    .tt-controls-group__toggle{
+        background:undefined;
+        padding:0 4px;
+        position:absolute;
+        right:10px;
+        top:-26px;
+    }

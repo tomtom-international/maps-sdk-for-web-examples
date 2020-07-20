@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Layer with WMS source</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+    <div id='map' class='map'></div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script>
+        var styleURL = 'https://api.tomtom.com/style/1/style/${hostedStylesVersion}?map=hybrid_night&key=${api.key.maps}';
+
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            style: styleURL,
+            dragPan: !isMobileOrTablet(),
+            center: [43.20593751858908, 41.45982032035886],
+            zoom: 2
+        });
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        var endpoint = 'https://{cyclingHostname}.api.tomtom.com/map/1/wms/?service=WMS&version=1.1.1&request=GetMap' +
+            '&bbox={bbox-epsg-3857}&srs=EPSG:3857&width=512&height=512' +
+            '&layers=basic&styles=&format=image/jpeg&key=${api.key.maps}';
+
+        var tiles = ['a', 'b', 'c', 'd'].map(function(hostname) {
+            return endpoint.replace('{cyclingHostname}', hostname);
+        });
+
+        map.on('load', function() {
+            var firstLayerOnTheMap = map.getStyle().layers[0].id;
+
+            // here we add a WMS layer under the first layer of the map
+            map.addLayer({
+                id: 'wms',
+                type: 'raster',
+                source: {
+                    type: 'raster',
+                    tiles: tiles
+                }
+            }, firstLayerOnTheMap);
+        });
+    </script>
+</body>
+</html>

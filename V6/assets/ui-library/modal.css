@@ -1,0 +1,43 @@
+.tt-modal{
+    background:#ffffff;
+    box-shadow:0 4px 16px rgba(0, 0, 0, .1);
+    left:50%;
+    font-family:Gotham, Helvetica, Arial, sans-serif;
+    max-height:80%;
+    max-width:80%;
+    min-width:300px;
+    overflow-y:auto;
+    padding:24px;
+    position:absolute;
+    top:50%;
+    transform:translate(-50%, -50%);
+    z-index:4;
+}
+
+    .tt-modal.-hidden{
+        display:none;
+    }
+
+    .tt-modal__header{
+        font-size:15px;
+        font-weight:bold;
+        margin-bottom:24px;
+    }
+
+    .tt-modal__close-button{
+        cursor:pointer;
+        position:absolute;
+        right:8px;
+        top:8px;
+    }
+.-modal-open:before{
+    background:#ffffff;
+    content:"";
+    height:100%;
+    left:0;
+    opacity:.9;
+    position:absolute;
+    top:0;
+    width:100%;
+    z-index:3;
+}

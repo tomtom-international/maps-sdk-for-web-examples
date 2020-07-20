@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Route type</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+    <style>
+        .tt-overlay-panel {
+            width: 320px;
+        }
+    </style>
+    <div id='map' class='map'>
+        <div class='tt-overlay-panel -left-top -medium js-foldable'>
+            <div class='tt-form-label'>
+                Route type
+                <select class='js-scenario-select tt-select'></select>
+            </div>
+        </div>
+    </div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/tail-selector.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+    <script>
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            zoom: 7,
+            center: [14.38088, 41.000033],
+            dragPan: !window.isMobileOrTablet()
+        });
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        var state = {
+            selectedType: 'fastest',
+            types: {
+                fastest: 'Fastest',
+                shortest: 'Shortest',
+                eco: 'Eco',
+                thrilling: 'Thrilling'
+            },
+            route: undefined
+        };
+
+        var colors = {
+            fastest: '#F020E8',
+            shortest: '#F06368',
+            eco: '#5E98F0',
+            thrilling: '#4AF046'
+        };
+
+        var typeSelector = new TailSelector(state.types, '.js-scenario-select', state.selectedType).getElement();
+        var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
+        var loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
+        new Foldable('.js-foldable', 'top-right');
+
+        typeSelector.on('change', function(evt) {
+            state.selectedType = evt.key;
+            serviceCall();
+        });
+
+        map.on('load', serviceCall);
+
+        function serviceCall() {
+            if (state.route) {
+                map.removeLayer('route');
+                map.removeSource('route');
+                state.route = undefined;
+            }
+            typeSelector.block();
+            errorHint.hide();
+            loadingHint.setMessage('Loading...');
+            tt.services.calculateRoute({
+                key: '${api.key.routing}',
+                traffic: false,
+                locations: '12.49261,41.89237:16.6987,40.25307',
+                routeType: state.selectedType
+            })
+                .then(function(response) {
+                    loadingHint.hide();
+
+                    var geojson = response.toGeoJson();
+                    state.route = map.addLayer({
+                        'id': 'route',
+                        'type': 'line',
+                        'source': {
+                            'type': 'geojson',
+                            'data': geojson
+                        },
+                        'paint': {
+                            'line-color': colors[state.selectedType],
+                            'line-width': 6
+                        }
+                    }, findFirstBuildingLayerId());
+
+                    var bounds = new tt.LngLatBounds();
+                    geojson.features[0].geometry.coordinates.forEach(function(point) {
+                        bounds.extend(tt.LngLat.convert(point));
+                    });
+                    map.fitBounds(bounds, { duration: 0, padding: 50 });
+
+                })
+                .catch(function(error) {
+                    loadingHint.hide();
+                    errorHint.setErrorMessage(error);
+                })
+                .finally(function() {
+                    typeSelector.unblock();
+                });
+        }
+
+        function findFirstBuildingLayerId() {
+            var layers = map.getStyle().layers;
+            for (var index in layers) {
+                if (layers[index].type === 'fill-extrusion') {
+                    return layers[index].id;
+                }
+            }
+
+            throw new Error('Map style does not contain any layer with fill-extrusion type.');
+        }
+    </script>
+</body>
+</html>

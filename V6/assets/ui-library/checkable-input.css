@@ -1,0 +1,20 @@
+.tt-checkable-input{
+    align-items:center;
+    display:flex;
+    margin-top:12px;
+}
+
+    .tt-checkable-input .tt-input{
+        margin-top:0;
+    }
+
+    .tt-checkable-input .tt-checkbox + .tt-label{
+        font-family:Gotham, Helvetica, Arial, sans-serif;
+        margin-top:0;
+    }
+
+    .tt-checkable-input .tt-checkbox + .tt-label.-full{
+            font-size:12px;
+            font-weight:400;
+            width:100%;
+        }

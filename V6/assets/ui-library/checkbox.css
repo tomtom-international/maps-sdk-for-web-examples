@@ -1,0 +1,46 @@
+.tt-checkbox{
+    display:none;
+}
+    .tt-checkbox:checked + .tt-label:before{
+            background-color:#000000;
+            background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='8' viewBox='0 0 10 8'%3E%3Cpath fill='%23FFF' fill-rule='nonzero' d='M9.028.758l.313.328a1 1 0 0 1 0 1.38L4.784 7.243a1 1 0 0 1-1.447 0l-.124-.13-1.67-1.75-.892-.956a1 1 0 0 1 .016-1.381l.315-.323a1 1 0 0 1 1.447.016l.123.132.695.746.813.852L7.582.758a1 1 0 0 1 1.446 0z'/%3E%3C/svg%3E");
+            background-position:50% 50%;
+            background-repeat:no-repeat;
+            border-color:#000000;
+        }
+    .tt-checkbox:disabled + .tt-label{
+        color:rgba(102, 102, 102, 0.25);
+    }
+    .tt-checkbox:disabled + .tt-label:before{
+            border-color:rgba(204, 204, 204, 0.15);
+        }
+    .tt-checkbox:disabled + .tt-label:hover:before{
+                border-color:rgba(204, 204, 204, 0.15);
+                box-shadow:none;
+            }
+    .tt-checkbox[disabled][checked] + .tt-label:before{
+            background-color:rgba(0, 0, 0, 0.15);
+        }
+    .tt-checkbox + .tt-label{
+        height:16px;
+        font-size:15px;
+        font-family:Gotham, Helvetica, Arial, sans-serif;
+        padding-left:26px;
+        position:relative;
+        width:16px;
+    }
+    .tt-checkbox + .tt-label:before{
+            background:#ffffff;
+            border:2px solid #cccccc;
+            content:"";
+            display:block;
+            height:16px;
+            left:0;
+            position:absolute;
+            top:0;
+            width:16px;
+        }
+    .tt-checkbox + .tt-label:hover:before{
+                border-color:#7a7e80;
+                box-shadow:0 0 0 2px rgba(0, 0, 0, 0.15);
+            }

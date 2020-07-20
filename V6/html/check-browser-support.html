@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Check browser support</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+    <div id='map' class='map'></div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script>
+        var errorHint = new window.InfoHint('error', 'bottom')
+            .addTo(document.getElementById('map'));
+
+        if (!window.tt.supported()) {
+            errorHint.setMessage('Your browser is not supported');
+        } else {
+            window.tt.map({
+                key: '${api.key.maps}',
+                container: 'map',
+                dragPan: !window.isMobileOrTablet()
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+.tt-button{
+    background-color:#f2f2f2;
+    border:0;
+    border-radius:0;
+    color:#7a7e80;
+    font-family:Gotham, Helvetica, Arial, sans-serif;
+    font-size:14px;
+    font-weight:bold;
+    line-height:1.5;
+    margin:0;
+    padding:8px 24px;
+    transition:background-color .2s ease;
+}
+
+    .tt-button.-primary{
+        background-color:#000000;
+        color:#ffffff;
+    }
+
+    .tt-button.-sortable{
+        background-color:transparent;
+        padding:0 5px;
+    }
+
+    .tt-button.-sortable:hover{
+            background-color:transparent;
+        }
+
+    .tt-button.-toggle{
+        align-items:center;
+        display:flex;
+        justify-content:center;
+        height:24px;
+        padding:0;
+        position:absolute;
+        right:16px;
+        top:50%;
+        transform:translateY(-50%);
+        width:24px;
+    }
+
+    .tt-button.-big{
+        padding:8px 40px;
+    }
+
+    .tt-button.-full-width{
+        width:100%;
+    }
+
+    .tt-button[disabled]{
+        color:#cccccc;
+        -webkit-user-select:none;
+           -moz-user-select:none;
+            -ms-user-select:none;
+                user-select:none;
+    }
+
+    .tt-button[disabled].-primary{
+            background-color:#cccccc;
+            color:#e5e5e5;
+        }
+
+    .tt-button[disabled].-primary:hover{
+                background-color:#f2f2f2;
+            }
+
+    .tt-button:hover{
+        color:#ffffff;
+        background-color:#b1110e;
+        cursor:pointer;
+        transition:background-color .2s ease;
+    }
+
+    .tt-button:hover.-primary{
+            background-color:#b1110e;
+        }
+
+    .tt-button:hover.-primary:disabled{
+                color:#e5e5e5;
+            }
+
+    .tt-button:hover:disabled{
+            cursor:default;
+            color:#cccccc;
+            background-color:#f2f2f2;
+        }
+
+    .tt-button:hover:disabled.-primary{
+                background-color:#cccccc;
+            }
+
+    .tt-button.-active{
+        background-color:#000000;
+        color:#ffffff;
+    }
+
+    .tt-button-list .tt-button{
+        margin-left:8px;
+    }
+
+    .tt-button-list .tt-button:first-child{
+            margin-left:0;
+        }
+
+    .tt-button:-moz-focus-inner{
+        border:0;
+    }
+
+    .tt-button:focus{
+        outline:none;
+    }
