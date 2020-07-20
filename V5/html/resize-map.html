@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - resize map</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+    <div id='map' class='map'>
+        <div class='tt-overlay-panel -left-top'>
+            <div class='tt-form-label'>
+                Map size
+            <div class='js-button-list tt-buttons-group'>
+                <button class='js-button tt-buttons-group__button' value='50%'>50%</button>
+                <button class='js-button tt-buttons-group__button' value='75%'>75%</button>
+                <button class='js-button tt-buttons-group__button -active' value='100%'>100%</button>
+            </div>
+            </div>
+        </div>
+    </div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script>
+        // Define your product name and version
+        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+
+        var mapElement = document.getElementById('map');
+        var resizeButtons = document.querySelectorAll('.js-button');
+        var resizeButtonsContainer = document.querySelector('.js-button-list');
+        var resizeButtonsArray = Array.prototype.slice.call(resizeButtons);
+
+        // Create map
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            style: 'tomtom://vector/1/basic-main',
+            dragPan: !isMobileOrTablet()
+        });
+        map.addControl(new tt.FullscreenControl({container: document.querySelector('body')}));
+
+        function resizeMap(element) {
+            resizeButtonsArray.forEach(function(button) {
+                button.classList.remove('-active');
+            });
+
+            element.classList.add('-active');
+            mapElement.style.width = element.value;
+            // Call resize after container size changed
+            map.resize();
+        }
+
+        function bindEvents() {
+            resizeButtonsContainer.addEventListener('click', function(event) {
+                var target = event.target;
+
+                if (target.classList.contains('js-button')) {
+                    resizeMap(target);
+                }
+            });
+        }
+
+        bindEvents();
+    </script>
+</body>
+</html>

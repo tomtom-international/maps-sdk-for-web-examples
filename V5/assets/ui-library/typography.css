@@ -1,0 +1,11 @@
+.tt-hint-text{
+    color:#bebebe;
+    display:inline-block;
+    font-family:Gotham, Helvetica, Arial, sans-serif;
+    font-size:12px;
+}
+.tt-heading-text{
+    font-family:Gotham, Helvetica, Arial, sans-serif;
+    font-size:15px;
+    font-weight:bold;
+}

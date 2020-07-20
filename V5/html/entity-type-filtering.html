@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Entity type filtering</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+    <script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/validators.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/languages.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
+    <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/tail-selector.js'></script>
+    <div id='map' class='map'>
+        <div class='tt-overlay-panel -left-top -medium js-foldable'>
+            <form>
+                <label class='tt-form-label'>
+                    Language
+                    <select class='js-language-select tt-select'></select>
+                </label>
+                <div class='tt-inline-input-group tt-spacing-top-24'>
+                    <label class='tt-form-label'>
+                        Latitude
+                        <input
+                            class='tt-input js-latitude-input'
+                            placeholder='e.g. 51.686666' />
+                    </label>
+                    <label class='tt-form-label'>
+                        Longitude
+                        <input
+                            class='tt-input js-longitude-input'
+                            placeholder='e.g. 19.640000' />
+                    </label>
+                </div>
+                <span class='tt-hint-text tt-spacing-top-12'>
+                    *Type or click on the map to select a location.
+                </span>
+                <label class='tt-form-label tt-spacing-top-24'>
+                    Entity type
+                    <select class='js-entity-type-select tt-select'></select>
+                </label>
+                <div class='tt-spacing-top-12'>
+                    <div class='js-filters-container tt-filters-container'></div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+    <script>
+        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            style: 'tomtom://vector/1/basic-main',
+            center: [4.899431, 52.379189],
+            zoom: 13,
+            dragPan: !isMobileOrTablet()
+        });
+
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+        new Foldable('.js-foldable', 'top-right');
+        var roundLatLng = Formatters.roundLatLng;
+
+        var entities = {
+            CountrySecondarySubdivision: 'CountrySecondarySubdivision',
+            CountryTertiarySubdivision: 'CountryTertiarySubdivision',
+            Municipality: 'Municipality',
+            MunicipalitySubdivision: 'MunicipalitySubdivision',
+            Neighbourhood: 'Neighbourhood',
+            PostalCodeArea: 'PostalCodeArea'
+        };
+
+        var entityTypeSelector = new TailSelector(
+            entities,
+            '.js-entity-type-select',
+            undefined, {
+                multiple: true,
+                placeholder: 'Add filters from the list',
+                multiShowCount: false,
+                multiContainer: '.js-filters-container'
+            });
+        var languageSelector = new TailSelector(searchLanguages, '.js-language-select', 'en-US');
+
+        function EntityTypeFiltering() {
+            this.errorHint = new InfoHint('error', 'bottom-center', 5000)
+                .addTo(document.getElementById('map'));
+
+            this.initState();
+            this.bindElements();
+            this.bindEvents();
+        }
+
+        EntityTypeFiltering.prototype.initState = function() {
+            this.state = {
+                searchLanguage: 'en-US',
+                entityType: [],
+                position: {
+                    latitude: null,
+                    longitude: null
+                },
+                isRequesting: false
+            };
+        };
+
+        EntityTypeFiltering.prototype.bindElements = function() {
+            var latitudeInput = document.querySelector('.js-latitude-input');
+            var longitudeInput = document.querySelector('.js-longitude-input');
+
+            this.elements = {
+                entityTypeSelector: entityTypeSelector.getElement(),
+                languageSelector: languageSelector.getElement(),
+                latitudeInput: latitudeInput,
+                longitudeInput: longitudeInput
+            };
+        };
+
+        EntityTypeFiltering.prototype.bindEvents = function() {
+            this.elements.languageSelector.on('change', this.setActiveLanguage.bind(this));
+            this.elements.entityTypeSelector.on('change', this.updateSelectedEntities.bind(this));
+            this.elements.latitudeInput.addEventListener('change', function(event) {
+                this.updatePosition([undefined, event.target.value]);
+            }.bind(this));
+            this.elements.longitudeInput.addEventListener('change', function(event) {
+                this.updatePosition([event.target.value]);
+            }.bind(this));
+
+            map.on('click', this.handleMapClick.bind(this));
+        };
+
+        EntityTypeFiltering.prototype.updatePosition = function(pos) {
+            var isOk = true;
+
+            var longitude = pos[0] || this.state.position.longitude;
+            var latitude = pos[1] || this.state.position.latitude;
+
+            try {
+                validators.checkLongitude(longitude);
+                longitude = roundLatLng(longitude);
+                this.state.position.longitude = longitude;
+                this.elements.longitudeInput.value = longitude;
+            } catch (error) {
+                this.errorHint.setMessage(error.message);
+                this.removePopup();
+
+                isOk = false;
+            }
+
+            try {
+                validators.checkLatitude(latitude);
+                latitude = roundLatLng(latitude);
+                this.state.position.latitude = latitude;
+                this.elements.latitudeInput.value = latitude;
+            } catch (error) {
+                this.errorHint.setMessage(error.message);
+                this.removePopup();
+
+                isOk = false;
+            }
+
+            if (isOk) {
+                this.handleRequest();
+            }
+        };
+
+        EntityTypeFiltering.prototype.setActiveLanguage = function(selected) {
+            this.state.searchLanguage = selected.key;
+
+            this.handleRequest();
+        };
+
+        EntityTypeFiltering.prototype.updateSelectedEntities = function(selected) {
+            var value = selected.value;
+            var itemIndex = this.state.entityType.indexOf(value);
+
+            if (itemIndex > -1) {
+                this.state.entityType.splice(itemIndex, 1);
+            } else {
+                this.state.entityType.push(value);
+            }
+
+            this.handleRequest();
+        };
+
+        EntityTypeFiltering.prototype.getReverseGeocodeService = function() {
+            return tt.services.reverseGeocode({
+                key: '${api.key.search}',
+                position: [
+                    this.state.position.longitude,
+                    this.state.position.latitude
+                ],
+                language: this.state.searchLanguage,
+                entityType: this.state.entityType.join() || undefined
+            });
+        };
+
+        EntityTypeFiltering.prototype.requestData = function() {
+            if (this.state.isRequesting) {
+                return;
+            }
+
+            this.state.isRequesting = true;
+            this.getReverseGeocodeService()
+                .go()
+                .then(this.handleResponse.bind(this))
+                .catch(this.handeError)
+                .finally(function() {
+                    this.state.isRequesting = false;
+                }.bind(this));
+        };
+
+        EntityTypeFiltering.prototype.handleResponse = function(response) {
+            var address = response.addresses[0];
+            var popupContent;
+
+            if (address) {
+                var freeFormAddress = document.createElement('strong');
+                freeFormAddress.innerText = address.address.freeformAddress;
+
+                popupContent = freeFormAddress.outerHTML;
+
+                if (address.entityType) {
+                    var entityType = document.createElement('div');
+                    entityType.innerText = '(Entity type: ' + address.entityType + ')';
+
+                    popupContent += entityType.outerHTML;
+                }
+            }
+
+            this.popup.setHTML(popupContent || 'No data found for given parameters.');
+        };
+
+        EntityTypeFiltering.prototype.setPopup = function() {
+            this.popup = new tt.Popup({ className: 'tt-popup', offset: [0, -20] })
+                .setLngLat(new tt.LngLat(this.state.position.longitude, this.state.position.latitude))
+                .setHTML('Loading...');
+
+            this.popup.addTo(map);
+
+            var markerElement = document.createElement('div');
+            markerElement.setAttribute('class', 'tt-marker -start');
+
+            this.marker = new tt.Marker(markerElement)
+                .setLngLat(new tt.LngLat(this.state.position.longitude, this.state.position.latitude));
+
+            this.marker.addTo(map);
+        };
+
+        EntityTypeFiltering.prototype.removePopup = function() {
+            if (this.marker && this.popup) {
+                this.marker.remove();
+                this.marker = null;
+
+                this.popup.remove();
+                this.popup = null;
+            }
+        };
+
+        EntityTypeFiltering.prototype.handleMapClick = function(event) {
+            if (event.originalEvent.target.classList.contains('tt-marker')) {
+                this.popup.addTo(map);
+            }
+
+            var lngLat = event.lngLat.toArray();
+            this.updatePosition(lngLat);
+        };
+
+        EntityTypeFiltering.prototype.handleRequest = function() {
+            if (!this.state.position.latitude || !this.state.position.longitude) {
+                return;
+            }
+            map.panTo([
+                this.state.position.longitude,
+                this.state.position.latitude
+            ]);
+
+            this.removePopup();
+            this.setPopup();
+
+            this.requestData();
+        };
+
+        new EntityTypeFiltering();
+    </script>
+</body>
+</html>

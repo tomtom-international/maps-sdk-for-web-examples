@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Changing layers visibility</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+    <style>
+        .tt-checkbox + .tt-label {
+            height: initial;
+            width: 100%;
+        }
+    </style>
+    <div class='map-view'>
+        <form class='tt-side-panel js-form'>
+                <div role='tabpanel' class='tt-tabs__panel' id='options'>
+                    <div class='tt-params-box'>
+                        <header class='tt-params-box__header'>
+                            Map layers
+                        </header>
+                        <div class='tt-params-box__content js-layers'></div>
+                    </div>
+                </div>
+        </form>
+        <div id='map' class='map'></div>
+    </div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/side-panel.js'></script>
+    <script>
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            style: 'tomtom://vector/1/basic-main',
+            dragPan: !isMobileOrTablet()
+        });
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        new SidePanel('.tt-side-panel', map);
+
+        function changeLayerVisibility(layerId, visible) {
+            map.setLayoutProperty(layerId, 'visibility', visible ? 'visible' : 'none');
+        }
+
+        function toggleAllLayers() {
+            var isChecked = true;
+
+            return function() {
+                [].slice.call(document.querySelectorAll('.layer-checkbox'))
+                    .forEach(function(checkbox) {
+                        checkbox.checked = !isChecked;
+                        changeLayerVisibility(checkbox.id, checkbox.checked);
+                    });
+                isChecked = !isChecked;
+            };
+        }
+
+        map.on('load', function() {
+            var documentFragment = document.createDocumentFragment();
+
+            var allLayersCheckbox =
+                '<input class="tt-checkbox" type="checkbox" id="all-layers" checked="true"/>' +
+                '<label for="all-layers" class="tt-label">All layers</label>' +
+                '<br/>';
+
+            map.getStyle().layers
+                .forEach(function(layer) {
+                    const layerId = layer.id;
+
+                    var input = document.createElement('input');
+                    input.setAttribute('class', 'tt-checkbox layer-checkbox');
+                    input.setAttribute('id', layerId);
+                    input.setAttribute('checked', true);
+                    input.setAttribute('type', 'checkbox');
+
+                    input.addEventListener('change', function() {
+                        changeLayerVisibility(layerId, input.checked);
+                    });
+
+                    var label = document.createElement('label');
+                    label.setAttribute('class', 'tt-label');
+                    label.setAttribute('for', layerId);
+                    label.innerText = layerId;
+
+                    documentFragment.appendChild(input);
+                    documentFragment.appendChild(label);
+                });
+
+            var layersContainer = document.querySelector('.js-layers');
+            layersContainer.innerHTML = allLayersCheckbox;
+            layersContainer.appendChild(documentFragment);
+
+            document.querySelector('#all-layers').addEventListener('change', toggleAllLayers());
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge'/>
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Cross street lookup</title>
+    <meta name='viewport' content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'/>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/css-styles/poi.css'/>
+</head>
+<body>
+    <script data-showable type='text/javascript' src='../assets/js/validators.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/dom-helpers.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <div class='map-view'>
+        <div id='map' class='full-map'></div>
+    </div>
+    <script>
+        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            style: 'tomtom://vector/1/basic-main',
+            center: [4.3705, 50.8515],
+            zoom: 12,
+            dragPan: !isMobileOrTablet()
+        });
+
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        function CrossStreetLookup() {
+            this.errorHint = new InfoHint('error', 'bottom-center', 3000)
+                .addTo(document.getElementById('map'));
+
+            this.loadingHint = new InfoHint('info', 'bottom-center', 3000)
+                .addTo(document.getElementById('map'));
+
+            this.isRequesting = false;
+            this.clickPosition = null;
+            this.marker = null;
+            this.popup = new tt.Popup({ className: 'tt-popup' })
+                .setHTML('Click anywhere on the map to get position.')
+                .setLngLat(new tt.LngLat(4.3705, 50.8515))
+                .addTo(map);
+
+            map.on('click', this.handleMapClick.bind(this));
+        }
+
+        CrossStreetLookup.prototype.handleResponse = function(response) {
+            this.errorHint.hide();
+            this.loadingHint.hide();
+
+            var crossing = response.addresses[0];
+
+            if (!crossing) {
+                this.errorHint.setMessage('No result found for given position');
+                return;
+            }
+
+            var popupContent = document.createElement('div');
+            var popupAddress = document.createElement('strong');
+            var freeformAddress = crossing.address.freeformAddress;
+            popupAddress.innerText = freeformAddress;
+            popupContent.appendChild(popupAddress);
+
+            this.setPopup(this.clickPosition);
+            this.popup.setDOMContent(popupContent);
+        };
+
+        CrossStreetLookup.prototype.setPopup = function(lnglat) {
+            this.popup = new tt.Popup({ offset: [0, -30] })
+                .setLngLat(new tt.LngLat(lnglat[0], lnglat[1]));
+
+            this.marker = new tt.Marker()
+                .setLngLat(new tt.LngLat(lnglat[0], lnglat[1]));
+
+            this.marker.getElement().classList.add('marker');
+            this.marker.addTo(map);
+            this.marker.setPopup(this.popup);
+            this.marker.togglePopup();
+        };
+
+        CrossStreetLookup.prototype.removePopup = function() {
+            if (this.marker && this.popup) {
+                this.marker.remove();
+                this.marker = null;
+
+                this.popup.remove();
+                this.popup = null;
+            }
+        };
+
+        CrossStreetLookup.prototype.handleMapClick = function(event) {
+            if (DomHelpers.checkIfElementOrItsParentsHaveClass(event.originalEvent.target, 'marker')) {
+                return;
+            }
+
+            this.loadingHint.setMessage('Loading');
+            this.clickPosition = event.lngLat.toArray();
+            map.panTo(this.clickPosition);
+
+            this.removePopup();
+
+            if (this.isRequesting) {
+                return;
+            }
+
+            this.isRequesting = true;
+
+            tt.services.crossStreetLookup({
+                key: '${api.key.search}',
+                position: this.clickPosition,
+                language: 'en-US',
+                limit: 1
+            })
+                .go()
+                .then(this.handleResponse.bind(this))
+                .catch(function(error) {
+                    this.loadingHint.hide();
+                    this.errorHint.setMessage(error.data ? error.data.errorText : error);
+                }.bind(this))
+                .finally(function() {
+                    this.isRequesting = false;
+                }.bind(this));
+        };
+
+        new CrossStreetLookup();
+    </script>
+</body>
+</html>

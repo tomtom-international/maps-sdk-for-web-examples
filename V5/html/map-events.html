@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - resize map</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+    <div id='map' class='map'></div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
+    <script>
+        // Define your product name and version
+        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+        var center = [4.899431, 52.379189];
+        var roundLatLng = Formatters.roundLatLng;
+        // Create map
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            style: 'tomtom://vector/1/basic-main',
+            zoom: 12,
+            center: center,
+            dragPan: !isMobileOrTablet()
+        });
+        map.addControl(new tt.FullscreenControl());
+
+        new tt.Popup({ className: 'tt-popup'})
+            .setLngLat(center)
+            .setHTML('Click anywhere on the map to lookup the clicked lat lon.')
+            .addTo(map);
+
+        map.on('click', function(event) {
+            var lngLat = new tt.LngLat(roundLatLng(event.lngLat.lng), roundLatLng(event.lngLat.lat));
+
+            new tt.Popup({ className: 'tt-popup'})
+                .setLngLat(lngLat)
+                .setHTML(lngLat.toString())
+                .addTo(map);
+        });
+    </script>
+</body>
+</html>

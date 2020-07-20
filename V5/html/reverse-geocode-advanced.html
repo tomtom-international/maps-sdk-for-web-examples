@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Reverse geocode</title>
+    <meta name='viewport' content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css' />
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css' />
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/css-styles/poi.css' />
+</head>
+<body>
+    <style>
+        .tt-checkbox + .tt-label {
+            height: initial;
+            width: 100%;
+        }
+        .popup-table {
+            font-size: 12px;
+            max-height: 150px;
+            overflow-y: scroll;
+        }
+        .popup-table td {
+            padding-right: 15px;
+        }
+        .tt-buttons-group__button {
+            margin-right: 9px;
+            padding: 7px;
+        }
+        details:not([open]) {
+            cursor: pointer;
+        }
+    </style>
+    <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/tabs.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/languages.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/antimeridian-handler.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/buttons-group.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/dom-helpers.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/slider.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/side-panel.js'></script>
+    <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/tail-selector.js'></script>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <div class='map-view'>
+        <form class='tt-side-panel'>
+            <header class='tt-side-panel__header'>
+                <div class='tt-inline-input-group tt-spacing-top-24'>
+                    <label class='tt-form-label'>Latitude
+                        <input class='tt-input js-latitude-input' value='50.8515' name='latitude' disabled />
+                    </label>
+                    <label class='tt-form-label'>Longitude
+                        <input class='tt-input js-longitude-input' value='4.3705' name='longitude' disabled />
+                    </label>
+                </div>
+                <span class='tt-hint-text tt-spacing-top-12'>
+                    Coordinates are filled automatically.
+                </span>
+            </header>
+            <div class='tt-tabs js-tabs'>
+                <div role='tabpanel' class='tt-tabs__panel'>
+                    <div class='tt-params-box'>
+                        <header class='tt-params-box__header'>
+                            Reverse geocode parameters
+                        </header>
+                        <div class='tt-params-box__content'>
+                            <label class='tt-form-label'>Language
+                                <select class='js-language-select tt-select'></select>
+                            </label>
+                            <label class='tt-form-label js-radius-slider'>Radius (<span class='js-counter'>10000</span>m)
+                                <input class='tt-slider' name='radius' type='range' min='0' max='100000' value='10000'>
+                            </label>
+                            <div class='tt-form-label'>Heading
+                                <div id="heading-dir" class='tt-buttons-group'>
+                                    <img src='../assets/svg/west.svg' class='tt-buttons-group__button' data-id='w' direction='270'>
+                                    <img src='../assets/svg/north.svg' class='tt-buttons-group__button' data-id='n' direction='0'>
+                                    <img src='../assets/svg/south.svg' class='tt-buttons-group__button' data-id='s' direction='180'>
+                                    <img src='../assets/svg/east.svg' class='tt-buttons-group__button' data-id='e' direction='90'>
+                                </div>
+                            </div>
+                            <label class='tt-form-label'>Preferred use of the road data
+                                <select class='tt-select js-road-use-select'></select>
+                                <div class='tt-spacing-top-12'>
+                                    <div class='js-road-use-container tt-filters-container'></div>
+                                </div>
+                            </label>
+                            <label class='tt-form-label'>House number
+                                <input class='tt-input js-house-number' placeholder='Search for preferred house number' name='house-number'/>
+                            </label>
+                            <div class="tt-spacing-top-24">
+                                <label class='tt-form-label'>Include info on</label>
+                                <input type='checkbox' class='tt-checkbox' id='returnRoadUse'/>
+                                <label class='tt-label' for='returnRoadUse'>Road use</label>
+                                <input type='checkbox' class='tt-checkbox' id='speedLimit'/>
+                                <label class='tt-label' for='speedLimit'>Speed limit</label>
+                                <input type='checkbox' class='tt-checkbox' id='matchType'/>
+                                <label class='tt-label' for='matchType'>Match type</label>
+                            </div>
+                            <div class="tt-spacing-top-24">
+                                <label class='tt-form-label'>Free form address formatting</label>
+                                <input type='checkbox' class='tt-checkbox' id='allowNewLines'/>
+                                <label class='tt-label' for='allowNewLines'>Allow new lines</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div id='map' class='full-map'></div>
+    </div>
+    <script>
+        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            style: 'tomtom://vector/1/basic-main',
+            center: [4.3705, 50.8515],
+            zoom: 12,
+            dragPan: !isMobileOrTablet()
+        });
+
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+        var roundLatLng = Formatters.roundLatLng;
+
+        var welcomePopup = new tt.Popup({ className: 'tt-popup' })
+            .setHTML('Click anywhere on the map to get position.')
+            .setLngLat(new tt.LngLat(4.3705, 50.8515))
+            .addTo(map);
+
+        var roadUseOptions = [
+            'LocalStreet',
+            'LimitedAccess',
+            'Arterial',
+            'Terminal',
+            'Ramp',
+            'Rotary'
+        ];
+
+        new SidePanel('.tt-side-panel', map);
+        var radiusSlider = new Slider(document.querySelector('.js-radius-slider'));
+        var languageSelector = new TailSelector(searchLanguages, '.js-language-select', 'en-US');
+        var roadUseSelector = new TailSelector(
+            roadUseOptions,
+            '.js-road-use-select',
+            undefined, {
+                multiple: true,
+                placeholder: 'Add options from the list',
+                multiShowCount: false,
+                multiContainer: '.js-road-use-container',
+                deselect: true
+            }
+        );
+        var headingDirectionGroup = new ButtonsGroup(document.getElementById('heading-dir'));
+
+        function ReverseGeocode() {
+            this.errorHint = new InfoHint('error', 'bottom-center', 3000)
+                .addTo(document.getElementById('map'));
+
+            this.loadingHint = new InfoHint('info', 'bottom-center', 3000)
+                .addTo(document.getElementById('map'));
+
+            this.bindElements();
+
+            this.state = {
+                searchLanguage: 'en-US',
+                radius: this.elements.radius.value,
+                heading: null,
+                position: [50.8515, 4.3705],
+                isRequesting: false,
+                preferredNumber: null,
+                roadUse: null,
+                returnRoadUse: false,
+                speedLimit: false,
+                matchType: false,
+                allowNewLines: false,
+                currentMarker: null
+            };
+
+            this.bindEvents();
+        }
+
+        ReverseGeocode.prototype.bindElements = function() {
+            this.elements = {
+                radius: radiusSlider,
+                languageSelector: languageSelector.getElement(),
+                headingSelector: headingDirectionGroup,
+                preferredNumber: document.querySelector('.js-house-number'),
+                roadUse: roadUseSelector.getElement()
+            };
+
+            Array.prototype.slice.call(document.querySelectorAll('input'))
+                .forEach(function(input) {
+                    this.elements[input.name] = input;
+                }.bind(this));
+        };
+
+        ReverseGeocode.prototype.handleHeadingChange = function(button) {
+            var chosenHeading = parseInt(button.getAttribute('direction'), 10);
+
+            if (chosenHeading === this.state.heading) {
+                headingDirectionGroup.unselect();
+                this.state.heading = null;
+            } else {
+                this.state.heading = chosenHeading;
+            }
+
+            this.handleRequest();
+        };
+
+        ReverseGeocode.prototype.bindEvents = function() {
+            this.elements.radius.addEventListener('change', this.updateInputValue.bind(this, 'radius'));
+            this.elements.preferredNumber.addEventListener('change', this.updateInputValue.bind(this, 'preferredNumber'));
+            this.elements.headingSelector.onSelect(this.handleHeadingChange.bind(this));
+            this.elements.roadUse.on('change', this.handleRequest.bind(this));
+
+            this.elements.languageSelector.on('change', function(selected) {
+                this.state.searchLanguage = selected.key;
+                this.handleRequest();
+            }.bind(this));
+
+            Array.prototype.slice.call(document.querySelectorAll('.tt-checkbox'))
+                .forEach(function(checkbox) {
+                    checkbox.addEventListener('change', function(event) {
+                        this.state[event.target.id] = event.target.checked;
+                        this.handleRequest();
+                    }.bind(this));
+                }.bind(this));
+
+            map.on('click', this.handleMapClick.bind(this));
+        };
+
+        ReverseGeocode.prototype.updateInputValue = function(property, event) {
+            this.state[property] = event.target.value;
+            this.handleRequest();
+        };
+
+        ReverseGeocode.prototype.getReverseGeocodeService = function() {
+            return tt.services.reverseGeocode({
+                key: '${api.key.search}',
+                position: this.state.position,
+                language: this.state.searchLanguage,
+                radius: this.state.radius,
+                heading: this.state.heading,
+                roadUse: this.state.roadUse,
+                allowFreeformNewline: this.state.allowNewLines,
+                returnMatchType: this.state.matchType,
+                returnRoadUse: this.state.returnRoadUse,
+                returnSpeedLimit: this.state.speedLimit,
+                number: this.state.preferredNumber
+            });
+        };
+
+        ReverseGeocode.prototype.requestData = function() {
+            if (this.state.isRequesting) {
+                return;
+            }
+
+            this.state.isRequesting = true;
+            this.getReverseGeocodeService()
+                .go()
+                .then(this.handleResponse.bind(this))
+                .catch(this.handleError.bind(this))
+                .finally(function() {
+                    this.state.isRequesting = false;
+                }.bind(this));
+        };
+
+        ReverseGeocode.prototype.handleError = function(error) {
+            this.errorHint.setMessage(error.data ? error.data.errorText : error);
+        };
+
+        ReverseGeocode.prototype.handleResponse = function(response) {
+            this.errorHint.hide();
+            this.loadingHint.hide();
+
+            var result = response.addresses[0];
+            var popupAddress = document.createElement('strong');
+
+            if (result && result.address.freeformAddress) {
+                popupAddress.innerText = result.address.freeformAddress;
+            } else {
+                popupAddress.innerText = 'No address';
+            }
+
+            var popupContent = document.createElement('div');
+            popupContent.appendChild(popupAddress);
+
+            if (popupAddress.innerText !== 'No address') {
+                var details = document.createElement('details');
+                details.setAttribute('class', 'tt-details tt-spacing-top-8');
+
+                var parametersTable = document.createElement('div');
+                parametersTable.setAttribute('class', 'popup-table');
+
+                Object.keys(result.address).forEach(function(key) {
+                    if (typeof result.address[key] !== 'object') {
+                        parametersTable.appendChild(this.createParameterRow(key, result.address[key]));
+                    }
+                }.bind(this));
+
+                if (result.matchType) {
+                    parametersTable.appendChild(this.createParameterRow('matchType', result.matchType));
+                }
+                details.appendChild(parametersTable);
+                popupContent.appendChild(details);
+            }
+
+            var clickPosition = new tt.LngLat(this.state.position[0], this.state.position[1]);
+
+            this.state.currentMarker = new tt.Marker()
+                .setLngLat(result && result.position || clickPosition)
+                .addTo(map)
+                .setPopup(new tt.Popup({ offset: [0, -30] })
+                    .setDOMContent(popupContent)
+                    .setMaxWidth('none'));
+
+            this.state.currentMarker.getElement().classList.add('marker');
+            this.state.currentMarker.getPopup().addTo(map);
+
+            if (popupAddress.innerText !== 'No address') {
+                var ne = result.address.boundingBox.northEast;
+                var sw = result.address.boundingBox.southWest;
+                var bounds = new tt.LngLatBounds(sw, ne);
+
+                map.fitBounds(new window.AntimeridianHandler().normalizeBoundingBox(bounds),
+                    { duration: 1000, padding: 100 });
+            } else {
+                map.flyTo({ center: clickPosition, duration: 1000 });
+            }
+        };
+
+        ReverseGeocode.prototype.createParameterRow = function(key, value) {
+            var tableRow = document.createElement('tr');
+            var parameterKey = document.createElement('td');
+            parameterKey.innerHTML = '<b>' + key + '</b>';
+            var parameterValue = document.createElement('td');
+            parameterValue.innerText = value;
+            tableRow.appendChild(parameterKey);
+            tableRow.appendChild(parameterValue);
+
+            return tableRow;
+        };
+
+        ReverseGeocode.prototype.handleMapClick = function(event) {
+            if (DomHelpers.checkIfElementOrItsParentsHaveClass(event.originalEvent.target, 'marker')) {
+                return;
+            }
+
+            this.loadingHint.setMessage('Loading');
+
+            var pos = event.lngLat.toArray();
+            this.state.position = pos;
+            this.elements.longitude.value = roundLatLng(pos[0]);
+            this.elements.latitude.value = roundLatLng(pos[1]);
+            this.handleRequest();
+        };
+
+        ReverseGeocode.prototype.handleRequest = function() {
+            welcomePopup.remove();
+
+            this.state.roadUse = Array.apply(null, document.querySelectorAll('div[class=select-handle]'))
+                .map(function(item) {
+                    return item.innerHTML;
+                });
+
+            if (this.state.roadUse.length === 0) {
+                this.state.roadUse = null;
+            }
+
+            if (this.state.currentMarker) {
+                this.state.currentMarker.remove();
+            }
+
+            this.requestData();
+        };
+
+        new ReverseGeocode();
+    </script>
+</body>
+
+</html>

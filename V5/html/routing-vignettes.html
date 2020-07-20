@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+    <head>
+        <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+        <meta charset='UTF-8'>
+        <title>Maps SDK for Web - Allow/avoid vignettes</title>
+        <meta name='viewport'
+            content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+        <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+        <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+        <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/css-styles/routing.css'/>
+    </head>
+    <style>
+        #vignettes-allow-avoid .vignettes-allow-avoid__button {
+            padding: 12px 23px;
+            width: 50%;
+        }
+        .form-wrapper {
+            background-color: #ffffff;
+            padding: 24px 16px;
+        }
+        .submit-button {
+            width: 100%;
+        }
+        .checkbox-validation-message {
+            font-size: 12px;
+            font-style: italic;
+            margin-top: 16px;
+        }
+        .-hidden {
+            display: none;
+        }
+        .map-view .tt-side-panel {
+            justify-content: flex-start;
+        }
+        .map-view .routes-panel {
+            padding-top: 0;
+        }
+        .static-marker {
+            align-items: center;
+            background-color: #4a90e2;
+            border: solid 3px #2faaff;
+            border-radius: 50%;
+            display: flex;
+            height: 32px;
+            justify-content: center;
+            transition: width .1s, height .1s;
+            width: 32px;
+        }
+        .routes-container {
+            background-color: #ffffff;
+        }
+        .route-wrapper {
+            cursor: pointer;
+            display: flex;
+            padding: 16px;
+        }
+        .route-wrapper:hover {
+            background: #f9f9f9;
+        }
+        .route-icon {
+            border-radius: 50%;
+            height: 12px;
+            margin: 5px 8px 0 0;
+            width: 12px;
+        }
+        .route-icon--default {
+            background-color: #4a4c4c;
+        }
+        .route-icon--vignettes {
+            background-color: #4a90e2;
+        }
+        .route-information {
+            font-family: Noway, Gotham, Arial;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        .route-information div:first-of-type {
+            font-family: Gotham, Helvetica, Arial, sans-serif;
+            font-size: 13px;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+        .route-marker {
+            align-items: center;
+            background-color: #4a90e2;
+            border: solid 3px #2faaff;
+            border-radius: 50%;
+            display: flex;
+            height: 32px;
+            justify-content: center;
+            transition: width .1s, height .1s;
+            width: 32px;
+        }
+        .route-option-text {
+            color: #7a7e80;
+        }
+    </style>
+    <body>
+        <div class='map-view'>
+            <form class='tt-side-panel'>
+                <div class='tt-tabs__panel'>
+                    <div class='form-wrapper'>
+                        <div>
+                            <label class='tt-form-label'>
+                                Vignettes
+                            </label>
+                            <div id='vignettes-allow-avoid' class='tt-buttons-group tt-spacing-top-8'>
+                                <div class='tt-buttons-group__button vignettes-allow-avoid__button -active'
+                                    data-id='avoid' data-group='vignettesAllowAvoid'>Avoid vignettes</div>
+                                <div class='tt-buttons-group__button vignettes-allow-avoid__button'
+                                     data-id='allow' data-group='vignettesAllowAvoid'>Allow vignettes</div>
+                            </div>
+                        </div>
+                        <div class='tt-spacing-top-16'>
+                            <label class='tt-form-label'>
+                                Countries
+                            </label>
+                            <div class='tt-checkable-input'>
+                                <input id='HUN' class='tt-checkbox country-checkbox' type='checkbox' checked>
+                                <label for='HUN' class='tt-label -full'>Hungary</label>
+                            </div>
+                            <div class='tt-checkable-input'>
+                                <input id='CZE' class='tt-checkbox country-checkbox' type='checkbox' checked>
+                                <label for='CZE' class='tt-label -full'>Czechia</label>
+                            </div>
+                            <div class='tt-checkable-input'>
+                                <input id='SVK' class='tt-checkbox country-checkbox' type='checkbox' checked>
+                                <label for='SVK' class='tt-label -full'>Slovakia</label>
+                            </div>
+                            <div class='checkbox-validation-message -hidden'>
+                            </div>
+                        </div>
+                        <div class='tt-spacing-top-16'>
+                            <input type='submit' id='submit' class='tt-button -primary submit-button' name='submit' title='submit'>
+                        </div>
+                    </div>
+                </div>
+                <div class='tt-tabs__panel routes-panel -hidden' id='routes-panel'>
+                    <div class='routes-container'>
+                        <div class='route-wrapper' id='route-default'>
+                            <div class='route-icon route-icon--default'></div>
+                            <div class='route-information'>
+                                <div>Default route</div>
+                                <div>
+                                    <span class='route-option-text'>Travel distance:</span> 
+                                    <span class='distance'></span>
+                                </div>
+                                <div>
+                                    <span class='route-option-text'>Travel time:</span>
+                                    <span class='time'></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='route-wrapper' id='route-vignettes'>
+                            <div class='route-icon route-icon--vignettes'></div>
+                            <div class='route-information'>
+                                <div>Route with vignette options set:</div>
+                                <div>
+                                    <span class='route-option-text'>Travel distance:</span> 
+                                    <span class='distance'></span>
+                                </div>
+                                <div>
+                                    <span class='route-option-text'>Travel time:</span>
+                                    <span class='time'></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            <div id='map' class='full-map'></div>
+        </div>
+        <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+        <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/buttons-group.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
+        <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js'></script>
+
+        <script>
+            var START_POSITION = {lat: 45.332325, lng: 22.753418};
+            var FINAL_POSITION = {lat: 50.746420, lng: 14.799316};
+            var COUNTRIES = ['HUN', 'CZE', 'SVK'];
+            var ROUTE_WIDTH = 4;
+            var ENLARGED_ROUTE_WIDTH = 6;
+            var ROUTE_DEFAULT = 'route-default';
+            var ROUTE_VIGNETTES = 'route-vignettes';
+
+            var map = tt.map({
+                key: '${api.key.maps}',
+                container: 'map',
+                style: 'tomtom://vector/1/basic-main',
+                dragPan: !isMobileOrTablet(),
+                zoom: 5.54,
+                center: [18.779809, 48.112485]
+            });
+
+            var state = {
+                allowVignette: false
+            };
+
+            map.addControl(new tt.FullscreenControl());
+            map.addControl(new tt.NavigationControl());
+
+            var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
+            var loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
+
+            var vignettesAllowAvoid = new ButtonsGroup(document.getElementById('vignettes-allow-avoid'));
+            var submitButton = document.getElementById('submit');
+            var countryCheckboxes = document.getElementsByClassName('country-checkbox');
+            var routesPanel = document.getElementById('routes-panel');
+
+            onLoadingStart();
+            addListeneres();
+
+            map.on('load', function() {
+                calculateOriginalRoute();
+                calculateVignetteRoute();
+            });
+
+            function calculateOriginalRoute() {
+                return tt.services.calculateRoute(getCalculateRouteParams())
+                    .go()
+                    .then(function(response) {
+                        loadingHint.hide();
+                        var geojson = response.toGeoJson();
+
+                        map.addLayer({
+                            'id': ROUTE_DEFAULT,
+                            'type': 'line',
+                            'source': {
+                                'type': 'geojson',
+                                'data': geojson
+                            },
+                            'paint': {
+                                'line-color': '#4a4c4c',
+                                'line-width': ROUTE_WIDTH
+                            }
+                        });
+                        updateRouteData(document.getElementById(ROUTE_DEFAULT), response.routes[0].summary);
+                        addMarkers();
+                    })
+                    .catch(function(error) {
+                        loadingHint.hide();
+                        errorHint.setErrorMessage(error);
+                    });
+            }
+
+            function calculateVignetteRoute() {
+                onLoadingStart();
+                if (map.getLayer(ROUTE_VIGNETTES)) {
+                    map.removeLayer(ROUTE_VIGNETTES);
+                    map.removeSource(ROUTE_VIGNETTES);
+                }
+
+                var allowVignette = state.allowVignette;
+                var countryCodes = getSelectedCountries();
+
+                if (!countryCodes.length) {
+                    countryCodes = COUNTRIES;
+                    allowVignette = !allowVignette;
+                }
+
+                var calculateRouteParams = getCalculateRouteParams();
+                if (allowVignette) {
+                    calculateRouteParams.allowVignette = countryCodes;
+                } else {
+                    calculateRouteParams.avoidVignette = countryCodes;
+                }
+
+                return tt.services.calculateRoute(calculateRouteParams)
+                    .go()
+                    .then(function(response) {
+                        loadingHint.hide();
+                        var geojson = response.toGeoJson();
+
+                        map.addLayer({
+                            'id': ROUTE_VIGNETTES,
+                            'type': 'line',
+                            'source': {
+                                'type': 'geojson',
+                                'data': geojson
+                            },
+                            'paint': {
+                                'line-color': '#4a90e2',
+                                'line-width': ROUTE_WIDTH
+                            }
+                        });
+
+                        var bounds = new tt.LngLatBounds();
+                        geojson.features[0].geometry.coordinates.forEach(function(point) {
+                            bounds.extend(tt.LngLat.convert(point));
+                        });
+                        map.fitBounds(bounds, { duration: 0, padding: 50});
+
+                        updateRouteData(document.getElementById(ROUTE_VIGNETTES), response.routes[0].summary);
+                        onLoadingFinish();
+                    })
+                    .catch(function(error) {
+                        loadingHint.hide();
+                        errorHint.setErrorMessage(error);
+                    });
+            }
+
+            function getCalculateRouteParams() {
+                return {
+                    key: '${api.key.routing}',
+                    traffic: false,
+                    locations: [START_POSITION, FINAL_POSITION]
+                };
+            }
+
+            function getSelectedCountries() {
+                return COUNTRIES.filter(function(country) {
+                    var countryCheckbox = document.getElementById(country);
+                    return countryCheckbox.checked;
+                });
+            }
+
+            function validateCountryCheckboxes() {
+                var countryCodes = getSelectedCountries();
+                var validationMessage = document.querySelector('.checkbox-validation-message');
+
+                if (!countryCodes.length) {
+                    var message = 'No countries selected - all vignette roads will be ';
+                    if (state.allowVignette) {
+                        message += 'avoided.';
+                    } else {
+                        message += 'allowed.';
+                    }
+                    validationMessage.textContent = message;
+                    validationMessage.classList.remove('-hidden');
+                } else {
+                    validationMessage.textContent = '';
+                    validationMessage.classList.add('-hidden');
+                }
+            }
+
+            function addMarkers() {
+                new tt.Marker({ element: createMarkerElement('start') }).setLngLat(START_POSITION).addTo(map);
+                new tt.Marker({ element: createMarkerElement('finish') }).setLngLat(FINAL_POSITION).addTo(map);
+            }
+
+            function createMarkerElement(type) {
+                var element = document.createElement('div');
+                var innerElement = document.createElement('div');
+
+                element.className = 'static-marker';
+                innerElement.className = 'tt-icon -white -' + type;
+                element.appendChild(innerElement);
+                return element;
+            }
+
+            function onVignettesAllowAvoidChange(element) {
+                state.allowVignette = element.getAttribute('data-id') === 'allow';
+                validateCountryCheckboxes();
+            }
+
+            function updateRouteData(container, routeSummary) {
+                var distanceSpan = container.querySelector('.distance');
+                var distance = Formatters.formatAsMetricDistance(routeSummary.lengthInMeters);
+                distanceSpan.textContent = distance;
+
+                var timeSpan = container.querySelector('.time');
+                var travelTime = Formatters.formatToDurationTimeString(routeSummary.travelTimeInSeconds);
+                timeSpan.textContent = travelTime;
+            }
+
+            function onLoadingStart() {
+                errorHint.hide();
+                loadingHint.setMessage('Loading...');
+                routesPanel.classList.add('-hidden');
+            }
+
+            function onLoadingFinish() {
+                routesPanel.classList.remove('-hidden');
+            }
+
+            function addListeneres() {
+                vignettesAllowAvoid.onSelect(onVignettesAllowAvoidChange);
+
+                submitButton.onclick = function(event) {
+                    event.preventDefault();
+                    calculateVignetteRoute();
+                };
+
+                [].slice.call(countryCheckboxes).forEach(function(checkbox) {
+                    checkbox.addEventListener('change', function() {
+                        validateCountryCheckboxes();
+                    });
+                });
+
+                [ROUTE_DEFAULT, ROUTE_VIGNETTES].forEach(function(route) {
+                    var element = document.getElementById(route);
+                    element.onmouseover = function() {
+                        map.setPaintProperty(route, 'line-width', ENLARGED_ROUTE_WIDTH);
+                        map.moveLayer(route);
+                    };
+                    element.onmouseout = function() {
+                        map.setPaintProperty(route, 'line-width', ROUTE_WIDTH);
+                    };
+                });
+            }
+        </script>
+    </body>
+</html>

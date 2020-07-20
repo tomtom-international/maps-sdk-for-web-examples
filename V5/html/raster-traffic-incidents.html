@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Raster traffic incidents</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/css-styles/traffic-incidents.css'/>
+</head>
+<body>
+    <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
+    <div id='map' class='map'>
+        <div class='tt-overlay-panel -left-top -medium js-foldable'>
+            <div class='tt-form'>
+                <label class='tt-form-label tt-spacing-top-24'>
+                    Traffic incidents style
+                    <select class='js-style-select tt-select'>
+                        <option value='s0'>s0</option>
+                        <option value='s0-dark'>s0-dark</option>
+                        <option value='s1'>s1</option>
+                        <option value='s2'>s2</option>
+                        <option value='s3'>s3</option>
+                        <option value='night'>night</option>
+                    </select>
+                </label>
+            </div>
+        </div>
+    </div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script>
+        var baseStyle = 'tomtom://raster/1/';
+        var incidentConfig = {
+            key: '${api.key.trafficIncidents}',
+            incidentDetails: {
+                style: 's0'
+            },
+            incidentTiles: {
+                style: baseStyle + 's0'
+            },
+            refresh: 30000
+        };
+
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            style: baseStyle + 'basic-main',
+            center: [-0.12634, 51.50276],
+            zoom: 15,
+            dragPan: !isMobileOrTablet()
+        });
+
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+        new Foldable('.js-foldable', 'top-right');
+
+        var styleSelect = tail.select('.js-style-select', {
+            classNames: 'tt-fake-select',
+            hideSelected: true
+        });
+
+        function updateLayer() {
+            return map.addTier(new tt.TrafficIncidentTier(incidentConfig));
+        }
+
+        map.once('load', function() {
+            styleSelect.on('change', function(event) {
+                incidentConfig.incidentTiles.style = baseStyle + event.value;
+                incidentConfig.incidentDetails.style = event.value;
+                map.removeTier('trafficIncidents').then(updateLayer);
+            });
+            updateLayer();
+        });
+    </script>
+</body>
+</html>

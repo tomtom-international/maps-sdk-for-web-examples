@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Base styles</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+    <div id='map' class='map'></div>
+    <div class='tt-overlay-panel -left-top js-foldable'>
+        <label class='tt-form-label'>
+            Style
+            <select class='js-style-select tt-select'></select>
+        </label>
+        <div class='tt-form-label'>
+            Layer
+            <div id='layers-type' class='tt-buttons-group js-layer-buttons-group'>
+                <button class='tt-buttons-group__button -active' data-id='basic' data-group='layerType'>basic</button>
+                <button class='tt-buttons-group__button' data-id='hybrid' data-group='layerType'>hybrid</button>
+                <button class='tt-buttons-group__button' data-id='labels' data-group='layerType'>labels</button>
+            </div>
+        </div>
+        <div class='tt-form-label'>
+            Base layer
+            <div id='base-layer' class='js-button-list tt-buttons-group'>
+                <button class='js-button tt-buttons-group__button -active' data-id='vector' data-group='baseLayer'>vector</button>
+                <button class='js-button tt-buttons-group__button' data-id='raster' data-group='baseLayer'>raster</button>
+            </div>
+        </div>
+    </div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/tail-selector.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/buttons-group.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
+    <script>
+        var styles = {
+            main: 'main',
+            night: 'night'
+        };
+        var styleOptions = {
+            baseLayer: 'vector',
+            style: styles.main,
+            layerType: 'basic'
+        };
+
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            style: getCurrentStyleUrl(),
+            dragPan: !isMobileOrTablet()
+        });
+
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        var styleSelector = new TailSelector(styles, '.js-style-select', 'main').getElement();
+        styleSelector.on('change', function(e) {
+            styleOptions.style = e.key;
+            map.setStyle(getCurrentStyleUrl());
+        });
+
+        function buttonsGroupChange(element) {
+            var group = element.getAttribute('data-group');
+            styleOptions[group] = element.innerText;
+            map.setStyle(getCurrentStyleUrl());
+        }
+
+        var layerTypeGroup = new ButtonsGroup(document.getElementById('layers-type'));
+        layerTypeGroup.onSelect(buttonsGroupChange);
+
+        var baseLayerGroup = new ButtonsGroup(document.getElementById('base-layer'));
+        baseLayerGroup.onSelect(buttonsGroupChange);
+
+        function getCurrentStyleUrl() {
+            return 'tomtom://' + styleOptions.baseLayer + '/1/' + styleOptions.layerType + '-' + styleOptions.style;
+        }
+        new Foldable('.js-foldable', 'top-right');
+    </script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Multiple maps</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<style>
+    .flex {
+        display: flex;
+    }
+    .map-container {
+        height: 100vh;
+        position: relative;
+        width: 50%;
+    }
+</style>
+<body>
+    <div class='flex'>
+        <div class='map-container'>
+            <div id='firstMap' class='map'></div>
+        </div>
+
+        <div class='map-container'>
+            <div id='secondMap' class='map'></div>
+        </div>
+    </div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script>
+        var firstMap = tt.map({
+            key: '${api.key.maps}',
+            container: 'firstMap',
+            style: 'tomtom://vector/1/basic-main',
+            dragPan: !isMobileOrTablet(),
+            center: [17, -34]
+        });
+
+        var secondMap = tt.map({
+            key: '${api.key.maps}',
+            container: 'secondMap',
+            style: 'tomtom://vector/1/basic-night',
+            dragPan: !isMobileOrTablet(),
+            center: [4.899431, 52.379189],
+            zoom: 12
+        });
+        firstMap.addControl(new tt.FullscreenControl({ container: document.querySelector('body') }));
+        secondMap.addControl(new tt.FullscreenControl({ container: document.querySelector('body') }));
+        firstMap.addControl(new tt.NavigationControl());
+        secondMap.addControl(new tt.NavigationControl());
+
+        new tt.Marker().setLngLat([25.856667, -17.924444]).addTo(firstMap);
+        new tt.Marker().setLngLat([23.623112, -19.130979]).addTo(firstMap);
+        new tt.Marker().setLngLat([18.403108, -33.957314]).addTo(firstMap);
+
+        firstMap.fitBounds([[17, -34], [27, -15]], { padding: 100, linear: true });
+    </script>
+</body>
+</html>

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Distance measurement</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<style>
+    .top-left {
+        left: 16px;
+        position: absolute;
+        top: 16px;
+    }
+    .text {
+        padding-top: 3px;
+    }
+    .container {
+        display: flex;
+        margin-left: -4px;
+    }
+    .trash {
+        background-image: url("data:image/svg+xml,%3C%3Fxml version='1.0' encoding='UTF-8'%3F%3E%3Csvg width='24px' height='24px' viewBox='0 0 24 24' version='1.1' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink'%3E%3C!-- Generator: Sketch 55.2 (78181) - https://sketchapp.com --%3E%3Ctitle%3Etrash_bin%3C/title%3E%3Cdesc%3ECreated with Sketch.%3C/desc%3E%3Cg id='trash_bin' stroke='none' stroke-width='1' fill='none' fill-rule='evenodd'%3E%3Cpath d='M6.20534546,8.04073133 L17.9948955,8.04073133 L17.9948955,18.5891541 C17.9948955,19.1287859 17.334741,20 16.521084,20 L7.67915693,20 C6.86549999,20 6.20534546,19.1287859 6.20534546,18.5891541 L6.20534546,8.04073133 Z M16.0310552,5.24892151 L17.3665389,5.24892151 C18.2681743,5.24892151 19,5.79055391 19,6.45967701 L19,7.01089208 L5,7.01089208 L5,6.45967701 C5,5.79055391 5.7307301,5.24892151 6.63346115,5.24892151 L8.01831414,5.24892151 L8.01831414,4.65044612 C8.01831414,4.29071125 8.4105201,4 8.89584759,4 L15.1535217,4 C15.6388492,4 16.0310552,4.29071125 16.0310552,4.65044612 L16.0310552,5.24892151 Z M9,10 L9,17 C9,17.5522847 9.44771525,18 10,18 C10.5522847,18 11,17.5522847 11,17 L11,10 L9,10 Z M13,10 L13,17 C13,17.5522847 13.4477153,18 14,18 C14.5522847,18 15,17.5522847 15,17 L15,10 L13,10 Z' id='Shape' fill='%23FFFFFF'%3E%3C/path%3E%3C/g%3E%3C/svg%3E");
+        display: inline-block;
+        height: 20px;
+        margin-right: 10px;
+        width: 20px;
+    }
+</style>
+<body>
+    <div id='map' class='map'></div>
+        <button id='reset-button' class='tt-button -primary top-left'>
+            <div class='container'>
+                <div class='trash'></div>
+                <span class='text'>CLEAR</span>
+            </div>
+        </button>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/Turf.js/5.1.5/turf.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
+    <script>
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            style: 'tomtom://vector/1/basic-main',
+            center: [4.855104136880868, 52.401265170363814],
+            zoom: 10,
+            dragPan: !isMobileOrTablet()
+        });
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+        var button = document.getElementById('reset-button');
+        var popup;
+
+        var geojson = {
+            'type': 'FeatureCollection',
+            'features': []
+        };
+
+        var points = [];
+        var linestrings = [];
+
+        map.on('load', function() {
+            map.getCanvas().style.cursor = 'crosshair';
+            map.on('mouseenter', 'measure-points', function() {
+                map.getCanvas().style.cursor = 'pointer';
+            });
+
+            map.on('mouseleave', 'measure-points', function() {
+                map.getCanvas().style.cursor = 'crosshair';
+            });
+
+            map.addSource('geojson', {
+                'type': 'geojson',
+                'data': geojson
+            });
+
+            map.addLayer({
+                id: 'measure-lines',
+                type: 'line',
+                source: 'geojson',
+                layout: {
+                    'line-cap': 'round',
+                    'line-join': 'round'
+                },
+                paint: {
+                    'line-color': '#000',
+                    'line-width': 2.5
+                },
+                filter: ['in', '$type', 'LineString']
+            });
+
+            map.addLayer({
+                id: 'measure-points',
+                type: 'circle',
+                source: 'geojson',
+                paint: {
+                    'circle-radius': 6,
+                    'circle-color': '#3a3a3a',
+                    'circle-stroke-width': 2,
+                    'circle-stroke-color': '#FFF'
+                },
+                filter: ['in', '$type', 'Point']
+            });
+
+            map.on('click', function(event) {
+                if (shouldRemovePoint(event.point)) {
+                    removePoint(event.point);
+                } else {
+                    addNewPoint(event.lngLat);
+                }
+                updateView();
+            });
+        });
+
+        function shouldRemovePoint(point) {
+            var features = map.queryRenderedFeatures(point, { layers: ['measure-points'] });
+            return features.length > 0;
+        }
+
+        function removePoint(point) {
+            var features = map.queryRenderedFeatures(point, { layers: ['measure-points'] });
+            var id = features[0].properties.id;
+            points = points.filter(function(point) {
+                return point.properties.id !== id;
+            });
+        }
+
+        function removeAll() {
+            points = [];
+            updateView();
+            popup.remove();
+        }
+
+        function addNewPoint(lngLat) {
+            var point = {
+                'type': 'Feature',
+                'geometry': {
+                    'type': 'Point',
+                    'coordinates': [
+                        lngLat.lng,
+                        lngLat.lat
+                    ]
+                },
+                'properties': {
+                    'id': String(new Date().getTime())
+                }
+            };
+            points.push(point);
+        }
+
+        function updateLines() {
+            linestrings = [];
+            for (var i = 1; i < points.length; ++i) {
+                var greatCircle = turf.greatCircle(points[i - 1], points[i], {
+                    offset: 100
+                });
+                linestrings.push(greatCircle);
+            }
+        }
+
+        function updateView() {
+            updateLines();
+            map.getSource('geojson').setData(getGeoJsonData());
+            addPopup();
+        }
+
+        function getGeoJsonData() {
+            geojson.features = [];
+            geojson.features = geojson.features.concat(linestrings).concat(points);
+            return geojson;
+        }
+
+        function addPopup() {
+            var distance = calculateDistance();
+            if (distance) {
+                popup = new tt.Popup({
+                    closeButton: false,
+                    className: 'tt-popup -black',
+                    offset: -10
+                })
+                    .setLngLat(points[points.length - 1].geometry.coordinates)
+                    .setHTML(distance.kilometers + ' km | ' + distance.miles + ' mi')
+                    .addTo(map);
+            }
+        }
+
+        function calculateDistance() {
+            if (points.length < 2) {
+                return undefined;
+            }
+            var totalDistance = {
+                kilometers: 0,
+                miles: 0
+            };
+            for (var i = 1; i < points.length; ++i) {
+                var fromPoint = points[i - 1];
+                var toPoint = points[i];
+                var kilometers = turf.distance(fromPoint, toPoint);
+                var miles = turf.distance(fromPoint, toPoint, { units: 'miles' });
+                totalDistance.kilometers = Math.round((totalDistance.kilometers + kilometers) * 100) / 100;
+                totalDistance.miles = Math.round((totalDistance.miles + miles) * 100) / 100;
+            }
+            return totalDistance;
+        }
+
+        button.onclick = removeAll;
+    </script>
+</body>
+</html>

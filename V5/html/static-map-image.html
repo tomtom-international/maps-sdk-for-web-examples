@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Static map image</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<style>
+    .static-image-result {
+        align-items: center;
+        display: flex;
+        font-size: 13px;
+        font-weight: bold;
+    }
+    .static-image-result .tt-code-snippet {
+        min-width: 350px;
+    }
+    .static-image-result__img-container {
+        display: flex;
+        justify-content: center;
+        margin-right: 48px;
+        min-width: 400px;
+    }
+    .js-image-container.-is-loading:before {
+        content: "Loading...";
+        position: absolute;
+    }
+    .static-image-result img {
+        max-height: 400px;
+        max-width: 100%;
+    }
+    .image-border {
+        background: rgba(255, 255, 255, .2);
+        border: 2px dashed #004b7e;
+        height: 256px;
+        left: 50%;
+        pointer-events: none;
+        position: absolute;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 256px;
+        z-index: 2;
+    }
+    @media screen and (max-width: 1280px) {
+        .static-image-result {
+            flex-direction: column;
+            width: inherit;
+        }
+        .static-image-result .tt-code-snippet {
+            min-width: inherit;
+        }
+        .static-image-result img {
+            margin-bottom: 24px;
+        }
+        .static-image-result__img-container {
+            min-width: inherit;
+        }
+    }
+</style>
+<body>
+<div class='map-view'>
+    <form class='tt-side-panel tt-form js-form'>
+        <div class="tt-tabs">
+            <div class="tt-tabs__panel">
+                <div class='tt-params-box'>
+                    <header class='tt-params-box__header'>
+                        Static map image parameters
+                    </header>
+
+                    <div class='tt-params-box__content'>
+                        <div class='tt-inline-input-group'>
+                            <label class='tt-form-label'>
+                                Width (px)
+                                <input
+                                    class='tt-input js-width'
+                                    value='512'
+                                    type='number'
+                                    min='1'
+                                    max='8192'
+                                    placeholder='e.g. 1500' />
+                            </label>
+                            <label class='tt-form-label js-height'>
+                                Height (px)
+                                <input
+                                class='tt-input'
+                                value='512'
+                                type='number'
+                                min='1'
+                                max='8192'
+                                placeholder='e.g. 900' />
+                            </label>
+                        </div>
+
+                        <label class='tt-form-label tt-spacing-top-24'>
+                            Language
+                            <select class='js-language-select tt-select'></select>
+                        </label>
+                        <label class='tt-form-label'>
+                            Style
+                            <select class='js-style-select tt-select'></select>
+                        </label>
+
+                        <div class='tt-form-label'>Layer
+                            <div class='tt-buttons-group js-layer-buttons-group'>
+                                <button class='tt-buttons-group__button -active' data-id='basic'>basic</button>
+                                <button class='tt-buttons-group__button js-png-only' data-id='hybrid'>hybrid</button>
+                                <button class='tt-buttons-group__button js-png-only' data-id='labels'>labels</button>
+                            </div>
+                        </div>
+
+                        <label class='tt-form-label'>Format
+                            <div class='tt-inline-input-group'>
+
+                                <input name='format' id='png' class='tt-radio' type='radio' checked='true' />
+                                <label for='png' class='tt-label'>PNG</label>
+
+                                <input name='format' id='jpg' class='tt-radio' type='radio' />
+                                <label for='jpg' class='tt-label'>JPG</label>
+                            </div>
+                        </label>
+
+                        <label class='tt-form-label'>
+                           Zoom level: <span class='js-zoom-level'></span>
+                        </label>
+
+                        <span class='tt-hint-text tt-spacing-top-12'>
+                            *Static map image service handles only integer zoom level values, that's why zooming is rounded in this example.
+                        </span>
+
+                        <div class='tt-spacing-top-24'>
+                            <input
+                                type='submit'
+                                class='tt-button -primary -full-width tt-spacing-top-24'
+                                name='submit'
+                                value='Generate static map image' />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+    <div id='map' class='full-map'></div>
+</div>
+<script src='/cdn.web-sdk-services/services-web.min.js'></script>
+<script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+<script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+<script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+<script data-showable type='text/javascript' src='../assets/js/map/languages.js'></script>
+<script data-showable type='text/javascript' src='../assets/js/search/side-panel.js'></script>
+<script data-showable type='text/javascript' src='../assets/js/popup.js'></script>
+<script data-showable type='text/javascript' src='../assets/js/buttons-group.js'></script>
+<script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
+<script data-showable type='text/javascript' src='../assets/js/tail-selector.js'></script>
+<script data-showable type='text/javascript' src='../assets/js/static-map-image/step-zoom-handler.js'></script>
+<script>
+    var map = tt.map({
+        key: '${api.key.maps}',
+        container: 'map',
+        maxZoom: 21,
+        style: 'tomtom://raster/1/basic-main',
+        dragPan: !isMobileOrTablet(),
+        dragRotate: false
+    });
+    map.addControl(new tt.FullscreenControl({ container: document.querySelector('.map-view') }));
+    map.addControl(new tt.NavigationControl({
+        showCompass: false
+    }));
+
+    map.on('zoomend', function() {
+        var zoom = Math.round(map.getZoom()) + 1;
+        document.querySelector('.js-zoom-level').innerText = zoom > 22 ? 22 : zoom;
+    });
+
+    stepZoomHandler.enable(map);
+
+    new SidePanel('.tt-side-panel', map);
+    var popup = new Popup();
+    popup.addTo(document.querySelector('.map-view'));
+    popup.addTitle('Static map image:');
+    var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
+
+    var imageBorder = document.createElement('div');
+    imageBorder.className = 'image-border';
+    map.getContainer().appendChild(imageBorder);
+
+    var styles = {
+        main: 'main',
+        night: 'night'
+    };
+
+    var elements = {
+        width: document.querySelector('.js-width'),
+        height: document.querySelector('.js-height'),
+        language: new TailSelector(mapLanguages, '.js-language-select', 'NGT').getElement(),
+        style: new TailSelector(styles, '.js-style-select', 'main').getElement(),
+        layer: new ButtonsGroup(document.querySelector('.js-layer-buttons-group')),
+        form: document.querySelector('.js-form'),
+        formats: document.querySelectorAll('input[name=format]')
+    };
+
+    var state = {
+        height: 512,
+        width: 512,
+        language: 'NGT',
+        style: 'main',
+        layer: 'basic',
+        format: 'png'
+    };
+
+    elements.width.addEventListener('change', sizeChangeHandler('width'));
+    elements.height.addEventListener('change', sizeChangeHandler('height'));
+    elements.language.on('change', selectInputHandler('language'));
+    elements.style.on('change', selectInputHandler('style'));
+
+    elements.layer.onSelect(layerChangeHandler);
+
+    [].slice.call(elements.formats).forEach(function(input) {
+        input.addEventListener('click', formatChangeHandler);
+    });
+    elements.form.addEventListener('submit', submitHandler);
+
+    function layerChangeHandler(element) {
+        state.layer = element.innerText;
+        changeMapStyle();
+    }
+
+    function formatChangeHandler(event) {
+        var id = event.target.id;
+        state.format = id;
+
+        if (id === 'jpg') {
+            elements.layer.disable('hybrid');
+            elements.layer.disable('labels');
+
+            elements.layer.unselect();
+            elements.layer.select('basic');
+
+            return;
+        }
+
+        elements.layer.enable('hybrid');
+        elements.layer.enable('labels');
+    }
+
+    function submitHandler(event) {
+        event.preventDefault();
+
+        var zoom = Math.round(map.getZoom()) + 1;
+
+        var options = {
+            key: '${api.key.maps}',
+            language: state.language,
+            style: state.style,
+            layer: state.layer,
+            format: state.format,
+            zoom: zoom > 22 ? 22 : zoom,
+            center: map.getCenter(),
+            height: parseInt(state.height, 10),
+            width: parseInt(state.width, 10)
+        };
+
+        tt.services.staticImage(options)
+            .go()
+            .then(function(result) {
+                var url = result.replace(/&/g, '&amp;');
+                var publicUrl = url.replace('${api.key}', '&lt;your-api-key&gt;');
+
+                var content =
+                    '<div class="static-image-result">' +
+                        '<div class="static-image-result__img-container -is-loading js-image-container">' +
+                            '<img src="' + url + '" onload="handleImageLoad()"/>' +
+                        '</div>' +
+                        '<div class="snippet-container">' +
+                            'HTML' +
+                            '<pre class="tt-code-snippet">' +
+                                '&lt;img src=&quot;' + publicUrl + '&quot;/&gt;' +
+                            '</pre>' +
+                            'URL' +
+                            '<pre class="tt-code-snippet">' +
+                                publicUrl +
+                            '</pre>' +
+                        '</div>' +
+                    '</div>';
+
+                popup.addContent(content);
+                popup.show();
+            })
+            .catch(function(error) {
+                errorHint.setMessage(error.message);
+            });
+    }
+    //eslint-disable-next-line
+    function handleImageLoad() {
+        document.querySelector('.js-image-container').classList.remove('-is-loading');
+    }
+
+    function isCorrectWidthOrHeightValue(value) {
+        var numeric = parseInt(value, 10);
+        if (!isNaN(numeric) && numeric >= 1 && numeric <= 8192) {
+            return true;
+        }
+        return false;
+    }
+
+    function sizeChangeHandler(dimension) {
+        return function(event) {
+            var value = event.target.value;
+
+            if (!isCorrectWidthOrHeightValue(value)) {
+                value = 512;
+                event.target.value = value;
+            }
+
+            state[dimension] = value;
+            imageBorder.style[dimension] = value / 2 + 'px';
+        };
+    }
+
+    function selectInputHandler(name) {
+        return function(event) {
+            var value = event.key;
+            state[name] = value;
+
+            switch (name) {
+            case 'language':
+                map.setLanguage(value);
+                break;
+            case 'style':
+                changeMapStyle();
+                break;
+            }
+        };
+    }
+
+    function changeMapStyle() {
+        map.setStyle('tomtom://raster/1/' + state.layer + '-' + state.style);
+    }
+</script>
+</body>
+</html>

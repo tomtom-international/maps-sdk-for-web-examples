@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Reachable range</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/css-styles/poi.css'/>
+</head>
+<body>
+    <style>
+    .tt-inline-input-group > .tt-form-label {
+        width: 100%;
+    }
+    .scenarios > div {
+        color: #7a7e80;
+        cursor: pointer;
+        display: inline-flex;
+        font-weight: bold;
+        margin-right: 24px;
+    }
+    .scenarios > div.-selected {
+        color: #000000;
+    }
+    .scenarios .tt-icon {
+        margin-right: 8px;
+    }
+    .params-table {
+        font-size: 12px;
+    }
+    .param {
+        color: #666666;
+        font-weight: bold;
+        padding-right: 8px;
+    }
+    .marker-inner {
+        background-position: center;
+        background-size: 80%;
+        height: 100%;
+        margin-top: -2px;
+        width: 100%;
+    }
+    .start-marker {
+        background-color: #1692e4;
+        border: 2px solid #ffffff;
+        border-radius: 50%;
+        height: 30px;
+        width: 30px;
+    }
+    </style>
+    <div class='map-view'>
+        <div class='tt-side-panel js-form'>
+            <div class='tt-tabs js-tabs'>
+                <div class='tt-tabs__tabslist' role='tablist'>
+                    <button role='tab' aria-selected='true' aria-controls='combustion' class='tt-tabs__tab' type='button'>Combustion</button>
+                    <button role='tab' aria-selected='false' aria-controls='electric' class='tt-tabs__tab' type='button'>Electric</button>
+                </div>
+                <div class='tt-tabs__panel' id='options'>
+                    <div class='tt-params-box'>
+                        <header class='tt-params-box__header'>
+                            Reachable range parameters
+                        </header>
+                        <div class='tt-params-box__content'>
+                            <label class='tt-form-label'>Scenarios</label>
+                            <div class='js-scenarios scenarios tt-spacing-top-16'></div>
+                            <details class='tt-details tt-spacing-top-8'>
+                                <summary>Details</summary>
+                                <div class='js-scenario-details'></div>
+                            </details>
+                            <div class='tt-inline-input-group tt-spacing-top-24'>
+                                <label class='tt-form-label js-label' data-name='speed'></label>
+                                <label class='tt-form-label js-label' data-name='consumption'></label>
+                            </div>
+                            <div class='js-pairs'></div>
+                            <div class='tt-spacing-top-24'>
+                                <button class='tt-button js-add-row'>Add row</button>
+                                <button class='tt-button js-remove-row' hidden>Remove row</button>
+                            </div>
+                            <div class='tt-form-label tt-spacing-top-24'>
+                                <input name='budget-radio' id='fuel-radio' class='tt-radio' type='radio' checked>
+                                <label for='fuel-radio' class='tt-label js-label'data-name='fuelBudget'></label>
+                                <select class='js-fuel-budget-select tt-select'></select>
+
+                                <input name='budget-radio' id='time-radio' class='tt-radio' type='radio'>
+                                <label for='time-radio' class='tt-label js-label'data-name='timeBudget'></label>
+                                <select class='js-time-budget-select tt-select'></select>
+                            </div>
+                            <div class='tt-spacing-top-24'>
+                                <input type='submit' class='tt-button -primary tt-spacing-top-24' name='submit' value='Submit'>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div role='tabpanel' class='tt-tabs__panel' hidden='hidden' id='results'></div>
+            </div>
+        </div>
+        <div id='map' class='full-map'></div>
+    </div>
+    <script data-showable type='text/javascript' src='../assets/js/search/side-panel.js'></script>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/tabs.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/reachable-range/scenarios.js'></script>
+    <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/tail-selector.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+    <script type='text/javascript' src='../assets/js/polyfills.js'></script>
+    <script>
+        var origin = [4.890659, 52.373154];
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            center: origin,
+            zoom: 13,
+            style: 'tomtom://vector/1/basic-main',
+            dragPan: !isMobileOrTablet()
+        });
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        var marker = document.createElement('div');
+        marker.className = 'tt-icon -location';
+        var locationMarker = new tt.Marker({element: marker}).setLngLat(origin);
+
+        // Bind UI elements
+        var pairs = document.querySelector('.js-pairs');
+        var addRowButton = document.querySelector('.js-add-row');
+        var removeRowButton = document.querySelector('.js-remove-row');
+        var combustionTab = document.querySelector('[aria-controls="combustion"]');
+        var electricTab = document.querySelector('[aria-controls="electric"]');
+        var submit = document.querySelector('input[type="submit"]');
+        var timeBudgetSelect = new TailSelector(reachableRangeBudgets.time, '.js-time-budget-select', '600');
+        var fuelBudgetSelect = new TailSelector(reachableRangeBudgets.fuel, '.js-fuel-budget-select', '10');
+        var timeBudgetsRadios = document.querySelectorAll('input[name="budget-radio"]');
+        var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
+        var loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
+
+        // Listen for events
+        addRowButton.addEventListener('click', addRow);
+        removeRowButton.addEventListener('click', removeRow);
+        electricTab.addEventListener('click', handleTabChange(true));
+        combustionTab.addEventListener('click', handleTabChange(false));
+        submit.addEventListener('click', handleSubmit);
+
+        // Initialize UI state
+        var uiState = {
+            isEV: false,
+            selectedScenario: 'car',
+            isBudgetInSec: false,
+            markers: []
+        };
+
+        // Build UI controls
+        populateControls();
+        createScenarios();
+        createScenarioDetails();
+        handleBudgetChange();
+        new Tabs('.js-tabs');
+        new SidePanel('.tt-side-panel', map);
+
+        function handleSubmit(evt) {
+            evt.preventDefault();
+            errorHint.hide();
+            loadingHint.setMessage('Loading...');
+            var RANGE_LAYER_ID = 'rangeLayer';
+
+            if (map.getLayer(RANGE_LAYER_ID)) {
+                map.removeLayer(RANGE_LAYER_ID);
+                map.removeSource(RANGE_LAYER_ID);
+            }
+            clearMarkers();
+
+            tt.services.calculateReachableRange(getParams())
+                .go()
+                .then(function(res) {
+                    var geojson = res.toGeoJson();
+                    var query = uiState.isEV ? 'electric vehicle station' : 'gas station';
+                    var classification = uiState.isEV ? 'ELECTRIC_VEHICLE_STATION' : 'PETROL_STATION';
+
+                    return Promise.all([
+                        geojson,
+                        tt.services.geometrySearch({
+                            key: '${api.key.search}',
+                            unwrapBox: true,
+                            query: query,
+                            limit: 100,
+                            geometryList: [{
+                                type: 'POLYGON',
+                                vertices: geojson.geometry.coordinates[0].map(function(coord) {
+                                    return coord.slice().join(',');
+                                })
+                            }]
+                        })
+                            .go()
+                            .then(function(res) {
+                                return res.results.filter(function(poi) {
+                                    return poi.poi.classifications[0].code === classification;
+                                });
+                            })
+                    ]);
+                })
+                .then(function(results) {
+                    var geojson = results[0];
+                    var pois = results[1];
+
+                    map.addLayer({
+                        id: RANGE_LAYER_ID,
+                        type: 'fill',
+                        source: {
+                            type: 'geojson',
+                            data: geojson
+                        },
+                        paint: {
+                            'fill-color': '#8dc3eb',
+                            'fill-outline-color': '#0E90F1',
+                            'fill-opacity': 0.66
+                        }
+                    });
+
+                    if (!uiState.isBudgetInSec) {
+                        addMarkers(pois);
+                    }
+
+                    locationMarker.remove();
+                    locationMarker.addTo(map);
+
+                    var bounds = new tt.LngLatBounds();
+                    geojson.geometry.coordinates[0].forEach(function(point) {
+                        bounds.extend(tt.LngLat.convert(point));
+                    });
+
+                    map.fitBounds(bounds, { padding: 50 });
+                })
+                .catch(function(error) {
+                    var serviceError = error && error.data && error.data.error && error.data.error.description;
+                    errorHint.setMessage(serviceError || error && error.message || 'Error occured');
+                })
+                .finally(function() {
+                    loadingHint.hide();
+                });
+        }
+        function getParams() {
+            var constantSpeedConsumptionParam = uiState.isEV ?
+                'constantSpeedConsumptionInkWhPerHundredkm' :
+                'constantSpeedConsumptionInLitersPerHundredkm';
+            var budgetParam = uiState.isBudgetInSec ?
+                'timeBudgetInSec' :
+                (uiState.isEV ? 'energyBudgetInkWh' : 'fuelBudgetInLiters'); //eslint-disable-line
+            var params = {
+                key: '${api.key.routing}',
+                origin: origin
+            };
+            params[constantSpeedConsumptionParam] = getConsumptionPairs();
+            params[budgetParam] = getBudget();
+
+            return Object.assign(
+                {},
+                params,
+                window.reachableRangeScenarios[uiState.isEV ? 'electric' : 'combustion'][uiState.selectedScenario]
+            );
+        }
+        function clearMarkers() {
+            uiState.markers.forEach(function(marker) {
+                marker.remove();
+            });
+            uiState.markers = [];
+        }
+        function addMarkers(pois) {
+            pois.forEach(function(poi) {
+                var element = document.createElement('div');
+                var icon = document.createElement('div');
+                element.classList.add('tt-marker');
+                icon.classList.add('marker-inner');
+                icon.classList.add(uiState.isEV ? 'tt-icon-ic_map_poi_073-white' : 'tt-icon-ic_map_poi_004-white');
+                element.appendChild(icon);
+                var marker = new tt.Marker({ element: element }).setLngLat(tt.LngLat.convert(poi.position)).addTo(map);
+                uiState.markers.push(marker);
+            });
+        }
+        function getConsumptionPairs() {
+            return [].slice.call(pairs.children)
+                .map(function(label) {
+                    var inputs = label.querySelectorAll('input');
+                    return [inputs[0].value, inputs[1].value].join(',');
+                });
+        }
+        function getBudget() {
+            if (uiState.isBudgetInSec) {
+                return timeBudgetSelect.selectorElem.value;
+            }
+            return fuelBudgetSelect.selectorElem.value;
+        }
+        function handleBudgetChange() {
+            timeBudgetSelect.getElement().select.style.display = 'none';
+            [].slice.call(timeBudgetsRadios).forEach(function(input) {
+                input.addEventListener('change', function(evt) {
+                    fuelBudgetSelect.getElement().select.style.display = 'none';
+                    timeBudgetSelect.getElement().select.style.display = 'none';
+                    switch (evt.target.id) {
+                    case 'time-radio':
+                        uiState.isBudgetInSec = true;
+                        timeBudgetSelect.getElement().select.style.display = 'block';
+                        break;
+                    case 'fuel-radio':
+                        uiState.isBudgetInSec = false;
+                        fuelBudgetSelect.getElement().select.style.display = 'block';
+                        break;
+                    }
+                });
+            });
+        }
+        function createLabel(name) {
+            var labels = {
+                consumption: {
+                    label: 'Consumption',
+                    abbr: uiState.isEV ? 'kw/h' : 'l',
+                    title: uiState.isEV ? 'kilowatts per hour' : 'liters'
+                },
+                speed: {
+                    label: 'Speed',
+                    abbr: 'km/h',
+                    title: 'kilometers per hour'
+                },
+                timeBudget: {
+                    label: 'Time budget',
+                    abbr: 's',
+                    title: 'seconds'
+                },
+                fuelBudget: {
+                    label: uiState.isEV ? 'Energy budget' : 'Fuel budget',
+                    abbr: uiState.isEV ? 'kw/h' : 'l',
+                    title: uiState.isEV ? 'kilowatts per hour' : 'liters'
+                }
+            };
+
+            var abbr = document.createElement('abbr');
+            abbr.innerText = '(' + labels[name].abbr + ')';
+            abbr.title = labels[name].title;
+            abbr.classList.add('tt-abbr');
+
+            var fragment = document.createDocumentFragment();
+            var text = document.createTextNode(labels[name].label + ' ');
+            fragment.appendChild(text);
+            fragment.appendChild(abbr);
+
+            return fragment;
+        }
+        function createLabels() {
+            [].slice.call(document.querySelectorAll('.js-label')).forEach(function(label) {
+                label.innerHTML = '';
+                label.appendChild(createLabel(label.getAttribute('data-name')));
+            });
+        }
+        function createInput(name, value) {
+            var label = document.createElement('label');
+            var input = document.createElement('input');
+            input.classList.add('tt-input');
+            label.classList.add('tt-form-label');
+            input.name = name;
+            input.value = value;
+            input.type = 'number';
+            input.step = '0.1';
+            input.min = '0.1';
+
+            label.appendChild(input);
+
+            return label;
+        }
+        function createPair(values) {
+            var container = document.createElement('div');
+            container.classList.add('tt-inline-input-group');
+            container.appendChild(createInput('speed', values[0]));
+            container.appendChild(createInput('consumption', values[1]));
+
+            return container;
+        }
+        function addRow() {
+            pairs.appendChild(createPair([null, null]));
+            toggleRemoveRowButton();
+        }
+        function removeRow() {
+            pairs.removeChild(pairs.children[pairs.children.length - 1]);
+            toggleRemoveRowButton();
+        }
+        function toggleRemoveRowButton() {
+            if (pairs.children.length === 2) {
+                removeRowButton.removeAttribute('hidden');
+            } else if (pairs.children.length === 1) {
+                removeRowButton.setAttribute('hidden', 'true');
+            }
+        }
+        function handleTabChange(value) {
+            return function() {
+                if (uiState.isEV === value) {
+                    return;
+                }
+
+                uiState.isEV = value;
+                uiState.selectedScenario = 'car';
+                populateControls();
+                createScenarios();
+                createScenarioDetails();
+                toggleRemoveRowButton();
+            };
+        }
+        function populateControls() {
+            createLabels();
+            pairs.innerHTML = '';
+
+            var isCar = uiState.selectedScenario === 'car';
+            var speed = 50;
+            var consumption = uiState.isEV ?
+                (isCar ? 26 : 40) : //eslint-disable-line
+                (isCar ? 6.3 : 20); // eslint-disable-line
+
+            pairs.appendChild(createPair([speed, consumption]));
+        }
+
+        function updateScenarioIcon(element, isSelected) {
+            if (isSelected) {
+                element.classList.add('-selected');
+                element.children[0].classList.add('-black');
+            } else {
+                element.classList.remove('-selected');
+                element.children[0].classList.remove('-black');
+            }
+        }
+        function clearScenariosElements() {
+            var container = document.querySelector('.js-scenarios');
+
+            [].slice.call(container.children).forEach(function(element) {
+                updateScenarioIcon(element, false);
+            });
+        }
+        function createScenarios() {
+            var container = document.querySelector('.js-scenarios');
+            container.innerHTML = '';
+
+            var fragment = document.createDocumentFragment();
+            var scenarios = window.reachableRangeScenarios[uiState.isEV ? 'electric' : 'combustion'];
+            for (var scenario in scenarios) {
+                var isSelected = uiState.selectedScenario === scenario;
+                var element = document.createElement('div');
+                element.setAttribute('data-scenario', scenario);
+                if (isSelected) {
+                    element.classList.add('-selected');
+                }
+                var icon = document.createElement('div');
+                icon.className = 'tt-icon -' + scenario + (isSelected ? ' -black' : '');
+
+                element.appendChild(icon);
+                element.appendChild(document.createTextNode(scenario));
+                element.addEventListener('click', handleScenarioChange);
+                fragment.appendChild(element);
+            }
+
+            container.appendChild(fragment);
+        }
+        function handleScenarioChange(evt) {
+            var currentTarget = evt.currentTarget;
+            var scenario = currentTarget.getAttribute('data-scenario');
+            uiState.selectedScenario = scenario;
+
+            populateControls();
+            clearScenariosElements();
+            createScenarioDetails();
+            updateScenarioIcon(currentTarget, true);
+        }
+        function createScenarioDetails() {
+            var labels = {
+                vehicleEngineType: {
+                    label: 'Vechicle engine type'
+                },
+                currentChargeInkWh: {
+                    label: 'Current charge',
+                    abbr: 'kw/h',
+                    title: 'kilowatts per hour'
+                },
+                auxiliaryPowerInkW: {
+                    label: 'Auxiliary power',
+                    abbr: 'kw/h',
+                    title: 'kilowatts per hour'
+                },
+                vehicleWeight: {
+                    label: 'Vechicle weight',
+                    abbr: 'kg',
+                    title: 'kilograms'
+                },
+                accelerationEfficiency: {
+                    label: 'Acceleration efficiency'
+                },
+                decelerationEfficiency: {
+                    label: 'Deceleration efficiency'
+                },
+                uphillEfficiency: {
+                    label: 'Deceleration efficiency'
+                },
+                downhillEfficiency: {
+                    label: 'Deceleration efficiency'
+                },
+                maxChargeInkWh: {
+                    label: 'Max charge',
+                    abbr: 'kw/h',
+                    title: 'kilowatts per hour'
+                },
+                vehicleMaxSpeed: {
+                    label: 'Vechicle max speed',
+                    abbr: 'km/h',
+                    title: 'kilometers per hour'
+                },
+                currentFuelInLiters: {
+                    label: 'Current fuel',
+                    abbr: 'l',
+                    title: 'liters'
+                },
+                auxiliaryPowerInLitersPerHour: {
+                    label: 'Auxiliary power',
+                    abbr: 'l/h',
+                    title: 'liters per hour'
+                },
+                fuelEnergyDensityInMJoulesPerLiter: {
+                    label: 'Fuel energy density',
+                    abbr: 'MJ/l',
+                    title: 'mega joules per liter'
+                }
+            };
+
+            var detailsElement = document.querySelector('.js-scenario-details');
+            detailsElement.innerHTML = '';
+            var scenario = window.reachableRangeScenarios[uiState.isEV ? 'electric' : 'combustion'][uiState.selectedScenario];
+            var table = document.createElement('table');
+            table.className = 'params-table';
+
+            for (var vehicle in scenario) {
+                var row = document.createElement('tr');
+
+                var fragment = document.createDocumentFragment();
+                fragment.appendChild(document.createTextNode(labels[vehicle].label + ' '));
+                if (labels[vehicle].abbr) {
+                    var abbr = document.createElement('abbr');
+                    abbr.innerText = '(' + labels[vehicle].abbr + ')';
+                    abbr.title = labels[vehicle].title;
+                    abbr.classList.add('tt-abbr');
+                    fragment.appendChild(abbr);
+                }
+
+                var param = document.createElement('td');
+                param.className = 'param';
+                param.appendChild(fragment);
+
+                var value = document.createElement('td');
+                value.innerText = scenario[vehicle];
+
+                row.appendChild(param);
+                row.appendChild(value);
+                table.appendChild(row);
+            }
+
+            detailsElement.appendChild(table);
+        }
+    </script>
+</body>
+</html>

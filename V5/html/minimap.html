@@ -1,0 +1,152 @@
+<html>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Minimap plugin</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-plugin-minimap/Minimap.css'/>
+    <style>
+        .js-foldable {
+            width: 300px;
+        }
+
+        .tt-params-box__header {
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .tt-params-box__content {
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .tt-params-box {
+            box-shadow: none;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+<div id='map' class='map'>
+    <div class='tt-overlay-panel -left-top -medium js-foldable'>
+        <form>
+            <label class='tt-form-label'>
+                Map zoom: <span id='mapZoom'></span>
+            </label>
+            <label class='tt-form-label'>
+                Minimap zoom: <span id='minimapZoom'></span>
+            </label>
+            <div class='tt-params-box'>
+                <header class='tt-params-box__header'>
+                    Minimap parameters
+                </header>
+                <div class='tt-params-box__content'>
+                    <label class='tt-form-label'>
+                        Zoom level offset (<span id='zoomLevelOffsetCounter' class='tt-counter'>5</span>)
+                        <input id='zoomLevelOffsetSlider' class='tt-slider' type='range' min='3' max='8' value='5'/>
+                    </label>
+                    <label class='tt-form-label'>
+                        Minimap min zoom (<span id='minZoomCounter' class='tt-counter'>3</span>)
+                        <input id='minZoomSlider' class='tt-slider' type='range' min='0' max='6' value='3'/>
+                    </label>
+                    <label class='tt-form-label'>
+                        Minimap max zoom (<span id='maxZoomCounter' class='tt-counter'>15</span>)
+                        <input id='maxZoomSlider' class='tt-slider' type='range' min='6' max='22' value='15'/>
+                    </label>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<script type='text/javascript' src='../assets/js/polyfills.js'></script>
+<script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
+<script type='text/javascript' src='/cdn.web-sdk-plugin-minimap/Minimap-web.js'></script>
+<script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+<script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+<script>
+    // Define your product name and version.
+    tt.setProductInfo('<your-product-name>', '<your-product-version>');
+
+    var map = tt.map({
+        key: '${api.key.maps}',
+        container: 'map',
+        style: 'tomtom://vector/1/basic-main',
+        dragPan: !isMobileOrTablet(),
+        center: [-0.12634, 51.50276],
+        zoom: 15
+    });
+
+    var minimapOptions = {
+        ttMapsSdk: tt,
+        zoomOffset: 5,
+        mapOptions: {
+            key: '${api.key.maps}',
+            style: 'tomtom://vector/1/basic-main',
+            minZoom: 3,
+            maxZoom: 15
+        }
+    };
+
+    var minimap = new tt.plugins.Minimap(minimapOptions);
+
+    map.addControl(minimap, 'bottom-right');
+    new Foldable('.js-foldable', 'top-right');
+
+    function updateMinimapZoomLevelCounter() {
+        document.getElementById('minimapZoom').innerText = minimap.getMap().getZoom().toFixed(2);
+    }
+
+    function updateMapZoomLevelCounter() {
+        document.getElementById('mapZoom').innerText = map.getZoom().toFixed(2);
+    }
+
+    function updateMinimapMinZoomLevel() {
+        var minZoom = parseInt(document.getElementById('minZoomSlider').value, 10);
+        document.getElementById('minZoomCounter').innerText = minZoom;
+        minimapOptions = Object.assign({ mapOptions: Object.assign(minimapOptions.mapOptions || {}, {minZoom: minZoom}) },
+            minimapOptions);
+        minimap.getMap().setMinZoom(minZoom);
+        updateMinimapZoomLevelCounter();
+    }
+
+    function updateMinimapMaxZoomLevel() {
+        var maxZoom = parseInt(document.getElementById('maxZoomSlider').value, 10);
+        document.getElementById('maxZoomCounter').innerText = maxZoom;
+        minimapOptions = Object.assign({mapOptions: Object.assign(minimapOptions.mapOptions || {}, {maxZoom: maxZoom})},
+            minimapOptions);
+        minimap.getMap().setMaxZoom(maxZoom);
+        updateMinimapZoomLevelCounter();
+    }
+
+    function updateMinimap(minimapOptions) {
+        map.removeControl(minimap);
+        minimap = new tt.plugins.Minimap(minimapOptions);
+        map.addControl(minimap, 'bottom-right');
+        minimap.getMap().on('zoom', updateMinimapZoomLevelCounter);
+        updateMinimapZoomLevelCounter();
+    }
+
+    function updateZoomLevelOffset() {
+        var offset = parseInt(document.getElementById('zoomLevelOffsetSlider').value, 10);
+        document.getElementById('zoomLevelOffsetCounter').innerText = offset;
+        minimapOptions = Object.assign(minimapOptions, {zoomOffset: offset});
+        updateMinimap(minimapOptions);
+    }
+
+    updateMapZoomLevelCounter();
+    updateMinimapZoomLevelCounter();
+
+    map.on('zoom', updateMapZoomLevelCounter);
+    minimap.getMap().on('zoom', updateMinimapZoomLevelCounter);
+    document.getElementById('zoomLevelOffsetSlider').addEventListener('change', updateZoomLevelOffset);
+    document.getElementById('minZoomSlider').addEventListener('change', updateMinimapMinZoomLevel);
+    document.getElementById('maxZoomSlider').addEventListener('change', updateMinimapMaxZoomLevel);
+
+    map.addControl(new tt.FullscreenControl());
+    map.addControl(new tt.NavigationControl());
+</script>
+</body>
+</html>

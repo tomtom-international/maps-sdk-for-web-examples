@@ -1,0 +1,21 @@
+{
+  "name": "web-sdk-examples",
+  "private": true,
+  "homepage": "https://api.tomtom.com/maps-sdk-for-web",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "node scripts/copyToDist.js && node scripts/replacePlaceholders.js",
+    "start": "live-server"
+  },
+  "author": "Tomtom",
+  "license": "SEE LICENSE IN LICENSE.TXT",
+  "devDependencies": {
+    "ncp": "2.0.0",
+    "replace-in-file": "4.1.3"
+  },
+  "dependencies": {
+    "live-server": "1.2.1"
+  }
+}

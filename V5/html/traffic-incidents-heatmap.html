@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Traffic incidents heatmap</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+    <div id='map' class='map'></div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script>
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            dragPan: !isMobileOrTablet(),
+            zoom: 5,
+            center: [-8.413585, 40.197530]
+        });
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+        map.on('load', handleServiceRequest);
+
+        function handleServiceRequest() {
+            tt.services.incidentDetails({
+                key: '${api.key.trafficIncidents}',
+                boundingBox: map.getBounds(),
+                style: 's3',
+                zoomLevel: 10,
+                trafficModelID: '-1',
+                expandCluster: true
+            })
+                .go()
+                .then(function(response) {
+                    var points = [];
+
+                    response.tm.poi.forEach(function(poi) {
+                        if (poi.id.indexOf('CLUSTER') > -1) {
+                            poi.cpoi.forEach(function(cpoi) {
+                                points.push([cpoi.p.lng, cpoi.p.lat]);
+                            });
+                        } else {
+                            points.push([poi.p.lng, poi.p.lat]);
+                        }
+                    });
+                    map.addLayer(createHeatmapLayer(pointsToGeoJson(points)));
+                    map.setZoom(6);
+                });
+        }
+
+        function pointsToGeoJson(points) {
+            return {
+                type: 'FeatureCollection',
+                features: points.map(function(point) {
+                    return {
+                        geometry: {
+                            type: 'Point',
+                            coordinates: point
+                        },
+                        properties: {}
+                    };
+                })
+            };
+        }
+
+        function createHeatmapLayer(geoJson) {
+            return {
+                'id': 'heatmap',
+                'type': 'heatmap',
+                'source': {
+                    'type': 'geojson',
+                    'data': geoJson
+                }
+            };
+        }
+    </script>
+</body>
+</html>

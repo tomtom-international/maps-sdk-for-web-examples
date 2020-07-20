@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Building extrusions</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+    <div id='map' class='map'>
+        <div class='tt-overlay-panel -left-top'>
+            <div class='tt-form-label'>
+                Show buildings
+                <div id='showBuildings' class='tt-buttons-group'>
+                    <button class='tt-buttons-group__button -active' data-id='on' value='On'>On</button>
+                    <button class='tt-buttons-group__button' data-id='off' value='Off'>Off</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/buttons-group.js'></script>
+    <script>
+        var buildingsVisible = 'On';
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            style: 'tomtom://vector/1/basic-main',
+            dragPan: !isMobileOrTablet(),
+            zoom: 16,
+            center: [4.909278601432334, 52.37693362901979],
+            pitch: 60
+        });
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+        var showBuildingsGroup = new ButtonsGroup(document.getElementById('showBuildings'));
+
+        showBuildingsGroup.onSelect(function(element) {
+            var selectedValue = element.innerText;
+            if (buildingsVisible === selectedValue) {
+                return;
+            }
+            buildingsVisible = selectedValue;
+            var opacity = buildingsVisible === 'On' ? 1 : 0;
+            var layers = map.getStyle().layers.filter(function(layer) {
+                return layer.type === 'fill-extrusion';
+            });
+            layers.forEach(function(layer) {
+                map.setPaintProperty(layer.id, 'fill-extrusion-opacity-transition', {
+                    delay: 0,
+                    duration: 2000
+                });
+                map.setPaintProperty(layer.id, 'fill-extrusion-opacity', opacity);
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Custom incident popups</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/css-styles/traffic-incidents.css'/>
+</head>
+<body>
+    <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
+    <div id='map' class='map'></div>
+    <style>
+        .custom-img {
+            border-radius: 50%;
+            border-style: solid;
+            border-width: 3px;
+            width: 50px;
+        }
+        .details-header {
+            align-items: center;
+            display: flex;
+        }
+        .details-header > *:not(:first-child) {
+            margin-left: 10px;
+        }
+        .details-content {
+            padding-top: 10px;
+        }
+        .tt-traffic-details.-column {
+            align-items: unset;
+            flex-direction: column;
+        }
+        .delay-length {
+            display: flex;
+            margin: 4px 0 10px;
+        }
+        .delay-length > div:first-child {
+            margin-right: 10px;
+        }
+        label {
+            display: inline-block;
+            font-weight: bold;
+        }
+        .-moderate {
+            border-color: #d01b00;
+        }
+        .-major {
+            border-color: #890202;
+        }
+        .-minor {
+            border-color: #ff7110;
+        }
+        .-unknown,
+        .-undefined {
+            border-color: #999999;
+        }
+    </style>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js'></script>
+    <script>
+        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+        var photosMapping = {
+            'Default': 'default.png',
+            'Jam': 'jam.png',
+            'Road Works': 'road_works.png',
+            'Road Closed': 'road_closed.png'
+        };
+        var markerOptions = {
+            markerFactory: function(feature, defaultFactoryMethod, oldMarker) {
+                var isCluster = feature.properties && feature.properties.clusterSize;
+                var marker = defaultFactoryMethod(feature);
+
+                if (isCluster) {
+                    return defaultFactoryMethod(feature);
+                }
+                if (oldMarker) {
+                    var isPopupOpen = oldMarker.getPopup().isOpen();
+
+                    if (isPopupOpen) {
+                        oldMarker.togglePopup();
+                    }
+                    return oldMarker;
+                }
+                marker.getPopup().setHTML(createCustomPopupHTML(feature.properties)).setMaxWidth('270px');
+                return marker;
+            }
+        };
+        var incidentConfig = {
+            key: '${api.key.trafficIncidents}',
+            incidentDetails:  {
+                markerOptions: markerOptions
+            },
+            incidentTiles: {
+                style: 'tomtom://vector/1/s0'
+            }
+        };
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            center: [-0.12634, 51.50276],
+            zoom: 15,
+            dragPan: !isMobileOrTablet()
+        });
+
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        map.once('load', function() {
+            map.addTier(new tt.TrafficIncidentTier(incidentConfig));
+        });
+
+        function createCustomPopupHTML(properties) {
+            var photo = photosMapping[properties.incidentCategory] || photosMapping.Default;
+
+            return (
+                '<div class="tt-traffic-details -column">' +
+                    '<div class="details-header">' +
+                        '<img class="custom-img -' +
+                            properties.incidentSeverity + '" src="../assets/images/custom-incident-markers/' + photo + '">' +
+                        (properties.roadNumber ? '<div class="tt-road-shield">' + properties.roadNumber + '</div>' : '') +
+                        '<div class="tt-traffic-description">' +
+                            '<div class="tt-incident-category">' + properties.incidentCategory + '</div>' +
+                        '</div>' +
+                    '</div>' +
+                    createCustomPopupDetailsContentHTML(properties) +
+                '</div>'
+            );
+        }
+
+        function createCustomPopupDetailsContentHTML(properties) {
+            return (
+                '<div class="details-content">' +
+                    '<div class="delay-length">' +
+                        (properties.delaySeconds ?
+                            '<div><label>Delay:</label> ' +
+                                Formatters.formatToDurationTimeString(properties.delaySeconds) + '</div>' :
+                            '') +
+                        '<div>' +
+                            '<label>Traffic length:</label> ' +
+                            Formatters.formatAsMetricDistance(properties.lengthMeters) +
+                        '</div>' +
+                    '</div>' +
+                    '<div><label>From:</label> ' + properties.from + '</div>' +
+                    '<div><label>To:</label> ' + properties.to + '</div>' +
+                '</div>'
+            );
+        }
+    </script>
+</body>
+</html>

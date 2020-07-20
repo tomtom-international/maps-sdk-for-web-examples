@@ -1,0 +1,32 @@
+.tt-results-list{
+    background-color:#ffffff;
+    border-radius:0;
+    box-shadow:0 2px 9px 0 rgba(0, 0, 0, .11);
+    font-family:Gotham, Helvetica, Arial, sans-serif;
+    list-style-type:none;
+    margin:0;
+    padding:0;
+}
+
+    .tt-results-list__item{
+        padding:24px;
+        position:relative;
+    }
+
+    .tt-results-list__item:hover{
+            cursor:pointer;
+        }
+
+    .tt-results-list__item.-selected{
+            background-color:#f2f2f2;
+        }
+
+    .tt-results-list__item + .tt-results-list__item:before{
+                background-color:#f2f2f2;
+                content:"";
+                height:1px;
+                left:0;
+                position:absolute;
+                top:0;
+                width:100%;
+            }

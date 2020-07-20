@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Geopolitical Views</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+    <style>
+        body {
+            display: flex;
+        }
+        .map-container {
+            position: relative;
+            width: 50%;
+        }
+    </style>
+</head>
+<body>
+    <script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/map/languages.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/map/geopolitical-views.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/tail-selector.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/sync-maps.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/buttons-group.js'></script>
+    <div class='map-container'>
+        <div id='map' class='map'>
+            <div class='tt-overlay-panel -left-top -medium js-foldable'>
+                <form>
+                    <label class='tt-form-label'>
+                        Language
+                        <select id='language-select' class='tt-select'></select>
+                    </label>
+                    <label class='tt-form-label'>
+                        Geopolitical View
+                        <select id='geopol-select' class='tt-select'></select>
+                    </label>
+                    <div class='tt-form-label'>
+                        Base layer
+                        <div class='tt-buttons-group' id='base-layer-group'>
+                            <button class='tt-buttons-group__button -active' data-id='Vector'>Vector</button>
+                            <button class='tt-buttons-group__button' data-id='Raster'>Raster</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class='map-container'>
+        <div id='map2' class='map'>
+            <div class='tt-overlay-panel -left-top -medium js-foldable2'>
+                <form>
+                    <label class='tt-form-label'>
+                        Language
+                        <select id='language-select2' class='tt-select'></select>
+                    </label>
+                    <label class='tt-form-label'>
+                        Geopolitical View
+                        <select id='geopol-select2' class='tt-select'></select>
+                    </label>
+                    <div class='tt-form-label'>
+                        Base layer
+                        <div class='tt-buttons-group' id='base-layer-group2'>
+                            <button class='tt-buttons-group__button -active' data-id='Vector'>Vector</button>
+                            <button class='tt-buttons-group__button' data-id='Raster'>Raster</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+    <script>
+        var defaults = {
+            map1: {
+                language: 'en-US',
+                geopolView: 'Unified'
+            },
+            map2: {
+                language: 'en-US',
+                geopolView: 'IN'
+            }
+        };
+        var locationData = {
+            IN: {
+                center: [78, 24],
+                zoom: 3
+            },
+            IL: {
+                center: [34.8, 31],
+                zoom: 7
+            },
+            MA: {
+                center: [-6.356618, 31.880916],
+                zoom: 3
+            },
+            PK: {
+                center: [69.306735, 29.759973],
+                zoom: 3
+            },
+            AR: {
+                center: [-68.361007, -42.426041],
+                zoom: 2
+            },
+            Arabic: {
+                center: [51.744665, 25.790791],
+                zoom: 5
+            },
+            RU: {
+                center: [33.988533, 45.488992],
+                zoom: 7
+            },
+            TR: {
+                center: [33.254136, 35.115268],
+                zoom: 7
+            }
+        };
+        var baseLayer = {
+            Vector: 'tomtom://vector/1/basic-main',
+            Raster: 'tomtom://raster/1/basic-main'
+        };
+        var defaultMapOptions = {
+            key: '${api.key.maps}',
+            style: baseLayer.Vector,
+            center: locationData.IN.center,
+            zoom: locationData.IN.zoom,
+            dragPan: !isMobileOrTablet()
+        };
+
+        function assign() {
+            var newObj = arguments[0];
+            for (var i = 0; i < arguments.length; i++) {
+                var obj = arguments[i];
+                for (var prop in obj) {
+                    if (obj.hasOwnProperty(prop)) {
+                        newObj[prop] = obj[prop];
+                    }
+                }
+            }
+            return newObj;
+        }
+
+        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+
+        function MapView(mapOptions, config) {
+            this.mapOptions = mapOptions;
+            this.config = config;
+            this.init();
+            this.initEvents();
+        }
+
+        MapView.prototype.init = function() {
+            this.map = tt.map(this.mapOptions);
+
+            this.map.addControl(new tt.FullscreenControl({container: document.querySelector('body')}));
+            this.map.addControl(new tt.NavigationControl());
+
+            new Foldable(this.config.foldableSelector, 'top-right');
+        };
+
+        MapView.prototype.initEvents = function() {
+            var languageSelector = new TailSelector(mapLanguages, this.config.languageSelector, this.mapOptions.language);
+            var geopolSelector = new TailSelector(
+                mapGeopoliticalViews, this.config.geopolSelector, this.mapOptions.geopoliticalView);
+            var buttonGroup = new ButtonsGroup(document.getElementById(this.config.baseLayerId));
+
+            languageSelector.getElement().on('change', function(selected) {
+                this.map.setLanguage(selected.key);
+            }.bind(this));
+
+            geopolSelector.getElement().on('change', function(selected) {
+                this.map.setGeopoliticalView(selected.key);
+                if (selected.key !== 'Unified') {
+                    this.map.flyTo(locationData[selected.key]);
+                }
+            }.bind(this));
+
+            buttonGroup.onSelect(this.updateBaseLayer.bind(this));
+        };
+
+        MapView.prototype.updateBaseLayer = function(target) {
+            this.map.setStyle(baseLayer[target.textContent]);
+        };
+
+        var map1 = new MapView(assign({}, defaultMapOptions, {
+            container: 'map',
+            language: defaults.map1.language,
+            geopoliticalView: defaults.map1.geopolView
+        }), {
+            languageSelector: '#language-select',
+            geopolSelector: '#geopol-select',
+            baseLayerId: 'base-layer-group',
+            foldableSelector: '.js-foldable'
+        });
+
+        var map2 = new MapView(assign({}, defaultMapOptions, {
+            container: 'map2',
+            language: defaults.map2.language,
+            geopoliticalView: defaults.map2.geopolView
+        }), {
+            languageSelector: '#language-select2',
+            geopolSelector: '#geopol-select2',
+            baseLayerId: 'base-layer-group2',
+            foldableSelector: '.js-foldable2'
+        });
+
+        syncMaps(map1.map, map2.map);
+    </script>
+</body>
+</html>

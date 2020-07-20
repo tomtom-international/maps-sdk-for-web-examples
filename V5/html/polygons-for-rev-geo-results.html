@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Polygons for reverse geocoder results</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+<script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
+<script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+<script data-showable type='text/javascript' src='../assets/js/antimeridian-handler.js'></script>
+<script data-showable type='text/javascript' src='../assets/js/polygons-for-reverse-geocode/layer-manager.js'></script>
+<script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+<script data-showable type='text/javascript' src='../assets/js/buttons-group.js'></script>
+<script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
+<script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+<script src='/cdn.web-sdk-services/services-web.min.js'></script>
+<div id='map' class='map'>
+    <div class='tt-overlay-panel -left-top -medium js-foldable'>
+        <form class='tt-form'>
+            <label class='tt-form-label'>
+                Geometries zoom (<span class='tt-counter'></span>)
+                <input class='tt-slider' type='range' min='0' max='22'/>
+            </label>
+            <div class='tt-form-label'>
+                Entity type
+                <div class='tt-buttons-group'>
+                    <button class='tt-buttons-group__button -active' data-id='Country'>Country</button>
+                    <button class='tt-buttons-group__button' data-id='Municipality'>Municipality</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+    var state = {
+        center: {
+            lat: 51.65324309185297,
+            lng: 18.97433156249957
+        },
+        coordinates: null,
+        selectedAddress: null
+    };
+    tt.setProductInfo('<your-product-name>', '<your-product-version>');
+    var map = tt.map({
+        key: '${api.key.maps}',
+        container: 'map',
+        style: 'tomtom://vector/1/basic-main',
+        center: state.center,
+        zoom: 3,
+        dragPan: !isMobileOrTablet()
+    });
+    var roundLatLng = Formatters.roundLatLng;
+
+    map
+        .addControl(new tt.FullscreenControl())
+        .addControl(new tt.NavigationControl())
+        .on('click', function(event) {
+            var coordinates = {
+                lng: roundLatLng(event.lngLat.lng),
+                lat: roundLatLng(event.lngLat.lat)
+            };
+
+            state.coordinates = coordinates;
+            update(state.coordinates, form.geometryZoom(), form.entityType());
+        });
+
+    function update(coordinates, geometryZoom, selectedEntityType) {
+        if (!(coordinates && geometryZoom && selectedEntityType)) {
+            return;
+        }
+
+        loadingHint.setMessage('Loading');
+
+        marker.setLngLat(coordinates);
+        popup.remove()
+            .setLngLat(coordinates)
+            .setHTML('Loading...')
+            .addTo(map);
+        fetchAddress(coordinates, selectedEntityType)
+            .then(function(reverseGeocodeResponse) {
+                var chosenPlace = reverseGeocodeResponse.addresses[0];
+                var freeFormAddress = chosenPlace && chosenPlace.address.freeformAddress;
+
+                if (!freeFormAddress) {
+                    popup.setHTML('No address');
+                    state.selectedAddress = undefined;
+                    return;
+                }
+                var geometryId = chosenPlace.dataSources.geometry.id;
+                state.selectedAddress = freeFormAddress;
+
+                return Promise.all([
+                    reverseGeocodeResponse,
+                    fetchPolygon(geometryId, geometryZoom)
+                ]);
+            })
+            .then(function(aggregatedResponse) {
+                if (!state.selectedAddress) {
+                    var previousLayer = layerManager.getPreviousLayer();
+
+                    if (layerManager.hasLayer(previousLayer)) {
+                        layerManager.removeLayer(previousLayer);
+                    }
+
+                    return;
+                }
+
+                var reverseGeocodeResponse = aggregatedResponse[0],
+                    additionalDataResponse = aggregatedResponse[1];
+                var address = reverseGeocodeResponse.addresses[0],
+                    boundingBox = address.address.boundingBox,
+                    geometryData = additionalDataResponse.additionalData[0].geometryData,
+                    geoJSON = geometryData.features[0],
+                    fillLayer = createLayer(geoJSON, geometryZoom, 'fill'),
+                    outlineLayer = createLayer(geoJSON, geometryZoom, 'line');
+
+                if (state.selectedAddress === address.address.freeformAddress) {
+                    const bBox = new tt.LngLatBounds(boundingBox.southWest, boundingBox.northEast);
+                    map.fitBounds(new AntimeridianHandler().normalizeBoundingBox(bBox),
+                        { padding: 100, linear: true });
+
+                    var fillLayerPromise = fillLayerManager.updateLayer(fillLayer),
+                        outlineLayerPromise = outlineLayerManager.updateLayer(outlineLayer);
+
+                    return Promise.all([fillLayerPromise, outlineLayerPromise])
+                        .then(function() {
+                            popup.setHTML('<strong>' + address.address.freeformAddress + '</strong>');
+                        });
+                }
+            })
+            .catch(function(error) {
+                var message = error;
+                if (error.data) {
+                    message = message.data;
+                    var re = /<h1>(.*?)<\/h1>/;
+                    if (re.test(error.data)) {
+                        message = re.exec(message)[1];
+                    }
+                } else if (error.message) {
+                    message = message.message;
+                }
+
+                popup.setHTML('No address');
+                errorHint.setMessage(message);
+                var previousLayer = layerManager.getPreviousLayer();
+                if (layerManager.hasLayer(previousLayer)) {
+                    layerManager.removeLayer(previousLayer);
+                }
+            })
+            .finally(function() {
+                loadingHint.hide();
+            });
+    }
+
+    //-- Fetches
+    var fetchAddress = function(coordinates, entityType) {
+        return tt.services.reverseGeocode({
+            key: '${api.key.search}',
+            position: coordinates,
+            entityType: entityType
+        }).go();
+    };
+
+    var fetchPolygon = function(geometry, geometryZoom) {
+        return tt.services.additionalData({
+            key: '${api.key.search}',
+            geometries: [ geometry ],
+            geometriesZoom: geometryZoom
+        }).go();
+    };
+
+    /**
+     * createLayer
+     * @param {object} geoJSON
+     * @param {number} geometryZoom
+     * @param {string} type
+     * @return {object}
+     */
+    var createLayer = function(geoJSON, geometryZoom, type) {
+        var layerObject = {
+            id: geoJSON.id + '|' + geometryZoom + '|' + type,
+            type: type,
+            source: {
+                type: 'geojson',
+                data: geoJSON
+            },
+            layout: {},
+            paint: {}
+        };
+
+        if (type === 'line') {
+            layerObject.paint['line-color'] = '#004B7F';
+            layerObject.paint['line-width'] = 1;
+        } else {
+            layerObject.paint['fill-color'] = '#ffffff';
+            layerObject.paint['fill-opacity'] = 0.25;
+        }
+
+        return layerObject;
+    };
+
+    //-- Instances
+    var fillLayerManager = new LayerManager(map);
+    var outlineLayerManager = new LayerManager(map);
+
+    var form = {
+        geometryZoom: function() {
+            return sliderElement.value;
+        },
+        entityType: function() {
+            return document.querySelector('.tt-buttons-group__button.-active').innerText;
+        }
+    };
+
+    var marker = (function() {
+        var markerElement = document.createElement('div');
+        markerElement.className = 'tt-marker -start';
+        return new tt.Marker(markerElement)
+            .setLngLat(state.center)
+            .addTo(map);
+    })();
+
+    var popup = new tt.Popup({ className: 'tt-popup', closeOnClick: false })
+        .setLngLat(state.center)
+        .setHTML('Click anywhere on the map to get a polygon')
+        .addTo(map);
+
+    var errorHint = new InfoHint('error', 'bottom-center', 5000)
+        .addTo(map.getContainer());
+
+    var loadingHint = new InfoHint('info', 'bottom-center', 3000)
+        .addTo(map.getContainer());
+
+    new Foldable('.js-foldable', 'top-right');
+
+    //-- Form
+    var sliderElement = document.querySelector('.tt-slider'),
+        counterElement = document.querySelector('.tt-counter'),
+        buttonGroupElement = document.querySelector('.tt-buttons-group');
+    counterElement.innerText = form.geometryZoom();
+
+    sliderElement.addEventListener('change', function() {
+        counterElement.innerText = sliderElement.value;
+        update(state.coordinates, form.geometryZoom(), form.entityType());
+    });
+    var buttonGroup = new ButtonsGroup(buttonGroupElement);
+
+    buttonGroup.onSelect(function(target) {
+        update(state.coordinates, form.geometryZoom(), target.textContent);
+    });
+</script>
+</body>
+</html>

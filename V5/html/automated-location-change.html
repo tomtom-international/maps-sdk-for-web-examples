@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - automated location change</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+    <div id='map' class='map'></div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script>
+        // Define your product name and version.
+        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+
+        // Define a set of points to cycle through.
+        var points = [[-104.98485, 39.73845], [-118.24334, 34.05224], [-122.42017, 37.78008]];
+
+        // Keep track of the next point which which will be displayed.
+        var pointIndex = 1;
+
+        // Create the map.
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            style: 'tomtom://vector/1/basic-main',
+            zoom: 9,
+            center: points[0],
+            dragPan: !isMobileOrTablet()
+        });
+        map.addControl(new tt.FullscreenControl());
+
+        function changeLocation() {
+            var point = points[pointIndex];
+
+            // Change location with flight animation:
+            map.flyTo({center: point, zoom: 9});
+
+            // Change location with ease animation:
+            // map.easeTo({center: point, zoom: 9});
+
+            // Change location without animation:
+            // map.jumpTo({center: point, zoom: 9});
+
+            // Go back to the beginning once the end is reached.
+            pointIndex = (pointIndex + 1) % points.length;
+        }
+
+        setInterval(changeLocation, 5000);
+    </script>
+</body>
+</html>

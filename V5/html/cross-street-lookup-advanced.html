@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge'/>
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Cross street lookup (advanced)</title>
+    <meta name='viewport' content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'/>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/css-styles/poi.css'/>
+</head>
+<body>
+    <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/validators.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/tabs.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/languages.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/buttons-group.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/dom-helpers.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/slider.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/side-panel.js'></script>
+    <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/tail-selector.js'></script>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <div class='map-view'>
+        <form class='tt-side-panel'>
+            <header class='tt-side-panel__header'>
+                <div class='tt-inline-input-group tt-spacing-top-24'>
+                    <label class='tt-form-label'>Latitude
+                        <input class='tt-input js-latitude-input' value='50.8515' name='latitude' disabled/>
+                    </label>
+                    <label class='tt-form-label'>Longitude
+                        <input class='tt-input js-longitude-input' value='4.3705' name='longitude' disabled/>
+                    </label>
+                </div>
+                <span class='tt-hint-text tt-spacing-top-12'>
+                    Coordinates are filled automatically.
+                </span>
+            </header>
+            <style>
+                .tt-buttons-group__button {
+                    margin-right: 9px;
+                    padding: 7px;
+                }
+            </style>
+            <div class='tt-tabs js-tabs'>
+                <div role='tabpanel' class='tt-tabs__panel'>
+                    <div class='tt-params-box'>
+                        <header class='tt-params-box__header'>
+                            Cross street lookup parameters
+                        </header>
+                        <div class='tt-params-box__content'>
+                            <label class='tt-form-label'>Language
+                                <select class='js-language-select tt-select'></select>
+                            </label>
+                            <label class='tt-form-label js-radius-slider'>Radius (<span class='js-counter'>10000</span> m)
+                                <input class='tt-slider' name='radius' type='range' min='0' max='100000' value='10000'>
+                            </label>
+                            <label class='tt-form-label js-limit-slider'>Limit (<span class='js-counter'>10</span>)
+                                <input class='tt-slider' name='limit' type='range' min='1' max='100' value='10'>
+                            </label>
+                            <div class='tt-form-label'>Heading
+                                <div id="heading-dir" class='tt-buttons-group'>
+                                    <img src='../assets/svg/west.svg' class='tt-buttons-group__button' data-id='w'
+                                        direction='270'>
+                                    <img src='../assets/svg/north.svg' class='tt-buttons-group__button' data-id='n'
+                                        direction='0'>
+                                    <img src='../assets/svg/south.svg' class='tt-buttons-group__button' data-id='s'
+                                        direction='180'>
+                                    <img src='../assets/svg/east.svg' class='tt-buttons-group__button' data-id='e'
+                                        direction='90'>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div id='map' class='full-map'></div>
+    </div>
+    <script>
+        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            style: 'tomtom://vector/1/basic-main',
+            center: [4.3705, 50.8515],
+            zoom: 12,
+            dragPan: !window.isMobileOrTablet()
+        });
+
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+        var roundLatLng = window.Formatters.roundLatLng;
+
+        var welcomePopup = new tt.Popup({ className: 'tt-popup' })
+            .setHTML('Click anywhere on the map to get position.')
+            .setLngLat(new tt.LngLat(4.3705, 50.8515))
+            .addTo(map);
+
+        new SidePanel('.tt-side-panel', map);
+        var radiusSlider = new Slider(document.querySelector('.js-radius-slider'));
+        var limitSlider = new Slider(document.querySelector('.js-limit-slider'));
+        var languageSelector = new window.TailSelector(window.searchLanguages, '.js-language-select', 'en-US');
+        var headingDirectionGroup = new window.ButtonsGroup(document.getElementById('heading-dir'));
+
+        function CrossStreetLookup() {
+            this.errorHint = new InfoHint('error', 'bottom-center', 3000)
+                .addTo(document.getElementById('map'));
+
+            this.loadingHint = new InfoHint('info', 'bottom-center', 3000)
+                .addTo(document.getElementById('map'));
+
+            this.bindElements();
+
+            this.state = {
+                searchLanguage: 'en-US',
+                radius: this.elements.radius.value,
+                limit: this.elements.limit.value,
+                heading: null,
+                position: {
+                    latitude: 50.8515,
+                    longitude: 4.3705
+                },
+                isRequesting: false,
+                markers: {}
+            };
+
+            this.bindEvents();
+        }
+
+        CrossStreetLookup.prototype.bindElements = function() {
+            this.elements = {
+                radius: radiusSlider,
+                limit: limitSlider,
+                languageSelector: languageSelector.getElement(),
+                headingSelector: headingDirectionGroup
+            };
+
+            Array.prototype.slice.call(document.querySelectorAll('input'))
+                .forEach(function(input) {
+                    this.elements[input.name] = input;
+                }.bind(this));
+        };
+
+        CrossStreetLookup.prototype.handleHeadingChange = function(button) {
+            var chosenHeading = parseFloat(button.getAttribute('direction'));
+
+            if (chosenHeading === this.state.heading) {
+                headingDirectionGroup.unselect();
+                this.state.heading = null;
+            } else {
+                this.state.heading = chosenHeading;
+            }
+
+            this.handleRequest();
+        };
+
+        CrossStreetLookup.prototype.bindEvents = function() {
+            this.elements.radius.addEventListener('change', this.updateInputValue.bind(this, 'radius'));
+            this.elements.limit.addEventListener('change', this.updateInputValue.bind(this, 'limit'));
+            this.elements.languageSelector.on('change', this.setActiveLanguage.bind(this));
+            this.elements.headingSelector.onSelect(this.handleHeadingChange.bind(this));
+            this.elements.latitude.addEventListener('change', function(event) {
+                this.state.position.latitude = event.target.value;
+            }.bind(this));
+            this.elements.longitude.addEventListener('change', function(event) {
+                this.state.position.longitude = event.target.value;
+            }.bind(this));
+
+            map.on('click', this.handleMapClick.bind(this));
+        };
+
+        CrossStreetLookup.prototype.updateInputValue = function(property, event) {
+            this.state[property] = event.target.value;
+            this.handleRequest();
+        };
+
+        CrossStreetLookup.prototype.setActiveLanguage = function(selected) {
+            this.state.searchLanguage = selected.key;
+            this.handleRequest();
+        };
+
+        CrossStreetLookup.prototype.getCrossStreetService = function() {
+            return tt.services.crossStreetLookup({
+                key: '${api.key.search}',
+                position: [
+                    this.state.position.longitude,
+                    this.state.position.latitude
+                ],
+                language: this.state.searchLanguage,
+                radius: this.state.radius,
+                limit: this.state.limit,
+                heading: this.state.heading
+            });
+        };
+
+        CrossStreetLookup.prototype.requestData = function() {
+            if (this.state.isRequesting) {
+                return;
+            }
+
+            this.state.isRequesting = true;
+            this.getCrossStreetService()
+                .go()
+                .then(this.handleResponse.bind(this))
+                .catch(this.handleError.bind(this))
+                .finally(function() {
+                    this.state.isRequesting = false;
+                }.bind(this));
+        };
+
+        CrossStreetLookup.prototype.handleError = function(error) {
+            this.loadingHint.hide();
+            this.errorHint.setMessage(error.data ? error.data.errorText : error);
+        };
+
+        CrossStreetLookup.prototype.handleResponse = function(response) {
+            var addresses = response.addresses;
+
+            this.loadingHint.hide();
+
+            if (!addresses[0]) {
+                this.errorHint.setMessage('No results found for given parameters');
+                return;
+            }
+
+            this.errorHint.hide();
+
+            addresses.forEach(function(crossing) {
+                var popupAddress = document.createElement('strong');
+                var freeformAddress = crossing.address.freeformAddress;
+                popupAddress.innerText = freeformAddress;
+                var popupContent = popupAddress.outerHTML;
+
+                var marker = new window.tt.Marker().setLngLat(crossing.position);
+                marker.getElement().classList.add('marker');
+                marker.addTo(map);
+                marker.setPopup(new window.tt.Popup({ offset: [0, -30] }).setHTML(popupContent));
+                this.state.markers[freeformAddress] = marker;
+
+            }.bind(this));
+
+            map.fitBounds(this.getMarkersBounds(), { padding: 50 });
+        };
+
+        CrossStreetLookup.prototype.removeMarkers = function() {
+            welcomePopup.remove();
+
+            for (var marker in this.state.markers) {
+                this.state.markers[marker].remove();
+            }
+            this.state.markers = {};
+        };
+
+        CrossStreetLookup.prototype.getMarkersBounds = function() {
+            var bounds = new tt.LngLatBounds();
+
+            for (var marker in this.state.markers) {
+                bounds.extend(this.state.markers[marker].getLngLat());
+            }
+
+            return bounds;
+        };
+
+        CrossStreetLookup.prototype.handleMapClick = function(event) {
+            if (DomHelpers.checkIfElementOrItsParentsHaveClass(event.originalEvent.target, 'marker')) {
+                return;
+            }
+
+            this.loadingHint.setMessage('Loading');
+
+            var pos = event.lngLat.toArray();
+            this.state.position.longitude = pos[0];
+            this.state.position.latitude = pos[1];
+            this.elements.longitude.value = roundLatLng(pos[0]);
+            this.elements.latitude.value = roundLatLng(pos[1]);
+
+            this.handleRequest();
+        };
+
+        CrossStreetLookup.prototype.handleRequest = function() {
+            this.removeMarkers();
+            this.requestData();
+        };
+
+        new CrossStreetLookup();
+    </script>
+</body>
+</html>

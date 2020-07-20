@@ -1,0 +1,28 @@
+.tt-form-label{
+    color:#666666;
+    display:block;
+    font-size:13px;
+    font-weight:bold;
+}
+
+    .tt-form-label .tt-input,
+    .tt-form-label .tt-select,
+    .tt-form-label .tt-fake-select,
+    .tt-form-label .tt-slider,
+    .tt-form-label .tt-checkbox,
+    .tt-form-label .tt-buttons-group{
+        margin-top:12px;
+        width:100%;
+    }
+
+    .tt-form-label + .tt-form-label{
+        margin-top:24px;
+    }
+
+    .tt-form-label[disabled]{
+        color:#cccccc;
+        -webkit-user-select:none;
+           -moz-user-select:none;
+            -ms-user-select:none;
+                user-select:none;
+    }
