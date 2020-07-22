@@ -84,7 +84,8 @@
 
         var map = tt.map({
             key: '${api.key.maps}',
-            style: '${styles.custom.incidents.markers.style}',
+            // Pass here your custom style with a custom spritesheet
+            style: 'https://api.tomtom.com/maps-sdk-for-web/static/custom_incidents_style.json',
             container: 'map',
             center: [-0.12634, 51.50276],
             zoom: 14,
