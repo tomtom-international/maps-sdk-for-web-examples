@@ -31,7 +31,8 @@
         map.addControl(new tt.NavigationControl());
 
         var marker = new tt.Marker({
-            draggable: true
+            draggable: true,
+            scale: 1
         }).setLngLat(center).addTo(map);
 
         function onDragEnd() {
