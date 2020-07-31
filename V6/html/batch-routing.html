@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Batch routing</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+          <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+          <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+    <style>
+        .form-wrapper {
+            background-color: #ffffff;
+            padding: 24px 16px;
+        }
+        .map-view .marker {
+            align-items: center;
+            background-color: #4a90e2;
+            border: solid 3px #2faaff;
+            border-radius: 50%;
+            display: flex;
+            height: 32px;
+            justify-content: center;
+            transition: width .1s, height .1s;
+            width: 32px;
+        }
+        .tt-tabs.hide {
+            display: none;
+        }
+        rect {
+            cursor: pointer;
+        }
+        .tt-bar-chart .details__label {
+            color: #000000;
+        }
+        .tt-bar-chart .details__value {
+            display: inline-block;
+            color: #004b7f;
+            font-size: 16px;
+            font-weight: bold;
+            letter-spacing: -0.49px;
+            margin-top: 8px;
+        }
+
+        .tt-bar-chart__content {
+            min-height: 160px;
+            position: relative;
+        }
+
+        .tt-bar-chart .travel-time {
+            height: 210px;
+            transform: translateX(-10px);
+        }
+
+        .tt-side-panel__header .tt-form-label {
+            min-width: 130px;
+        }
+    </style>
+</head>
+<body>
+    <div class='map-view'>
+        <form class='tt-side-panel js-form'>
+            <header class='tt-side-panel__header tt-form'>
+                <div class='tt-heading-text'>
+                    Plan departure
+                </div>
+                <div class='tt-inline-input-group tt-spacing-top-16'>
+                    <span class='tt-form-label'>Depart at
+                        <span class='tt-input-time tt-input' id='js-depart-at'></span>                        
+                    </span>
+                    <span class='tt-form-label'>Date <span class="tt-hint-text">(dd/mm/yyyy)</span>
+                        <input class='js-date-input tt-input'>
+                    </span>
+                </div>
+                <div class="tt-spacing-top-24">
+                    <input type="submit" class="tt-button -primary tt-spacing-top-24" name="submit" value="Calculate">
+                </div>
+            </header>
+            <div class='tt-tabs js-tabs hide'>
+                <div class='tt-tabs__panel tt-bar-chart'>
+                    <div class='form-wrapper'>
+                        <div class='tt-heading-text'>
+                            Estimated travel time
+                            <div class="tt-bar-chart__content js-chart-content">
+                                <div class="travel-time js-travel-time"></div>
+                                <div class='tt-inline-input-group tt-spacing-top-16'>
+                                    <label class='tt-form-label'>
+                                        <span class="details__label">Duration</span><br/>
+                                        <span class="details__value js-duration"></span>
+                                    </label>
+                                    <label class='tt-form-label'>
+                                        <span class="details__label">Distance</span><br/>
+                                        <span class="details__value js-distance"></span>
+                                    </label>
+                                    <label class='tt-form-label'>
+                                        <span class="details__label">Arrive</span><br/>
+                                        <span class="details__value js-arrive"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div id='map' class='full-map'></div>
+    </div>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/d3/5.16.0/d3.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/side-panel.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/charts/bar-chart.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/input-time.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/loader.js'></script>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js'></script>
+    <script>
+        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+        var mapConfig = {
+            center: [5.182194, 51.907477],
+            zoom: 8,
+            mapLocation: '4.89066,52.37317:5.478,51.4366'
+        };
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            center: mapConfig.center,
+            zoom: mapConfig.zoom,
+            dragPan: !isMobileOrTablet()
+        });
+
+        map.addControl(new tt.FullscreenControl({ container: document.querySelector('body') }));
+        map.addControl(new tt.NavigationControl());
+        
+        new SidePanel('.tt-side-panel', map);
+
+        function BatchRouting() {
+            this.visibleHours = 8;
+            this.pastTimeMsg = 'Route can\'t be calculated for past events. Please choose current or future time.';
+            this.initialTime = moment(new Date()).add(0, 'hours').toDate();
+            this.barChart = null;
+            this.routeBatchStore = {};
+            this.state = {
+                isRequesting: false,
+                time: Formatters.formatToShortenedTimeString(this.initialTime),
+                date: Formatters.formatToDateString(this.initialTime),
+                chosenBar: null,
+                marker: {
+                    start: undefined,
+                    finish: undefined
+                }
+            };
+
+            this.elements = {
+                inputTime: document.getElementById('js-depart-at'),
+                inputDate: document.querySelector('.js-date-input'),
+                chartContent: document.querySelector('.js-chart-content'),
+                tabs: document.querySelector('.js-tabs'),
+                chartDetails: {
+                    duration: this.getDetailsElement('duration'),
+                    distance: this.getDetailsElement('distance'),
+                    arrival: this.getDetailsElement('arrive')
+                }
+            };
+            this.chartLoader = new Loader('Calculating...', this.elements.chartContent);
+            this.init();
+        }
+
+        BatchRouting.prototype.init = function() {
+            this.elements.inputDate.value = this.state.date;
+            var formattedTime =  this.getInputFormattedDate();
+            this.inputTime = new InputTime(this.elements.inputTime, formattedTime);
+            this.errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
+            this.loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
+
+            map.on('load', function() {
+                this.bindEvents();
+                if (this.validateRouteDateTime()) {
+                    this.calculateRoute();                
+                }
+            }.bind(this));
+        };
+
+        BatchRouting.prototype.handleSubmit = function(event) {
+            event.preventDefault();
+            var date = this.getInputFormattedDate();
+
+            if (!this.state.isRequesting && this.validateRouteDateTime() && date) {
+                this.inputTime.setDate(date);
+                this.barChart ? this.barChart.setDate(date) : '';
+                this.calculateRoute();                
+            }
+        };
+
+        BatchRouting.prototype.calculateRoute = function() {
+            this.setInitialTime(this.inputTime.getTime());
+            if (new Date(this.initialTime) < new Date()) {
+                this.errorHint.setMessage(this.pastTimeMsg);
+                this.state.isRequesting = false;
+                return;
+            }
+
+            this.state.isRequesting = true;
+            this.toogleTabVisibility(true);
+            this.errorHint.hide();
+            this.chartLoader.show();
+
+            tt.services.calculateRoute({
+                batchMode: 'sync',
+                key: '${api.key.routing}',
+                batchItems: this.getBatchItems(this.visibleHours)
+            })
+            .then(this.handleBatchResponse.bind(this))
+            .catch(this.handleError.bind(this))
+            .finally(function() {
+                this.state.isRequesting = false;
+                this.chartLoader.hide();
+            }.bind(this));
+        };
+
+        BatchRouting.prototype.handleBatchResponse = function(routeData) {
+            var data = this.prepareBarChartData(routeData.batchItems);
+            if (data.length) {
+                return this.drawBarChart(data);
+            }
+            this.toogleTabVisibility(false);
+        };
+
+        BatchRouting.prototype.handleResponse = function(response) {
+            this.loadingHint.hide();
+            this.applyGeoJsonToMap(response);
+        };
+
+        BatchRouting.prototype.handleError = function(error) {
+            this.loadingHint.hide();
+            this.chartLoader.hide();
+            this.errorHint.setErrorMessage(error);
+        };
+
+        BatchRouting.prototype.toogleTabVisibility = function(isVisible) {
+            var status = isVisible ? 'remove' : 'add';
+            this.elements.tabs.classList[status]('hide');
+        };
+        
+        BatchRouting.prototype.applyGeoJsonToMap = function(response) {
+            var geojson = response.toGeoJson();
+            if (map.getLayer('route')) {
+                map.removeLayer('route');
+                map.removeSource('route');
+            }
+            map.addLayer({
+                'id': 'route',
+                'type': 'line',
+                'source': {
+                    'type': 'geojson',
+                    'data': geojson
+                },
+                'paint': {
+                    'line-color': '#4a90e2',
+                    'line-width': 4
+                }
+            });
+            this.addMarkers(geojson.features[0]);
+
+            var bounds = new tt.LngLatBounds();
+            geojson.features[0].geometry.coordinates.forEach(function(point) {
+                bounds.extend(tt.LngLat.convert(point));
+            });
+            map.fitBounds(bounds, { duration: 0, padding: 50 });
+            map.setCenter(mapConfig.center);
+            map.setZoom(mapConfig.zoom);
+        };
+
+        BatchRouting.prototype.addMarkers = function(feature) {
+            var startPoint = feature.geometry.coordinates[0];
+            var endPoint = feature.geometry.coordinates[feature.geometry.coordinates.length - 1];
+            new tt.Marker({ element: this.createMarkerElement('start') }).setLngLat(startPoint).addTo(map);
+            new tt.Marker({ element: this.createMarkerElement('finish') }).setLngLat(endPoint).addTo(map);
+        };
+
+        BatchRouting.prototype.createMarkerElement = function(type) {
+            var element = document.createElement('div');
+            var innerElement = document.createElement('div');
+
+            element.className = 'marker';
+            innerElement.className = 'tt-icon -white -' + type;
+            element.appendChild(innerElement);
+            return element;
+        };
+
+        BatchRouting.prototype.setInitialTime = function(data) {
+            this.initialTime.setHours(data.h, data.m, 0);
+            this.initialTime.setFullYear(data.year, data.month, data.date);
+            this.state.time = Formatters.formatToShortenedTimeString(this.initialTime);
+        };
+
+        BatchRouting.prototype.getInputFormattedDate = function() {
+            try {
+                var dateInputElement = this.elements.inputDate;
+                var dateInputValue = dateInputElement.value || dateInputElement.placeholder;
+                return Formatters.dateTimeStringToObject(dateInputValue, this.state.time).toISOString();
+            } catch (error) {
+                this.errorHint.setErrorMessage({
+                    message: 'Invalid "Depart at" or "Date" value.'
+                });
+            }
+        };
+
+        BatchRouting.prototype.bindEvents = function() {
+            document.querySelector('input[name="submit"]').addEventListener('click', this.handleSubmit.bind(this));
+        };
+
+        BatchRouting.prototype.prepareBarChartData = function(routeData) {
+            try {
+                return routeData.map(function(data, i) {
+                    var item = data.routes.map(function(route) {
+                        var routeRes = {
+                            arrivalTime: route.summary.arrivalTime,
+                            departureTime: route.summary.departureTime,
+                            lengthInMeters: route.summary.lengthInMeters,
+                            travelTimeInSeconds: route.summary.travelTimeInSeconds
+                        };
+                        return routeRes;
+                    });
+
+                    var hours = new Date(item[0].departureTime).getHours();
+                    var minutes = new Date(item[0].departureTime).getMinutes();
+                    
+                    var batchKey = new Date(item[0].departureTime).getTime();
+                    this.routeBatchStore[batchKey] = data;
+                    
+                    return {
+                        name: this.addZero(hours) + ':' + this.addZero(minutes),
+                        value: item[0].travelTimeInSeconds / 60 / 60,
+                        arrivalTime: item[0].arrivalTime,
+                        lengthInMeters: item[0].lengthInMeters,
+                        travelTimeInSeconds: item[0].travelTimeInSeconds,
+                        departureTime: item[0].departureTime
+                    };
+                }, this);
+            } catch (error) {
+                this.errorHint.setErrorMessage(error);
+            }
+        };
+
+        BatchRouting.prototype.drawBarChart = function(data) {
+            if (!this.barChart) {
+                var chartHolder = document.querySelector('.js-travel-time');
+                var handlers = {
+                    rectClickHandler: this.drawBarChartDetails.bind(this),
+                    rectHoverHandler: this.drawBarChartDetails.bind(this),
+                    rectMouseoverHandler: this.drawSpecifiedBarChartDetails.bind(this)
+                };
+                var payload = {
+                    data: data,
+                    todayDate: this.getInputFormattedDate()
+                };
+                this.barChart = new BarChart(payload, chartHolder, handlers);
+            } else {
+                this.barChart.updateData(data);
+            }
+            this.barChart.selectFirstRect();
+            this.drawBarChartDetails(data[0]);
+        };
+
+        BatchRouting.prototype.drawSpecifiedBarChartDetails = function() {
+            if (this.state.chosenBar) {
+                var routeData = this.routeBatchStore[this.state.chosenBar];
+                var data = this.prepareBarChartData([routeData]);
+                data.length ? this.drawBarChartDetails(data[0]) : '';
+            }
+        };
+
+        BatchRouting.prototype.drawBarChartDetails = function(data, chosenBar) {
+            try {
+                var batchKey = new Date(data.departureTime).getTime();
+                if (batchKey in this.routeBatchStore) {
+                    chosenBar ? this.state.chosenBar = batchKey : '';
+                    var response = this.routeBatchStore[batchKey];
+                    this.applyGeoJsonToMap(response);
+                }
+                if (data) {
+                    this.elements.chartDetails.duration.innerHTML = 
+                        Formatters.formatToDurationTimeString(data.travelTimeInSeconds);
+                    this.elements.chartDetails.distance.innerHTML = Formatters.formatAsMetricDistance(data.lengthInMeters);
+                    this.elements.chartDetails.arrival.innerHTML = Formatters.formatToTimeString(data.arrivalTime);
+                    return;
+                }
+
+                for (var i in this.elements.chartDetails) {
+                    this.elements.chartDetails[i].innerHTML = '';
+                }
+            } catch (error) {
+                this.errorHint.setErrorMessage(error);
+            }
+        };
+
+        BatchRouting.prototype.getBatchItems = function(hours) {
+            var batchItems = [];
+            var requestsAmount = hours * 2;
+            var date = this.getInputFormattedDate();
+            for (var i = 0; i < requestsAmount; ++i) {
+                var halfHour = i / 2;
+                var departAt = moment(date).add(halfHour, 'hours').toISOString();
+                batchItems.push({
+                    traffic: true,
+                    computeTravelTimeFor: 'all',
+                    locations: mapConfig.mapLocation,
+                    departAt: departAt
+                });
+            }
+            return batchItems;
+        };
+
+        BatchRouting.prototype.addZero = function(value) {
+            return value.toString().length === 2 ? value : '0' + value;
+        };
+
+        BatchRouting.prototype.getDetailsElement = function(name) {
+            return document.querySelector('.js-' + name);
+        };
+
+        BatchRouting.prototype.validateRouteDateTime = function(name) {
+            try {
+                var isValid = true;
+                var dateInputElement = this.elements.inputDate;
+                var dateInputValue = dateInputElement.value || dateInputElement.placeholder;
+                isValid = moment(dateInputValue, 'DD/MM/YYYY', true).isValid();
+                if (!isValid) {
+                    Formatters.dateTimeStringToObject(dateInputValue, this.state.time);
+                }
+                return isValid;
+            } catch (error) {
+                this.errorHint.setErrorMessage(error);
+            }
+        };
+
+        new BatchRouting();
+    </script>
+</body>
+</html>

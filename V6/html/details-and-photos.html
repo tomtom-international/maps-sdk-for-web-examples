@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - POI details and photos</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/icons-css/poi.css'/>
+
+    <style>
+        .tt-side-panel__header {
+            box-shadow: 0 4px 16px rgba(0,0,0,.1);
+            z-index: 2;
+        }
+        .tt-filters-container.tail-select-container
+        .select-handle.disabled::after {
+            background-image: none;
+        }
+        .result-card {
+            background-color: #ffffff;
+        }
+        .basic-info-container {
+            padding: 15px;
+        }
+        .poi-name {
+            font-weight: bold;
+            margin-top: 25px;
+        }
+        .data-label {
+            color: #808080;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .contact
+        .data-label {
+            color: #626262;
+            font-size: 12px;
+            margin-top: 25px;
+        }
+        .reviews
+        .data-label {
+            margin-top: 25px;
+        }
+        .reviews-container {
+            color: #444444;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .review-item {
+            margin-top: 15px;
+        }
+        .website-item {
+            margin-top: 5px;
+        }
+        .website-item a {
+            color: #1692e4;
+        }
+        .review-text {
+            color: #808080;
+            font-style: italic;
+            margin-top: 5px;
+        }
+        .data-segment {
+            border-bottom: 1px solid rgba(0, 0, 0, .14);
+            padding: 0 15px 15px;
+            width: 100%;
+        }
+        .address,
+        .hours-container,
+        .phone-number {
+            color: #505050;
+            font-size: 14px;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+        .popup-container {
+            font-family: Gotham, Helvetica, Arial, sans-serif;
+            margin: -30px -10px -15px;
+        }
+        .popup-container
+        .popup-text {
+            padding: 0 17px 10px;
+        }
+        .popup-container
+        .popup-text
+        .poi-name {
+            font-size: 15px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .popup-container img {
+            width: 100%;
+        }
+        .time-range {
+            float: right;
+        }
+        .hours-range {
+            margin-top: 5px;
+        }
+        .social-media-icon {
+            height: 16px;
+            padding-top: 3px;
+            width: 16px;
+        }
+        .website-link {
+            display: inline-block;
+            overflow: hidden;
+            padding-left: 7px;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            width: 260px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class='map-view'>
+        <form class='tt-side-panel js-form'>
+            <header class='tt-side-panel__header'>
+                <label class='tt-form-label'>
+                    Scenario
+                    <select id='scenario-select' class='tt-select'></select>
+                </label>
+            </header>
+            <div class='tt-tabs js-tabs'>
+                <div class='tt-tabs__panel' id='results'>
+                    <div class='js-results' hidden='hidden'></div>
+                    <div class='js-results-loader' hidden='hidden'>
+                        <div class='loader-center'><span class='loader'></span></div>
+                    </div>
+                    <div class='result-card'>
+                        <div class="photo-container"></div>
+                        <div class="data-segment basic">
+                            <div class="poi-name"></div>
+                            <div class="data-label category"></div>
+                            <div class="address"></div>
+                            <div class="data-label">
+                                <div class="rating"></div>
+                                <div class="pricing"></div>
+                            </div>
+                        </div>
+                        <div class="data-segment contact">
+                            <div class="data-label hours"></div>
+                            <div class="data-label phone"></div>
+                            <div class="data-label websites"></div>
+                        </div>
+                        <div class="data-segment reviews"></div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <div id='map' class='full-map'></div>
+    </div>
+    <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/search-results-parser.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/dom-helpers.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/openingHoursHandler.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/tail-selector.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js'></script>
+
+    <script>
+        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            center: [-0.130033, 51.510363],
+            zoom: 11,
+            dragPan: !isMobileOrTablet()
+        });
+
+        map.addControl(new tt.FullscreenControl({ container: document.querySelector('body') }));
+        map.addControl(new tt.NavigationControl());
+
+        var scenarios = {
+            'Restaurant': {
+                query: 'Pizza Hut Lintsesteenweg 6, 2500 Lier'
+            },
+            'Gas station': {
+                query: 'Asda Petrol Station Bournemouth Road, Eastleigh, SO53 3QB'
+            },
+            'Grocery store': {
+                query: 'Lidl Hemonylaan 25A, 1074BJ, Amsterdam'
+            }
+        };
+
+        var state = {
+            selectedScenario: 'Restaurant',
+            marker: undefined
+        };
+
+        var elements = {
+            photoContainer: document.querySelector('.photo-container'),
+            reviewsContainer: document.querySelector('.reviews'),
+            websitesContainer: document.querySelector('.websites'),
+            pricingContainer: document.querySelector('.pricing'),
+            ratingContainer: document.querySelector('.rating'),
+            phoneContainer: document.querySelector('.phone'),
+            hoursContainer: document.querySelector('.hours'),
+            errorHint: new InfoHint('error', 'bottom-center', 4000).addTo(document.getElementById('map')),
+            scenarioSelector: new TailSelector(Object.keys(scenarios), '#scenario-select')
+        };
+
+        var iconsMappings = {
+            'facebook': '../assets/svg/facebook.svg',
+            'twitter': '../assets/svg/twitter.svg',
+            'instagram': '../assets/svg/instagram.svg'
+        };
+
+        function renderSearchResult(fuzzyResult, poiResult) {
+            handlePhoto(poiResult, fuzzyResult);
+            handleBasicData(fuzzyResult, poiResult);
+            handleOpeningHours(fuzzyResult);
+            handleContactAndHours(fuzzyResult, poiResult);
+            handleReviews(poiResult);
+
+            map.flyTo({center: fuzzyResult.position, offset: [0, 150], animate: false});
+            document.querySelector('.tt-tabs__panel').scrollTo(0, 0);
+        }
+
+        function createMarkerAndPopup(fuzzyResult) {
+            if (state.marker) {
+                state.marker.remove();
+                state.marker = undefined;
+            }
+        
+            var popupHTML = elements.photoContainer.innerHTML +
+                '<div class="popup-text">' + document.querySelector('.basic').innerHTML + '</div>';
+
+            var popup = new tt.Popup({
+                offset: 35
+            })
+                .setHTML('<div class="popup-container">' + popupHTML + '</div>')
+                .setMaxWidth('320px');
+
+            state.marker = new tt.Marker().setLngLat(fuzzyResult.position).addTo(map);
+            state.marker.setPopup(popup).togglePopup();
+        }
+
+        function handlePhoto(poiResult, fuzzyResult) {
+            var imageElement = document.createElement('img');
+            imageElement.setAttribute('alt', 'Image not found.');
+
+            tt.services.poiPhotos({
+                key: '${api.key.search}',
+                id: poiResult.result.photos[0].id,
+                width: 344,
+                height: 170
+            })
+                .then(function(response) {
+                    imageElement.src = response;
+
+                    elements.photoContainer.innerHTML = '';
+                    elements.photoContainer.appendChild(imageElement);
+
+                    createMarkerAndPopup(fuzzyResult);
+                })
+                .catch(function(error) {
+                    elements.errorHint.setErrorMessage(error);
+                });
+        }
+
+        function handleBasicData(fuzzyResult, poiResult) {
+            document.querySelector('.poi-name').textContent = fuzzyResult.poi.name;
+            document.querySelector('.address').textContent = fuzzyResult.address.freeformAddress;
+            document.querySelector('.category').textContent =
+                Formatters.formatCategoryName(fuzzyResult.poi.classifications[0].code);
+
+            elements.pricingContainer.innerHTML = '';
+            elements.ratingContainer.innerHTML = '';
+
+            var rating = poiResult.result.rating;
+            var pricing = poiResult.result.priceRange;
+
+            if (rating) {
+                elements.ratingContainer.innerHTML =
+                    'Rating: <b><span class="rating-value">' + rating.value + '</span>/10' +
+                    ' (<span class="ratings-number">' + rating.totalRatings + ' </span> ratings)</b>';
+            }
+
+            if (pricing) {
+                elements.pricingContainer.innerHTML =
+                    'Pricing: <b><span class="pricing-value">' + pricing.value + '</span>/' +
+                    '<span class="pricing-maxValue">' + pricing.maxValue + '</span></b>';
+            }
+        }
+
+        function handleContactAndHours(fuzzyResult, poiResult) {
+            elements.websitesContainer.innerHTML = '<div>Websites</div><div class="websites-container"></div>';
+
+            elements.phoneContainer.innerHTML = '<div>Phone</div><div class="phone-number">' + fuzzyResult.poi.phone + '</div>';
+
+            poiResult.result.socialMedia.forEach(function(website) {
+                var websiteElement = document.createElement('div');
+                websiteElement.classList.add('website-item');
+
+                websiteElement.innerHTML = '<img class="social-media-icon" src="' + iconsMappings[website.name] + '" />' +
+                    '<a class="website-link" href="' + website.url + '" target="_blank">' + website.url + '</a>';
+
+                elements.websitesContainer.appendChild(websiteElement);
+            });
+        }
+
+        function handleOpeningHours(fuzzyResult) {
+            elements.hoursContainer.innerHTML = '<div>Hours</div>';
+            const openingHoursElement = openingHoursHandler(fuzzyResult);
+
+            if (openingHoursElement) {
+                elements.hoursContainer.appendChild(openingHoursElement);
+            } else {
+                elements.errorHint.setMessage('No info on opening hours.');
+            }
+        }
+
+        function handleReviews(poiResult) {
+            elements.reviewsContainer.innerHTML =
+                '<div class="data-label">Most popular reviews</div>' +
+                '<div class="reviews-container"></div>';
+
+            poiResult.result.reviews.forEach(function(review) {
+                var reviewElement = document.createElement('div');
+                reviewElement.classList.add('review-item');
+
+                var reviewDate = Formatters.dateStringToObject(review.date);
+
+                reviewElement.innerHTML =
+                    '<div class="review-date">' + Formatters.formatToDateWithFullMonth(reviewDate) + '</div>' +
+                    '<div class="review-text">' + review.text + '</div>';
+
+                document.querySelector('.reviews-container').appendChild(reviewElement);
+            });
+        }
+
+        function performSearch() {
+            var scenario = scenarios[state.selectedScenario];
+
+            var fuzzySearchOptions = {
+                key: '${api.key.search}',
+                query: scenario.query,
+                openingHours: 'nextSevenDays'
+            };
+
+            tt.services.fuzzySearch(fuzzySearchOptions)
+                .then(function(fuzzyResponse) {
+                    var poiDetailsOptions = {
+                        key: '${api.key.search}',
+                        id: fuzzyResponse.results[0].dataSources.poiDetails[0].id
+                    };
+
+                    return tt.services.poiDetails(poiDetailsOptions)
+                        .then(function(poiResponse) {
+                            return {
+                                poiResponse: poiResponse,
+                                fuzzyResponse: fuzzyResponse
+                            };
+                        });
+                })
+                .then(function(responses) {
+                    renderSearchResult(responses.fuzzyResponse.results[0], responses.poiResponse);
+                })
+                .catch(function(error) {
+                    elements.errorHint.setErrorMessage(error);
+                });
+        }
+
+        map.on('load', function() {
+            performSearch();
+        });
+
+        elements.scenarioSelector.getElement().on('change', function(event) {
+            state.selectedScenario = event.value;
+            performSearch();
+        });
+    </script>
+</body>
+</html>

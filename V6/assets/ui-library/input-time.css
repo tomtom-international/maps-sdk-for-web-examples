@@ -1,0 +1,61 @@
+.tt-input-time{
+    align-items:center;
+    display:flex;
+    justify-content:center;
+
+    -webkit-appearance:none;
+    -moz-appearance:none;
+    text-indent:1px;
+    text-overflow:'';
+}
+    
+    .tt-input-time input, .tt-input-time select{
+        border:none;
+        width:25px;
+        margin:0;
+        padding:0;
+        text-align:center;
+    }
+    
+    .tt-input-time select{
+        color:#000000;
+        font-family:Gotham, Helvetica, Arial, sans-serif;
+        font-size:15px;
+        background:none;
+        outline:none;
+        padding:0 5px;
+        text-overflow:'';
+        width:auto;
+        -webkit-appearance:none;
+        -moz-appearance:none;
+    }
+    
+    .tt-input-time .arrow{
+        background:none;
+        color:#666666;
+        cursor:pointer;
+        font-size:18px;
+        outline:none;
+        position:relative;
+    }
+    
+    .tt-input-time .arrow:active{
+            top:2px;
+        }
+    
+    .tt-input-time .arrow:hover{
+            color:#b1110e;
+        }
+    
+    .tt-input-time .arrow:disabled{
+            color:#cccccc;
+        }
+    
+    .tt-input-time .arrow:disabled:hover{
+                color:#cccccc;
+            }
+    
+    .tt-input-time input[name="h"]:focus,.tt-input-time input[name="m"]:focus{
+            outline:none;
+            text-decoration:underline;
+        }

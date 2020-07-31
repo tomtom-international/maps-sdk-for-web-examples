@@ -403,6 +403,70 @@ body {
     }
 }
 
+.spinner-wrap {
+        align-items: center;
+        background: #FFFFFF;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        justify-content: center;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+
+.spinner-wrap.hide {
+            display: none;
+        }
+
+.spinner-text {
+        color: #b5bcc4;
+        font-size: 14px;
+        font-weight: bold;
+        letter-spacing: normal;
+    }
+
+.spinner,
+.spinner:after {
+    border-radius: 50%;
+    width: 10em;
+    height: 10em;
+}
+
+.spinner {
+    animation: spinner 1.1s infinite linear;
+    border-top: 1.1em solid rgba(0, 0, 0, 0.11);
+    border-right: 1.1em solid rgba(0, 0, 0, 0.11);
+    border-bottom: 1.1em solid rgba(0, 0, 0, 0.11);
+    border-left: 1.1em solid #a2a9b4;
+    font-size: 10px;
+    margin-top: 20px;
+    position: relative;
+    transform: translateZ(0);
+    -webkit-transform: translateZ(0);
+    -ms-transform: translateZ(0);
+    -webkit-animation: spinner 1.1s infinite linear;
+}
+
+@-webkit-keyframes spinner {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes spinner {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
 .mapboxgl-marker {
     cursor: pointer;
 }
@@ -2921,3 +2985,65 @@ div[class^="guidance-marker-"] {
 .popup-content {
     padding: 0 10px;
 }
+
+.tt-input-time {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    text-indent: 1px;
+    text-overflow: '';
+}
+
+.tt-input-time input, .tt-input-time select {
+        border: none;
+        width: 25px;
+        margin: 0;
+        padding: 0;
+        text-align: center;
+    }
+
+.tt-input-time select {
+        color: #000000;
+        font-family: Gotham, Helvetica, Arial, sans-serif;
+        font-size: 15px;
+        background: none;
+        outline: none;
+        padding: 0 5px;
+        text-overflow: '';
+        width: auto;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+    }
+
+.tt-input-time .arrow {
+        background: none;
+        color: #666666;
+        cursor: pointer;
+        font-size: 18px;
+        outline: none;
+        position: relative;
+    }
+
+.tt-input-time .arrow:active {
+            top: 2px;
+        }
+
+.tt-input-time .arrow:hover {
+            color: #b1110e;
+        }
+
+.tt-input-time .arrow:disabled {
+            color: #cccccc;
+        }
+
+.tt-input-time .arrow:disabled:hover {
+                color: #cccccc;
+            }
+
+.tt-input-time input[name="h"]:focus, .tt-input-time input[name="m"]:focus {
+            outline: none;
+            text-decoration: underline;
+        }

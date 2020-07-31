@@ -40,7 +40,7 @@ function formatToDateString(date) {
 }
 
 function formatToShortenedTimeString(date) {
-    return moment(date).format('h:mm A');
+    return moment(date).format('h:mm a');
 }
 
 function dateTimeStringToObject(dateString, timeString) {
@@ -49,6 +49,14 @@ function dateTimeStringToObject(dateString, timeString) {
     }
 
     return moment(dateString + timeString, 'DD/MM/YYYYh:mm A').toDate();
+}
+
+function dateStringToObject(dateString) {
+    return moment(dateString, 'YYYY-MM-DD').toDate();
+}
+
+function formatToDateWithFullMonth(date) {
+    return moment(date).format('MMMM D, YYYY');
 }
 
 // Takes date (of the future day) as a parameter and returns a formatted date (DAY-OF-THE-WEEK, MMM DD, HH:MM:SS)
@@ -82,6 +90,11 @@ function roundLatLng(num) {
     return Math.round(num * 1000000) / 1000000;
 }
 
+function formatCategoryName(name) {
+    var formattedName = name.toLowerCase().replace(/_/g, ' ');
+    return formattedName.charAt(0).toUpperCase() + formattedName.slice(1);
+}
+
 var Formatters = {
     convertToPoint: convertToPoint,
     convertToSpeedFormat: convertToSpeedFormat,
@@ -94,6 +107,9 @@ var Formatters = {
     formatToDateString: formatToDateString,
     formatToShortenedTimeString: formatToShortenedTimeString,
     dateTimeStringToObject: dateTimeStringToObject,
+    dateStringToObject: dateStringToObject,
+    formatToDateWithFullMonth: formatToDateWithFullMonth,
+    formatCategoryName: formatCategoryName,
     formatToDateTimeString: formatToDateTimeString
 };
 
