@@ -1,0 +1,24 @@
+.tt-bar-chart .details__label{
+            color:#000000;
+        }
+        .tt-bar-chart .details__value{
+            display:inline-block;
+            color:#004b7f;
+            font-size:16px;
+            font-weight:bold;
+            letter-spacing:-0.49px;
+            margin-top:8px;
+        }
+    .tt-bar-chart__content{
+        min-height:160px;
+        position:relative;
+    }
+    .tt-bar-chart .travel-time{
+        height:210px;
+        -webkit-transform:translateX(-10px);
+                transform:translateX(-10px);
+    }
+
+.tt-side-panel__header .tt-form-label{
+            min-width:130px;
+        }
