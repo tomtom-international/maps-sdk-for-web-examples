@@ -422,7 +422,7 @@ body {
     }
 }
 
-.spinner-wrap {
+.loading-circle__wrap {
         -webkit-box-align: center;
                 align-items: center;
         background: #FFFFFF;
@@ -440,25 +440,25 @@ body {
         width: 100%;
     }
 
-.spinner-wrap.hide {
+.loading-circle__wrap.hide {
             display: none;
         }
 
-.spinner-text {
+.loading-circle__text {
         color: #b5bcc4;
         font-size: 14px;
         font-weight: bold;
         letter-spacing: normal;
     }
 
-.spinner,
-.spinner:after {
+.loading-circle,
+.loading-circle:after {
     border-radius: 50%;
     width: 10em;
     height: 10em;
 }
 
-.spinner {
+.loading-circle {
     animation: spinner 1.1s infinite linear;
     border-top: 1.1em solid rgba(0, 0, 0, 0.11);
     border-right: 1.1em solid rgba(0, 0, 0, 0.11);

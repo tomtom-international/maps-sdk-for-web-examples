@@ -6,14 +6,14 @@ function Loader(msg, holder) {
 
 Loader.prototype.create = function(msg) {
     var wrapper = document.createElement('div');
-    wrapper.setAttribute('class', 'spinner-wrap');
+    wrapper.setAttribute('class', 'loading-circle__wrap');
 
     var msgHolder = document.createElement('div');
-    msgHolder.setAttribute('class', 'spinner-text');
+    msgHolder.setAttribute('class', 'loading-circle__text');
     msgHolder.appendChild(document.createTextNode(msg || ''));
 
     var spinner = document.createElement('div');
-    spinner.setAttribute('class', 'spinner');
+    spinner.setAttribute('class', 'loading-circle');
 
     wrapper.appendChild(msgHolder);
     wrapper.appendChild(spinner);
