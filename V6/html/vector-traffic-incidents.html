@@ -57,7 +57,8 @@
 
         function getCurrentStyleUrl() {
             return 'https://api.tomtom.com/style/1/style/${hostedStylesVersion}?map=basic_main' +
-                      '&traffic_incidents=incidents_' + state.style + '&key=${api.key.maps}';
+                      '&traffic_incidents=incidents_' + state.style +
+                      '&poi=poi_main&key=${api.key.maps}';
         }
 
         map.once('load', function() {

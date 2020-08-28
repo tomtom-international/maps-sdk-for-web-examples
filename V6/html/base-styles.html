@@ -57,6 +57,13 @@
             map.setStyle(getCurrentStyleUrl());
         });
 
+        map.on('style.load', function() {
+            if (styleOptions.style === 'night') {
+                map.setPaintProperty('POI', 'text-halo-color', '#000000');
+                map.setPaintProperty('POI', 'text-color', '#ffffff');
+            }
+        });
+
         function buttonsGroupChange(element) {
             var group = element.getAttribute('data-group');
             styleOptions[group] = element.innerText;
@@ -67,10 +74,9 @@
         layerTypeGroup.onSelect(buttonsGroupChange);
 
         function getCurrentStyleUrl() {
-            var url = 'https://api.tomtom.com/map/1/style/${hostedStylesVersion}/';
-            url += styleOptions.layerType + '_' + styleOptions.style + '.json';
-            url += '?key=${api.key.maps}';
-            return url;
+            return 'https://api.tomtom.com/style/1/style/${hostedStylesVersion}/' +
+                '?map=' + styleOptions.layerType + '_' + styleOptions.style +
+                '&poi=poi_main';
         }
 
         new Foldable('.js-foldable', 'top-right');

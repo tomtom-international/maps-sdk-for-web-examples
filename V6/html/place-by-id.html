@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Place by ID search</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+    <style>
+        .tt-side-panel {
+            padding: 10px;
+        }
+        .result-card {
+            background-color: #ffffff;
+            border-bottom: 1px solid rgba(0, 0, 0, .14);
+            height: 640px;
+            padding: 18px;
+            width: 100%;
+        }
+        .address {
+            font-family: Noway, Helvetica, Arial;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        .name {
+            color: #262626;
+            font-family: "Gotham", Helvetica, Arial, sans-serif;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 8px;
+        }
+        .popup-name {
+            -webkit-box-orient: vertical;
+            display: -webkit-box;
+            font-size: 13px;
+            -webkit-line-clamp: 2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+
+        }
+        .category {
+            color: #3f9cd9;
+            font-family: "Gotham", Helvetica, Arial, sans-serif;
+            font-size: 11px;
+            font-weight: bold;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .popup-category {
+            font-size: 10px;
+            margin-top: -10px;
+        }
+        .coordinates {
+            color: #505050;
+            font-family: Noway, Helvetica, Arial;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+        .popup-container {
+            width: 180px;
+        }
+    </style>
+</head>
+<body>
+    <div class='map-view'>
+        <div class='tt-side-panel js-form'></div>
+        <div id='map' class='full-map'></div>
+    </div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/side-panel.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
+    <script>
+        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            center: {
+                lat: 52.35815,
+                lng: 4.86707
+            },
+            zoom: 13,
+            dragPan: !isMobileOrTablet()
+        });
+
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        var errorHint = new InfoHint('error', 'bottom-center', 5000)
+            .addTo(document.getElementById('map'));
+        var initialHint = new InfoHint('info', 'bottom-center', 4000)
+            .addTo(document.getElementById('map'));
+
+        var initialFeature = {
+            properties: {
+                id: 'g6JpZK81MjgwMDkwMDExMzA2MDahY6NOTEShdqdVbmlmaWVk'
+            },
+            geometry: {
+                coordinates: [4.86707, 52.35815]
+            }
+        };
+
+        map.on('load', function() {
+            map.loadImage('https://api.tomtom.com/maps-sdk-for-web/cdn/static/ic_map_address_red.png', function(err, image) {
+                if (err) {
+                    return;
+                }
+
+                initialHint.setMessage('Click on POI icons to get their names and category information.');
+                map.addImage('selectedPoi', image);
+                bindMapEvents();
+            });
+        });
+
+        function bindMapEvents() {
+            map.on('click', 'POI', handlePoiClick.bind(this));
+            map.on('click', function(event) {
+                var feature = map.queryRenderedFeatures(event.point)[0];
+
+                if (feature.sourceLayer !== 'Point of Interest') {
+                    hideResult();
+                }
+            });
+            map.on('mousemove', 'POI', function() {
+                map.getCanvas().style.cursor = 'pointer';
+            });
+            map.on('mouseleave', 'POI', function() {
+                map.getCanvas().style.cursor = '';
+            });
+            map.on('mousemove', 'selectedPoi', function() {
+                map.getCanvas().style.cursor = 'pointer';
+            });
+            map.on('mouseleave', 'selectedPoi', function() {
+                map.getCanvas().style.cursor = '';
+            });
+
+            serviceCall(initialFeature);
+        }
+
+        function hideResult() {
+            document.querySelector('.js-form').innerHTML = '';
+
+            if (map.getLayer('selectedPoi')) {
+                map.removeLayer('selectedPoi');
+                map.removeSource('selectedPoi');
+            }
+        }
+
+        function showPoiMarker(position) {
+            map.addSource('selectedPoi', {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': position
+                    }
+                }
+            });
+            map.addLayer({
+                'id': 'selectedPoi',
+                'source': 'selectedPoi',
+                'type': 'symbol',
+                'layout': {
+                    'symbol-sort-key': 1000,
+                    'icon-image': 'selectedPoi',
+                    'icon-anchor': 'bottom',
+                    'text-letter-spacing': 0.1,
+                    'icon-padding': 5,
+                    'icon-offset': [0, 5]
+                }
+            });
+        }
+
+        function handleResult(result) {
+
+            if (result && result.poi) {
+                document.querySelector('.js-form').innerHTML =
+                '<div class="result-card">' +
+                    '<div class="category">' +
+                        Formatters.formatCategoryName(result.poi.classifications[0].code) +
+                    '</div>' +
+                    '<div class="name">' + result.poi.name + '</div>' +
+                    '<div class="address">' + result.address.freeformAddress + '</div>' +
+                    '<div class="coordinates">' +
+                        result.position.lat + ', ' +
+                        result.position.lng +
+                    '</div>' +
+                '</div>';
+            } else {
+                throw new Error('There is no search result for this POI.');
+            }
+        }
+
+        function handlePoiClick(event) {
+            var feature = map.queryRenderedFeatures(event.point)[0];
+            serviceCall(feature);
+        }
+
+        function serviceCall(feature) {
+            errorHint.hide();
+            hideResult();
+
+            tt.services.placeById({
+                key: '${api.key.search}',
+                entityId: feature.properties.id
+            })
+                .then(function(response) {
+                    showPoiMarker(feature.geometry.coordinates);
+                    map.flyTo({
+                        center: feature.geometry.coordinates
+                    });
+
+                    handleResult(response.results[0]);
+                })
+                .catch(function(error) {
+                    initialHint.hide();
+                    errorHint.setMessage(error.message);
+                });
+        }
+    </script>
+</body>
+</html>

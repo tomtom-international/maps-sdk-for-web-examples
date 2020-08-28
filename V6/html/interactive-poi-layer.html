@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Interactive POI layer</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+    <style>
+        .name {
+            -webkit-box-orient: vertical;
+            color: #262626;
+            display: -webkit-box;
+            font-family: "Gotham", Helvetica, Arial, sans-serif;
+            font-size: 13px;
+            font-weight: bold;
+            -webkit-line-clamp: 2;
+            margin-top: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .category {
+            color: #3f9cd9;
+            font-family: "Gotham", Helvetica, Arial, sans-serif;
+            font-size: 10px;
+            font-weight: bold;
+            margin-top: -10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    <div id='map' class='map'></div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+    <script>
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            center: {
+                lat: 52.232765,
+                lng: 21.008468
+            },
+            zoom: 13,
+            dragPan: !isMobileOrTablet()
+        });
+
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        var infoHint = new InfoHint('info', 'bottom-center', 10000)
+            .addTo(document.getElementById('map'));
+
+        infoHint.setMessage('Click on POI icons to get their names and category information.');
+
+        var popup = null;
+        var sourceData = {
+            'type': 'Feature',
+            'geometry': {
+                'type': 'Point',
+                'coordinates': [0, 0]
+            }
+        };
+
+        map.on('load', function() {
+            map.loadImage('https://api.tomtom.com/maps-sdk-for-web/cdn/static/ic_map_address_red.png', function(err, image) {
+                if (err) {
+                    return;
+                }
+
+                map.addImage('selectedPoi', image);
+                addLayers();
+                bindMapEvents();
+            });
+        });
+
+        function addLayers() {
+            map.addSource('selectedPoi', {
+                'type': 'geojson',
+                'data': sourceData
+            });
+
+            map.addLayer({
+                'id': 'selectedPoi',
+                'source': 'selectedPoi',
+                'type': 'symbol',
+                'layout': {
+                    'visibility': 'none',
+                    'icon-allow-overlap': true,
+                    'symbol-sort-key': 1000,
+                    'icon-image': 'selectedPoi',
+                    'icon-anchor': 'bottom',
+                    'text-letter-spacing': 0.1,
+                    'icon-padding': 5,
+                    'icon-offset': [0, 5],
+                }
+            });
+        }
+
+        function bindMapEvents() {
+            map.on('click', function(event) {
+                var feature = map.queryRenderedFeatures(event.point)[0];
+
+                if (feature.sourceLayer === 'Point of Interest') {
+                    createPopup(feature);
+                    showPoiMarker(feature.geometry.coordinates);
+                } else {
+                    hidePoiMarker();
+                }
+            });
+            map.on('mousemove', 'POI', function() {
+                map.getCanvas().style.cursor = 'pointer';
+            });
+            map.on('mouseleave', 'POI', function() {
+                map.getCanvas().style.cursor = '';
+            });
+            map.on('mousemove', 'selectedPoi', function() {
+                map.getCanvas().style.cursor = 'pointer';
+            });
+            map.on('mouseleave', 'selectedPoi', function() {
+                map.getCanvas().style.cursor = '';
+            });
+        }
+
+        function createPopup(result) {
+            if (popup) {
+                popup.remove();
+                popup = null;
+            }
+
+            var markerSize = 60;
+
+            var popupOffset = {
+                'top': [0, 0],
+                'top-left': [0, 5],
+                'top-right': [0, 5],
+                'bottom': [0, -markerSize],
+                'bottom-left': [0, -markerSize],
+                'bottom-right': [0, -markerSize],
+                'left': [markerSize / 2, -markerSize / 2],
+                'right': [-markerSize / 2, -markerSize / 2]
+            };
+
+            var htmlContent = '<div class="popup-container">' +
+                '<div class="category">' +
+                    Formatters.formatCategoryName(result.properties.category) +
+                '</div>' +
+                '<div class="name">' + result.properties.name + '</div>' +
+            '</div>';
+
+            popup = new tt.Popup({ offset: popupOffset })
+                .setLngLat(result.geometry.coordinates)
+                .setHTML(htmlContent)
+                .addTo(map)
+                .setMaxWidth('200px');
+
+            popup.getElement().children[1].children[0].style.visibility = 'hidden';
+        }
+
+        function hidePoiMarker() {
+            map.setLayoutProperty('selectedPoi', 'visibility', 'none');
+        }
+
+        function showPoiMarker(position) {
+            const source = map.getSource('selectedPoi');
+
+            if (source) {
+                sourceData.geometry.coordinates = position;
+                source.setData(sourceData);
+            }
+
+            map.setLayoutProperty('selectedPoi', 'visibility', 'visible');
+        }
+    </script>
+</body>
+</html>

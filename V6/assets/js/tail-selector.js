@@ -3,7 +3,7 @@ if (!window.tail) {
 }
 
 function ReplaceWithPolyfill() {
-    'use-strict'; // For safari, and IE > 10
+    'use-strict'; // For safari
     var parent = this.parentNode, i = arguments.length, currentNode;
     if (!parent) {
         return;
