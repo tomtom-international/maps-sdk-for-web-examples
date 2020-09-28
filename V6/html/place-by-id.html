@@ -95,7 +95,7 @@
 
         var errorHint = new InfoHint('error', 'bottom-center', 5000)
             .addTo(document.getElementById('map'));
-        var initialHint = new InfoHint('info', 'bottom-center', 4000)
+        var infoHint = new InfoHint('info', 'bottom-center', 4000)
             .addTo(document.getElementById('map'));
 
         var initialFeature = {
@@ -113,7 +113,7 @@
                     return;
                 }
 
-                initialHint.setMessage('Click on POI icons to get their names and category information.');
+                infoHint.setMessage('Click on POI icons to get their names and category information.');
                 map.addImage('selectedPoi', image);
                 bindMapEvents();
             });
@@ -201,11 +201,18 @@
 
         function handlePoiClick(event) {
             var feature = map.queryRenderedFeatures(event.point)[0];
-            serviceCall(feature);
+
+            errorHint.hide();
+            infoHint.hide();
+
+            if (feature.properties.id) {
+                serviceCall(feature);
+            } else {
+                infoHint.setMessage('There\'s no result found for this place ID');
+            }
         }
 
         function serviceCall(feature) {
-            errorHint.hide();
             hideResult();
 
             tt.services.placeById({
@@ -221,7 +228,7 @@
                     handleResult(response.results[0]);
                 })
                 .catch(function(error) {
-                    initialHint.hide();
+                    infoHint.hide();
                     errorHint.setMessage(error.message);
                 });
         }
