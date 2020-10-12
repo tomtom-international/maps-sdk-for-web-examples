@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset="UTF-8">
+    <title>Maps SDK for Web - Flight route</title>
+    <meta name='viewport' content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css' />
+</head>
+
+<body>
+    <div id='map' class='map'></div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/Turf.js/5.1.5/turf.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+    <script>
+        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            dragPan: !isMobileOrTablet(),
+            center: [20.697350, 53.976225],
+            zoom: 4.5
+        });
+
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        function FlightRoute() {
+            this.origin = [4.895168, 52.370216];
+            this.destination = [37.617298, 55.755825];
+
+            this.stepCounter = 0;
+            this.steps = 340;
+            this.units = 'kilometers';
+            this.errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
+            this.route = {
+                type: 'FeatureCollection',
+                features: [
+                    {
+                        type: 'Feature',
+                        geometry: {
+                            type: 'LineString',
+                            coordinates: [this.origin, this.destination]
+                        }
+                    }
+                ]
+            };
+
+            this.point = {
+                type: 'FeatureCollection',
+                features: [
+                    {
+                        type: 'Feature',
+                        properties: {},
+                        geometry: {
+                            type: 'Point',
+                            coordinates: this.origin
+                        }
+                    }
+                ]
+            };
+
+            this.init();
+        }
+
+        FlightRoute.prototype.init = function() {
+            map.on('load', this.mapOnLoad.bind(this));
+        };
+
+        FlightRoute.prototype.mapOnLoad = function() {
+            var lineDistance = turf.lineDistance(this.route.features[0], { units: this.units });
+            var arc = [];
+
+            for (var i = 0; i < lineDistance; i += lineDistance / this.steps) {
+                var segment = turf.along(this.route.features[0], i, { units: this.units });
+                arc.push(segment.geometry.coordinates);
+            }
+            arc.push(this.destination);
+
+            this.route.features[0].geometry.coordinates = arc;
+            map.loadImage('https://api.tomtom.com/maps-sdk-for-web/cdn/static/plane@2x.png', this.imageOnLoad.bind(this));
+        };
+
+        FlightRoute.prototype.imageOnLoad = function(error, image) {
+            if (error) {
+                return this.errorHint.setMessage('Image wasn\'t loaded.');
+            }
+
+            map.addImage('plane', image);
+
+            map.addSource('route', {
+                type: 'geojson',
+                data: this.route
+            });
+
+            map.addSource('point', {
+                type: 'geojson',
+                data: this.point
+            });
+
+            map.addLayer({
+                id: 'route',
+                source: 'route',
+                type: 'line',
+                paint: {
+                    'line-width': 2,
+                    'line-color': '#004b7f'
+                }
+            });
+
+            map.addLayer({
+                id: 'point',
+                source: 'point',
+                type: 'symbol',
+                layout: {
+                    'icon-image': 'plane',
+                    'icon-size': 0.5,
+                    'icon-rotate': ['get', 'bearing'],
+                    'icon-rotation-alignment': 'map',
+                    'icon-allow-overlap': true,
+                    'icon-ignore-placement': true
+                }
+            });
+
+            this.start(this.origin);
+        };
+
+        FlightRoute.prototype.animate = function() {
+            this.point.features[0].geometry.coordinates =
+                this.route.features[0].geometry.coordinates[this.stepCounter];
+
+            this.point.features[0].properties.bearing = turf.bearing(
+                turf.point(
+                    this.route.features[0].geometry.coordinates[
+                        this.stepCounter >= this.steps ? this.stepCounter - 1 : this.stepCounter
+                    ]
+                ),
+                turf.point(
+                    this.route.features[0].geometry.coordinates[
+                        this.stepCounter >= this.steps ? this.stepCounter : this.stepCounter + 1
+                    ]
+                )
+            );
+
+            map.getSource('point').setData(this.point);
+
+            if (this.stepCounter < this.steps) {
+                this.stepCounter += 1;
+                return requestAnimationFrame(this.animate.bind(this));
+            }
+
+            this.route.features[0].geometry.coordinates.reverse();
+            map.getSource('route').setData(this.route);
+
+            var rotateAngles = 180;
+            this.rotatePlane(rotateAngles, function() {
+                this.stepCounter = 0;
+                requestAnimationFrame(this.animate.bind(this));
+            }.bind(this));
+        };
+
+        FlightRoute.prototype.rotatePlane = function(rotateAngles, animate) {
+            var angle = 1;
+            var rotatePlane = this.rotatePlane.bind(this);
+            var point = this.point;
+
+            rotateAngles -= angle;
+            this.point.features[0].properties.bearing -= angle;
+
+            setTimeout(function() {
+                map.getSource('point').setData(point);
+                if (rotateAngles >= 0) {
+                    return rotatePlane(rotateAngles, animate);
+                }
+                animate();
+            }, 0);
+        };
+
+        FlightRoute.prototype.start = function(origin) {
+            if (origin) {
+                this.point.features[0].geometry.coordinates = origin;
+                map.getSource('point').setData(this.point);
+            }
+
+            this.stepCounter = 0;
+            this.animate();
+        };
+
+        new FlightRoute();
+    </script>
+</body>
+
+</html>

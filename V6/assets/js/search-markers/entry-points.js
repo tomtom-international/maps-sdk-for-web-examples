@@ -39,6 +39,7 @@ EntryPoints.prototype.clearEntryPoints = function() {
         marker.remove();
         this.map.getSource(ENTRY_POINTS_CONNECTORS_SOURCE_NAME).setData(createGeoJsonFeaturesCollection());
     }, this);
+    this.entryPointsMarkers = [];
 };
 
 EntryPoints.prototype._drawCounter = function() {
@@ -62,34 +63,30 @@ EntryPoints.prototype.getEntryPointsAddresses = function() {
 };
 
 EntryPoints.prototype.mainMarkerClick = function() {
-    if (this._onClickCallback) {
-        this._onClickCallback(this);
+    if (this.entryPointsMarkers.length > 0) {
+        this.clearEntryPoints();
+    } else {
+        this.getEntryPointsAddresses().then(function() {
+            this.clearEntryPoints();
+            this.renderEntryPoints();
+        }.bind(this));
     }
-    this.getEntryPointsAddresses().then(function() {
-        this.renderEntryPoints();
-    }.bind(this));
 };
 
 EntryPoints.prototype.renderEntryPoints = function() {
     var parentMarkerPosition = [this.poiData.position.lng, this.poiData.position.lat];
     var featuresCollection = createGeoJsonFeaturesCollection();
-    if (this.entryPointsMarkers.length === 0) {
-        this.poiData.entryPoints.forEach(function(entryPoint) {
-            var entryPointMarker = this.createEntryPointMarker(entryPoint);
-            featuresCollection.features.push(createGeoJsonLine(parentMarkerPosition, [
-                entryPoint.position.lng,
-                entryPoint.position.lat
-            ]));
-            entryPointMarker.addTo(this.map);
-            this.entryPointsMarkers.push(entryPointMarker);
-        }, this);
-    } else {
-        for (var entryPointsMarker in this.entryPointsMarkers) {
-            var marker = this.entryPointsMarkers[entryPointsMarker];
-            marker.remove();
-        }
-        this.entryPointsMarkers.splice(0);
-    }
+
+    this.poiData.entryPoints.forEach(function(entryPoint) {
+        var entryPointMarker = this.createEntryPointMarker(entryPoint);
+
+        featuresCollection.features.push(createGeoJsonLine(parentMarkerPosition, [
+            entryPoint.position.lng,
+            entryPoint.position.lat
+        ]));
+        entryPointMarker.addTo(this.map);
+        this.entryPointsMarkers.push(entryPointMarker);
+    }, this);
     this.map.getSource(ENTRY_POINTS_CONNECTORS_SOURCE_NAME).setData(featuresCollection);
 };
 

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Bubble layer</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<style>
+    .legend {
+        width: 360px;
+    }
+
+    .legend-item {
+        margin-bottom: 16px;
+    }
+
+    .header {
+        margin-bottom: 16px;
+    }
+
+    .circle {
+        border-radius: 50%;
+        display: inline-block;
+        height: 16px;
+        margin-right: 8px;
+        vertical-align: text-top;
+        width: 16px;
+    }
+
+    .red {
+        background-color: #df1b12;
+    }
+
+    .orange {
+        background-color: #f9b023;
+    }
+
+    .light-orange {
+        background-color: #ffdc7a;
+    }
+
+    .green {
+        background-color: #008d8d;
+    }
+</style>
+<body>
+    <div id='map' class='map'>
+        <div class='tt-overlay-panel -left-top'>
+            <div class='legend'>
+                <div class='header'><b>Congestion level</b></div>
+                <div class='legend-item'><div class='circle red'></div>> 50%</div>
+                <div class='legend-item'><div class='circle orange'></div>25% - 50%</div>
+                <div class='legend-item'><div class='circle light-orange'></div>15% - 25%</div>
+                <div class='legend-item'><div class='circle green'></div>< 15%</div>
+                2019 congestion levels in various cities. You can see the full ranking <a href='https://www.tomtom.com/en_gb/traffic-index' target='_blank'>here</a>.
+            </div>
+        </div>
+    </div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script>
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            style: 'https://api.tomtom.com/style/1/style/${hostedStylesVersion}?map=basic_main',
+            dragPan: !isMobileOrTablet(),
+            zoom: 1.69,
+            center: [9.81049, 13.04405]
+        });
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        var congestionData = {
+            type: 'FeatureCollection',
+            features: [
+                {
+                    type: 'Feature',
+                    properties: {
+                        city: 'Manila',
+                        country: 'Philippines',
+                        congestion: 0.71
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [120.984222, 14.599512]
+                    }
+                },
+                {
+                    type: 'Feature',
+                    properties: {
+                        city: 'Pune',
+                        country: 'India',
+                        congestion: 0.59
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [73.85541, 18.52076]
+                    }
+                },
+                {
+                    type: 'Feature',
+                    properties: {
+                        city: 'Moscow',
+                        country: 'Russia',
+                        congestion: 0.59
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [37.61492, 55.75654]
+                    }
+                },
+                {
+                    type: 'Feature',
+                    properties: {
+                        city: 'Istanbul',
+                        country: 'Turkey',
+                        congestion: 0.55
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [28.9748, 41.013]
+                    }
+                },
+                {
+                    type: 'Feature',
+                    properties: {
+                        city: 'Recife',
+                        country: 'Brazil',
+                        congestion: 0.50
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [-34.87118, -8.05519]
+                    }
+                },
+                {
+                    type: 'Feature',
+                    properties: {
+                        city: 'Lodz',
+                        country: 'Poland',
+                        congestion: 0.47
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [19.452648, 51.7618393]
+                    }
+                },
+                {
+                    type: 'Feature',
+                    properties: {
+                        city: 'Sao Paulo',
+                        country: 'Brazil',
+                        congestion: 0.45
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [-46.63825, -23.54867]
+                    }
+                },
+                {
+                    type: 'Feature',
+                    properties: {
+                        city: 'Samara',
+                        country: 'Russia',
+                        congestion: 0.44
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [50.16312, 53.20535]
+                    }
+                },
+                {
+                    type: 'Feature',
+                    properties: {
+                        city: 'New York',
+                        country: 'USA',
+                        congestion: 0.37
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [-74.00723, 40.71305]
+                    }
+                },
+                {
+                    type: 'Feature',
+                    properties: {
+                        city: 'Kuala Lumpur',
+                        country: 'Malaysia',
+                        congestion: 0.37
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [101.7151, 3.15443]
+                    }
+                },
+                {
+                    type: 'Feature',
+                    properties: {
+                        city: 'Riyadh',
+                        country: 'Saudi Arabia',
+                        congestion: 0.24
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [46.72413, 24.69497]
+                    }
+                },
+                {
+                    type: 'Feature',
+                    properties: {
+                        city: 'Madrid',
+                        country: 'Spain',
+                        congestion: 0.23
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [-3.70035, 40.41669]
+                    }
+                },
+                {
+                    type: 'Feature',
+                    properties: {
+                        city: 'Winnipeg',
+                        country: 'Canada',
+                        congestion: 0.22
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [-97.13931, 49.9005]
+                    }
+                },
+                {
+                    type: 'Feature',
+                    properties: {
+                        city: 'Uppsala',
+                        country: 'Sweden',
+                        congestion: 0.21
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [17.64462, 59.85813]
+                    }
+                },
+                {
+                    type: 'Feature',
+                    properties: {
+                        city: 'Durban',
+                        country: 'South Africa',
+                        congestion: 0.19
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [31.02479, -29.857]
+                    }
+                },
+                {
+                    type: 'Feature',
+                    properties: {
+                        city: 'Modena',
+                        country: 'Italy',
+                        congestion: 0.14
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [10.92519, 44.6471]
+                    }
+                },
+                {
+                    type: 'Feature',
+                    properties: {
+                        city: 'Columbia',
+                        country: 'USA',
+                        congestion: 0.13
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [-81.03709, 34.00929]
+                    }
+                },
+                {
+                    type: 'Feature',
+                    properties: {
+                        city: 'Kansas City',
+                        country: 'USA',
+                        congestion: 0.12
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [-94.57856, 39.09979]
+                    }
+                },
+                {
+                    type: 'Feature',
+                    properties: {
+                        city: 'Almere',
+                        country: 'Netherlands',
+                        congestion: 0.10
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [5.21671, 52.37202]
+                    }
+                },
+                {
+                    type: 'Feature',
+                    properties: {
+                        city: 'Abu Dhabi',
+                        country: 'United Arab Emirates',
+                        congestion: 0.10
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [54.05376, 23.64658]
+                    }
+                }
+            ]
+        };
+
+        map.on('load', function() {
+            map.addSource('congestions', {
+                type: 'geojson',
+                data: congestionData
+            });
+
+            map.addLayer({
+                'id': 'congestion-circles',
+                'type': 'circle',
+                'source': 'congestions',
+                'paint': {
+                    'circle-color': [
+                        'case',
+                        ['<', ['get', 'congestion'], 0.15],
+                        '#008d8d',
+                        ['<', ['get', 'congestion'], 0.25],
+                        '#ffdc7a',
+                        ['<', ['get', 'congestion'], 0.5],
+                        '#f9b023',
+                        '#df1b12'
+                    ],
+                    'circle-opacity': 0.75,
+                    'circle-radius': ['/',
+                        ['+',
+                            ['number', ['*', ['get', 'congestion'], 100]],
+                            16
+                        ],
+                        2
+                    ]
+                }
+            });
+
+            map.addLayer({
+                'id': 'congestion-labels',
+                'type': 'symbol',
+                'source': 'congestions',
+                'layout': {
+                    'text-field': [
+                        'concat',
+                        ['to-string', ['round', ['*', ['get', 'congestion'], 100]]],
+                        '%'
+                    ],
+                    'text-size': [
+                        'case',
+                        ['<', ['get', 'congestion'], 0.15],
+                        10,
+                        ['<', ['get', 'congestion'], 0.25],
+                        12,
+                        ['<', ['get', 'congestion'], 0.5],
+                        14,
+                        16
+                    ]
+                },
+                'paint': {
+                    'text-color': ['case',
+                        ['<', ['get', 'congestion'], 0.15],
+                        '#FFFFFF',
+                        ['<', ['get', 'congestion'], 0.25],
+                        '#000000',
+                        '#FFFFFF'
+                    ]
+                }
+            });
+
+            // Create a popup, but don't add it to the map yet.
+            var popup = new tt.Popup({
+                closeButton: false,
+                closeOnClick: false
+            });
+
+            map.on('mousemove', 'congestion-circles', function(e) {
+                // Change the cursor style as a UI indicator.
+                map.getCanvas().style.cursor = 'pointer';
+
+                var coordinates = e.features[0].geometry.coordinates.slice();
+                var popupContent = '<b>' + e.features[0].properties.city +
+                    '</b><div>' + e.features[0].properties.country + '</div>';
+
+                // Ensure that if the map is zoomed out such that multiple
+                // copies of the feature are visible, the popup appears
+                // over the copy being pointed to.
+                while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                    coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+                }
+
+                // Populate the popup and set its coordinates
+                // based on the feature found.
+                popup.setLngLat(coordinates).setHTML(popupContent).addTo(map);
+            });
+
+            map.on('mouseout', 'congestion-circles', function() {
+                map.getCanvas().style.cursor = '';
+                popup.remove();
+            });
+        });
+    </script>
+</body>
+</html>

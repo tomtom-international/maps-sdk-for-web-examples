@@ -98,7 +98,7 @@
 
     ttSearchBox.on('tomtom.searchbox.resultselected', function(resp) {
         searchMarkersManager.draw([resp.data.result]);
-        fitToViewport(resp.data.result);
+        searchMarkersManager.jumpToMarker(resp.data.result.id);
     });
 </script>
 </body>

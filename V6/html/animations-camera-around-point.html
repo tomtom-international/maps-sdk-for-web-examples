@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Animation of camera around a point</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+    <div id='map' class='map'></div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script>
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            style: 'https://api.tomtom.com/style/1/style/${hostedStylesVersion}?map=basic_main',
+            center: [21.00462, 52.23164],
+            zoom: 16,
+            pitch: 60,
+            dragPan: !isMobileOrTablet()
+        });
+
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        map.on('load', function() {
+            removePoiLayers();
+            requestAnimationFrame(rotateCamera);
+        });
+
+        function removePoiLayers() {
+            var layers = map.getStyle().layers;
+            for (var i = 0; i < layers.length; i++) {
+                var layer = layers[i];
+                if (layer.type === 'symbol' && layer['source-layer'] === 'Point of Interest') {
+                    map.removeLayer(layer.id);
+                }
+            }
+        }
+
+        function rotateCamera(timestamp) {
+            var rotationDegree = timestamp / 100 % 360;
+            map.rotateTo(rotationDegree, { duration: 0 });
+            requestAnimationFrame(rotateCamera);
+        }
+    </script>
+</body>
+</html>

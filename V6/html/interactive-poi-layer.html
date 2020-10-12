@@ -62,13 +62,6 @@
         infoHint.setMessage('Click on POI icons to get their names and category information.');
 
         var popup = null;
-        var sourceData = {
-            'type': 'Feature',
-            'geometry': {
-                'type': 'Point',
-                'coordinates': [0, 0]
-            }
-        };
 
         map.on('load', function() {
             map.loadImage('https://api.tomtom.com/maps-sdk-for-web/cdn/static/ic_map_address_red.png', function(err, image) {
@@ -77,43 +70,18 @@
                 }
 
                 map.addImage('selectedPoi', image);
-                addLayers();
                 bindMapEvents();
             });
         });
 
-        function addLayers() {
-            map.addSource('selectedPoi', {
-                'type': 'geojson',
-                'data': sourceData
-            });
-
-            map.addLayer({
-                'id': 'selectedPoi',
-                'source': 'selectedPoi',
-                'type': 'symbol',
-                'layout': {
-                    'visibility': 'none',
-                    'icon-allow-overlap': true,
-                    'symbol-sort-key': 1000,
-                    'icon-image': 'selectedPoi',
-                    'icon-anchor': 'bottom',
-                    'text-letter-spacing': 0.1,
-                    'icon-padding': 5,
-                    'icon-offset': [0, 5],
-                }
-            });
-        }
-
         function bindMapEvents() {
             map.on('click', function(event) {
                 var feature = map.queryRenderedFeatures(event.point)[0];
+                hidePoiMarker();
 
                 if (feature.sourceLayer === 'Point of Interest') {
                     createPopup(feature);
                     showPoiMarker(feature.geometry.coordinates);
-                } else {
-                    hidePoiMarker();
                 }
             });
             map.on('mousemove', 'POI', function() {
@@ -166,18 +134,35 @@
         }
 
         function hidePoiMarker() {
-            map.setLayoutProperty('selectedPoi', 'visibility', 'none');
+            if (map.getLayer('selectedPoi')) {
+                map.removeLayer('selectedPoi');
+                map.removeSource('selectedPoi');
+            }
         }
 
         function showPoiMarker(position) {
-            const source = map.getSource('selectedPoi');
-
-            if (source) {
-                sourceData.geometry.coordinates = position;
-                source.setData(sourceData);
-            }
-
-            map.setLayoutProperty('selectedPoi', 'visibility', 'visible');
+            map.addSource('selectedPoi', {
+                'type': 'geojson',
+                'data': {
+                    'type': 'Feature',
+                    'geometry': {
+                        'type': 'Point',
+                        'coordinates': position
+                    }
+                }
+            });
+            map.addLayer({
+                'id': 'selectedPoi',
+                'source': 'selectedPoi',
+                'type': 'symbol',
+                'layout': {
+                    'icon-image': 'selectedPoi',
+                    'icon-anchor': 'bottom',
+                    'text-letter-spacing': 0.1,
+                    'icon-padding': 5,
+                    'icon-offset': [0, 5]
+                }
+            });
         }
     </script>
 </body>

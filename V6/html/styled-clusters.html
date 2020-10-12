@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Styled clusters</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+    <div id='map' class='map'></div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script>
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            style: 'https://api.tomtom.com/style/1/style/${hostedStylesVersion}?map=basic_night&poi=poi_main',
+            center: [-103, 40],
+            zoom: 2,
+            dragPan: !isMobileOrTablet()
+        });
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        var geoJson = {
+            type: 'FeatureCollection',
+            features: generateRandomFeatures()
+        };
+
+        function getRandomNumberInRange(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        function generateRandomFeatures() {
+            var result = [];
+            var numberOfPoints = 0;
+            while (numberOfPoints < 1000) {
+                result.push({
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [getRandomNumberInRange(-110, -90), getRandomNumberInRange(30, 50)]
+                    }
+                });
+                numberOfPoints = numberOfPoints + 1;
+            }
+            return result;
+        }
+
+        map.on('load', function() {
+            map.addSource('randomPoints', {
+                type: 'geojson',
+                data: geoJson,
+                cluster: true,
+                clusterMaxZoom: 14,
+                clusterRadius: 50
+            });
+
+            map.addLayer({
+                id: 'clusters',
+                type: 'circle',
+                source: 'randomPoints',
+                filter: ['has', 'point_count'],
+                paint: {
+                    'circle-color': [
+                        'step',
+                        ['get', 'point_count'],
+                        '#61ADE0',
+                        10,
+                        '#008D8D',
+                        50,
+                        '#FFDC7A',
+                        100,
+                        '#F9B023',
+                        300,
+                        '#E94743'
+                    ],
+                    'circle-radius': [
+                        'step',
+                        ['get', 'point_count'],
+                        20,
+                        100,
+                        30,
+                        750,
+                        40
+                    ]
+                }
+            });
+
+            map.addLayer({
+                id: 'cluster-count',
+                type: 'symbol',
+                source: 'randomPoints',
+                filter: ['has', 'point_count'],
+                layout: {
+                    'text-field': '{point_count_abbreviated}',
+                    'text-size': 12
+                }
+            });
+
+            map.addLayer({
+                id: 'unclustered-point',
+                type: 'circle',
+                source: 'randomPoints',
+                filter: ['!has', 'point_count'],
+                paint: {
+                    'circle-color': '#11b4da',
+                    'circle-radius': 4,
+                    'circle-stroke-width': 1,
+                    'circle-stroke-color': '#fff'
+                }
+            });
+
+            map.on('click', 'clusters', function(e) {
+                var features = map.queryRenderedFeatures(e.point, {
+                    layers: ['clusters']
+                });
+                var clusterId = features[0].properties.cluster_id;
+                map.getSource('randomPoints').getClusterExpansionZoom(
+                    clusterId,
+                    function(err, zoom) {
+                        if (err) {
+                            return;
+                        }
+
+                        map.easeTo({
+                            center: features[0].geometry.coordinates,
+                            zoom: zoom
+                        });
+                    }
+                );
+            });
+
+            map.on('mouseenter', 'clusters', function() {
+                map.getCanvas().style.cursor = 'pointer';
+            });
+
+            map.on('mouseleave', 'clusters', function() {
+                map.getCanvas().style.cursor = '';
+            });
+        });
+
+    </script>
+</body>
+</html>

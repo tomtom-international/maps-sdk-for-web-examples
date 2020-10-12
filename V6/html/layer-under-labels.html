@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - GeoJSON layer under labels</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/buttons-group.js'></script>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <div id='map' class='map'>
+        <div class='tt-overlay-panel -left-top -medium js-foldable'>
+            <form class='tt-form'>
+                <div class='tt-form-label'>
+                    GeoJSON polygons
+                    <div class='tt-buttons-group visibility-switch'>
+                        <button class='tt-buttons-group__button -active' data-id='show'>Show</button>
+                        <button class='tt-buttons-group__button' data-id='hide'>Hide</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script>
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            dragPan: !isMobileOrTablet(),
+            center: [9.089568, 53.794862],
+            zoom: 13.8
+        });
+
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        var buttonGroup = new ButtonsGroup(document.querySelector('.visibility-switch'));
+        var geojsonSource = null;
+        var isDrawn = false;
+
+        buttonGroup.onSelect(function(target) {
+            if (target.textContent === 'Show') {
+                drawPolygons();
+            } else {
+                removeLayer('custom-layer');
+                removeLayer('custom-layer-outline');
+            }
+        });
+
+        //here we are extracting geojson data from urban areas displayed in initial viewport
+        map.on('idle', function() {
+            if (!isDrawn) {
+                if (map.queryRenderedFeatures({layers: ['Built-up area']}).length > 0) {
+                    isDrawn = true;
+                    geojsonSource = {
+                        type: 'FeatureCollection',
+                        features: map.queryRenderedFeatures({layers: ['Built-up area']})
+                    };
+                    drawPolygons();
+                }
+            }
+        });
+
+        function drawPolygons() {
+            removeLayer('custom-layer');
+            removeLayer('custom-layer-outline');
+
+            map.addLayer({
+                id: 'custom-layer',
+                type: 'fill',
+                source: {
+                    type: 'geojson',
+                    data: geojsonSource
+                },
+                paint: {
+                    'fill-color': '#bc0909',
+                    'fill-outline-color': '#bc0909',
+                    'fill-opacity': 0.15
+                }
+            }, findFirstBuildingLayerId());
+
+            map.addLayer({
+                id: 'custom-layer-outline',
+                type: 'line',
+                source: {
+                    type: 'geojson',
+                    data: geojsonSource
+                },
+                paint: {
+                    'line-color': '#bc0909',
+                    'line-width': 0.5
+                }
+            }, findFirstBuildingLayerId());
+        }
+
+        function removeLayer(layerID) {
+            if (map.getLayer(layerID)) {
+                map.removeLayer(layerID);
+                map.removeSource(layerID);
+            }
+        }
+
+        //this function is used for obtaining the first (from bottom to top order) layer which belongs to labels group
+        function findFirstBuildingLayerId() {
+            var layers = map.getStyle().layers;
+
+            for (var index in layers) {
+                if (layers[index].type === 'symbol') {
+                    return layers[index].id;
+                }
+            }
+
+            throw new Error('Map style does not contain any layer which belongs to label group');
+        }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Styled road lines</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<style>
+        .legend-label {
+            font-family: Noway, Gotham, Arial;
+            font-weight: normal;
+            padding-left: 20px;
+            padding-top: 8px;
+        }
+        .color-label {
+            border-radius: 50%;
+            float: left;
+            height: 10px;
+            margin-top: 11px;
+            padding-right: 8px;
+            width: 10px;
+        }
+</style>
+<body>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/buttons-group.js'></script>
+    <div id='map' class='map'>
+        <div class='tt-overlay-panel -left-top -medium js-foldable'>
+            <form class='tt-form'>
+                <div class='tt-form-label'>
+                    Color scheme
+                    <div id='variant-buttons' class='tt-buttons-group'>
+                        <button class='tt-buttons-group__button -active' data-id='variant1'>Variant 1</button>
+                        <button class='tt-buttons-group__button' data-id='variant2'>Variant 2</button>
+                    </div>
+                </div>
+                <label class='tt-form-label -legend'>
+                    <div class='color-label' id='variant1'></div>
+                    <div class='legend-label'>Delaware Road</div>
+                    <div class='color-label' id='variant2'></div>
+                    <div class='legend-label'>Caulfield Road</div>
+                </label>
+            </form>
+        </div>
+    </div>
+    <script>
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            dragPan: !isMobileOrTablet(),
+            center: [0.77758, 51.53368],
+            zoom: 15
+        });
+
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        new Foldable('.js-foldable', 'top-right');
+        var variantButtons = new ButtonsGroup(document.getElementById('variant-buttons'));
+
+        variantButtons.onSelect(function(button) {
+            var chosenVariant = button.getAttribute('data-id');
+            selectVariant(chosenVariant);
+        });
+
+        map.on('load', function() {
+            selectVariant('variant1');
+        });
+
+        var delawareRoute = [
+            [0.76872, 51.53568],
+            [0.76904, 51.53559],
+            [0.76954, 51.53545],
+            [0.76985, 51.53537],
+            [0.7702, 51.5353],
+            [0.77054, 51.53523],
+            [0.77064, 51.53522],
+            [0.77217, 51.53501],
+            [0.77459, 51.5347],
+            [0.77554, 51.53457],
+            [0.77656, 51.53446],
+            [0.77725, 51.53438],
+            [0.77758, 51.53435],
+            [0.77864, 51.53428],
+            [0.77891, 51.53426],
+            [0.77952, 51.5342],
+            [0.78034, 51.53397]];
+
+        var caulfieldRoute = [
+            [0.76752, 51.53092],
+            [0.76904, 51.53116],
+            [0.76965, 51.53126],
+            [0.77061, 51.53141],
+            [0.77182, 51.53161],
+            [0.77534, 51.53217],
+            [0.77669, 51.53237],
+            [0.77719, 51.53246],
+            [0.77744, 51.53253],
+            [0.7782, 51.53276],
+            [0.77841, 51.53283],
+            [0.77881, 51.53294],
+            [0.77948, 51.53321],
+            [0.7801, 51.53346],
+            [0.78041, 51.53355],
+            [0.78049, 51.53357],
+            [0.78072, 51.53368]];
+
+        var variants = {
+            variant1: {
+                delaware: {
+                    color: '#DF1B12',
+                    width: 3,
+                    route: delawareRoute
+                },
+                caulfield: {
+                    color: '#000000',
+                    width: 8,
+                    route: caulfieldRoute
+                }
+            },
+            variant2: {
+                delaware: {
+                    color: '#008D8D',
+                    width: 6,
+                    route: delawareRoute,
+                    style: {
+                        name: 'line-opacity',
+                        value: 0.5
+                    }
+                },
+                caulfield: {
+                    color: '#F9B023',
+                    width: 6,
+                    route: caulfieldRoute,
+
+                    style: {
+                        name: 'line-dasharray',
+                        value: [3, 3]
+                    }
+                }
+            }
+        };
+
+        function updateLegend(chosenVariant) {
+            var firstVariantLabel = document.querySelector('#variant1');
+            var secondVariantLabel = document.querySelector('#variant2');
+
+            firstVariantLabel.setAttribute('style', 'background-color:' + variants[chosenVariant].delaware.color);
+            secondVariantLabel.setAttribute('style', 'background-color:' + variants[chosenVariant].caulfield.color);
+        }
+
+        function selectVariant(chosenVariant) {
+            drawLine('delaware', variants[chosenVariant].delaware);
+            drawLine('caulfield', variants[chosenVariant].caulfield);
+
+            updateLegend(chosenVariant);
+        }
+
+        function drawLine(id, properties) {
+            if (map.getLayer(id)) {
+                map.removeLayer(id);
+                map.removeSource(id);
+            }
+
+            map.addSource(id, {
+                type: 'geojson',
+                data: {
+                    type: 'Feature',
+                    properties: {
+                        color: properties.color
+                    },
+                    geometry: {
+                        type: 'LineString',
+                        coordinates: properties.route
+                    }
+                }
+            });
+
+            var layerProperties = {
+                id: id,
+                type: 'line',
+                source: id,
+                paint: {
+                    'line-width': properties.width,
+                    'line-color': ['get', 'color']
+                }
+            };
+
+            if (properties.style) {
+                layerProperties.paint[properties.style.name] = properties.style.value;
+            }
+
+            map.addLayer(layerProperties);
+        }
+    </script>
+</body>
+</html>

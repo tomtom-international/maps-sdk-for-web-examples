@@ -7,5 +7,6 @@ window.mapGeopoliticalViews = window.mapGeopoliticalViews || {
     AR: 'Argentina',
     Arabic: 'Arabic',
     RU: 'Russia',
-    TR: 'Turkey'
+    TR: 'Turkey',
+    CN: 'China'
 };

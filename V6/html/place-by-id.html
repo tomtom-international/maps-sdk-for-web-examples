@@ -124,7 +124,7 @@
             map.on('click', function(event) {
                 var feature = map.queryRenderedFeatures(event.point)[0];
 
-                if (feature.sourceLayer !== 'Point of Interest') {
+                if (feature.layer.id !== 'Point of Interest' && feature.layer.id !== 'selectedPoi') {
                     hideResult();
                 }
             });

@@ -6,5 +6,6 @@ window.searchGeopoliticalViews = window.searchGeopoliticalViews || {
     MA: 'Morocco',
     PK: 'Pakistan',
     RU: 'Russia',
-    TR: 'Turkey'
+    TR: 'Turkey',
+    CN: 'China'
 };

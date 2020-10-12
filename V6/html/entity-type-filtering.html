@@ -70,12 +70,12 @@
         var roundLatLng = Formatters.roundLatLng;
 
         var entities = {
+            PostalCodeArea: 'PostalCodeArea',
             CountrySecondarySubdivision: 'CountrySecondarySubdivision',
             CountryTertiarySubdivision: 'CountryTertiarySubdivision',
             Municipality: 'Municipality',
             MunicipalitySubdivision: 'MunicipalitySubdivision',
-            Neighbourhood: 'Neighbourhood',
-            PostalCodeArea: 'PostalCodeArea'
+            Neighbourhood: 'Neighbourhood'
         };
 
         var entityTypeSelector = new TailSelector(
@@ -101,7 +101,7 @@
         EntityTypeFiltering.prototype.initState = function() {
             this.state = {
                 searchLanguage: 'en-US',
-                entityType: [],
+                entityType: [entities.PostalCodeArea],
                 position: {
                     latitude: null,
                     longitude: null
@@ -208,7 +208,7 @@
 
             this.state.isRequesting = true;
             this.getReverseGeocodeService()
-                
+
                 .then(this.handleResponse.bind(this))
                 .catch(this.handeError)
                 .finally(function() {

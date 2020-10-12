@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Image overlay</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+    <div id='map' class='map'></div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script>
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            zoom: 13,
+            center: [-122.38051, 37.79770],
+            dragPan: !isMobileOrTablet(),
+            bearing: -51
+        });
+
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        map.on('load', function() {
+            map.addSource('overlay', {
+                type: 'image',
+                url: 'https://api.tomtom.com/maps-sdk-for-web/cdn/static/sf-image-overlay.png',
+                coordinates: [
+                    [-122.41101, 37.78367],
+                    [-122.39924, 37.79800],
+                    [-122.38111, 37.78869],
+                    [-122.39288, 37.77436]
+                ]
+            });
+
+            map.addLayer({
+                'id': 'overlay',
+                'source': 'overlay',
+                'type': 'raster'
+            });
+        });
+    </script>
+</body>
+</html>
