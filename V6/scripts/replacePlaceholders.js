@@ -33,7 +33,6 @@ const values = {
     ...config.keys,
     ...config.styles,
     hostedStylesVersion: config.hostedStylesVersion
-    
 };
 
 (async () => {
@@ -47,8 +46,7 @@ const values = {
 
     await replaceInFile({
         files: [
-            path.resolve(__dirname, '../', 'dist/**/*.html'),
-            path.resolve(__dirname, '../', 'assets/style/**/*.json')
+            path.resolve(__dirname, '../', 'dist/**/*.html')
         ],
         from: placeholdersToReplace,
         to: valuesForReplacement
