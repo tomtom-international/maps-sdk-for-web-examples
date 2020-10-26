@@ -70,7 +70,8 @@
         var searchBoxOptions = {
             minNumberOfCharacters: 0,
             searchOptions: searchOptions,
-            autocompleteOptions: autocompleteOptions
+            autocompleteOptions: autocompleteOptions,
+            distanceFromPoint: [15.4, 53.0]
         };
         var ttSearchBox = new tt.plugins.SearchBox(tt.services, searchBoxOptions);
         document.querySelector('.tt-side-panel__header').appendChild(ttSearchBox.getSearchBoxHTML());
@@ -80,12 +81,30 @@
                 query: null,
                 center: null
             },
-            callbackId: null
+            callbackId: null,
+            userLocation: null
         };
 
         map.addControl(new tt.FullscreenControl());
         map.addControl(new tt.NavigationControl());
         new SidePanel('.tt-side-panel', map);
+
+        var geolocateControl = new tt.GeolocateControl({
+            positionOptions: {
+                enableHighAccuracy: false
+            }
+        });
+
+        geolocateControl.on('geolocate', function(event) {
+            var coordinates = event.coords;
+            state.userLocation = [coordinates.longitude, coordinates.latitude];
+            ttSearchBox.updateOptions(Object.assign({}, ttSearchBox.getOptions(), {
+                distanceFromPoint: state.userLocation
+            }));
+        });
+
+        map.addControl(geolocateControl);
+
         var resultsManager = new ResultsManager();
         var searchMarkersManager = new SearchMarkersManager(map);
 
@@ -103,13 +122,12 @@
             var oldautocompleteOptions = ttSearchBox.getOptions().autocompleteOptions;
             var newSearchOptions = Object.assign({}, oldSearchOptions, { center: map.getCenter() });
             var newAutocompleteOptions = Object.assign({}, oldautocompleteOptions, { center: map.getCenter() });
-            ttSearchBox.updateOptions(Object.assign(
-                {},
-                searchBoxOptions,
-                { placeholder: 'Query e.g. Washington' },
-                { searchOptions: newSearchOptions },
-                { autocompleteOptions: newAutocompleteOptions }
-            ));
+            ttSearchBox.updateOptions(Object.assign({}, searchBoxOptions, {
+                placeholder: 'Query e.g. Washington',
+                searchOptions: newSearchOptions,
+                autocompleteOptions: newAutocompleteOptions,
+                distanceFromPoint: state.userLocation || map.getCenter()
+            }));
         }
 
         function handleResultsCleared() {

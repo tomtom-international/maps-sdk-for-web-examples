@@ -26,6 +26,7 @@ function EntryPoints(poiData, poiMarker, options) {
     this.poiMarker = poiMarker;
     this.reverseGeocodeService = options.reverseGeocodeService;
     this.entryPointsMarkers = [];
+    this.entryPointsMarkersMapping = [];
     this.draw();
 }
 
@@ -40,6 +41,7 @@ EntryPoints.prototype.clearEntryPoints = function() {
         this.map.getSource(ENTRY_POINTS_CONNECTORS_SOURCE_NAME).setData(createGeoJsonFeaturesCollection());
     }, this);
     this.entryPointsMarkers = [];
+    this.entryPointsMarkersMapping = [];
 };
 
 EntryPoints.prototype._drawCounter = function() {
@@ -66,9 +68,9 @@ EntryPoints.prototype.mainMarkerClick = function() {
     if (this.entryPointsMarkers.length > 0) {
         this.clearEntryPoints();
     } else {
+        this.renderEntryPoints();
         this.getEntryPointsAddresses().then(function() {
-            this.clearEntryPoints();
-            this.renderEntryPoints();
+            this.updateEntryPointMarkerPopups();
         }.bind(this));
     }
 };
@@ -86,6 +88,7 @@ EntryPoints.prototype.renderEntryPoints = function() {
         ]));
         entryPointMarker.addTo(this.map);
         this.entryPointsMarkers.push(entryPointMarker);
+        this.entryPointsMarkersMapping.push({entryPoint: entryPoint, entryPointMarker: entryPointMarker});
     }, this);
     this.map.getSource(ENTRY_POINTS_CONNECTORS_SOURCE_NAME).setData(featuresCollection);
 };
@@ -99,6 +102,40 @@ EntryPoints.prototype.createEntryPointMarker = function(entryPoint) {
         element: this.renderEntryPointMarkerElem(),
         anchor: 'bottom'
     });
+
+    entryPointsMarker.setPopup(this.getLoadingPopup());
+    entryPointsMarker.setLngLat(entryPoint.position);
+    return entryPointsMarker;
+};
+
+EntryPoints.prototype.getLoadingPopup = function() {
+    var spinner = document.createElement('div');
+    spinner.setAttribute('class', 'loading-circle-small');
+
+    var popup = new tt.Popup({ offset: [0, -38] });
+    popup.setDOMContent(spinner);
+
+    return popup;
+};
+
+EntryPoints.prototype.updateEntryPointMarkerPopups = function() {
+    this.entryPointsMarkersMapping.forEach(function(mapping) {
+        var entryPointMarker = mapping.entryPointMarker;
+        var entryPoint = mapping.entryPoint;
+
+        var isOpen = entryPointMarker.getPopup().isOpen();
+
+        entryPointMarker.getPopup().remove();
+        var popup = this.getEntryPointMarkerPopup(entryPoint);
+        entryPointMarker.setPopup(popup);
+
+        if (isOpen) {
+            entryPointMarker.togglePopup();
+        }
+    }.bind(this));
+};
+
+EntryPoints.prototype.getEntryPointMarkerPopup = function(entryPoint) {
     var poiData = {
         name: this.poiData.name,
         address: entryPoint.address.freeformAddress + ', ' + entryPoint.address.countryCodeISO3,
@@ -106,9 +143,7 @@ EntryPoints.prototype.createEntryPointMarker = function(entryPoint) {
         position: entryPoint.position,
         type: entryPoint.type
     };
-    entryPointsMarker.setPopup(new window.SearchMarkerPopup(poiData, this.options));
-    entryPointsMarker.setLngLat(entryPoint.position);
-    return entryPointsMarker;
+    return new window.SearchMarkerPopup(poiData, this.options);
 };
 
 EntryPoints.prototype.renderEntryPointMarkerElem = function() {

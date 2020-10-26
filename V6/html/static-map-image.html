@@ -94,8 +94,11 @@
                                 placeholder='e.g. 900' />
                             </label>
                         </div>
-
                         <label class='tt-form-label tt-spacing-top-24'>
+                            Geopolitical View
+                            <select class='js-geopol-select tt-select'></select>
+                        </label>
+                        <label class='tt-form-label'>
                             Language
                             <select class='js-language-select tt-select'></select>
                         </label>
@@ -150,6 +153,7 @@
 <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
 <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
 <script data-showable type='text/javascript' src='../assets/js/map/languages.js'></script>
+<script data-showable type='text/javascript' src='../assets/js/map/geopolitical-views.js'></script>
 <script data-showable type='text/javascript' src='../assets/js/search/side-panel.js'></script>
 <script data-showable type='text/javascript' src='../assets/js/popup.js'></script>
 <script data-showable type='text/javascript' src='../assets/js/buttons-group.js'></script>
@@ -205,6 +209,7 @@
         width: document.querySelector('.js-width'),
         height: document.querySelector('.js-height'),
         language: new TailSelector(mapLanguages, '.js-language-select', 'NGT').getElement(),
+        view: new TailSelector(mapGeopoliticalViews, '.js-geopol-select', 'Unified').getElement(),
         style: new TailSelector(styles, '.js-style-select', 'main').getElement(),
         layer: new ButtonsGroup(document.querySelector('.js-layer-buttons-group')),
         form: document.querySelector('.js-form'),
@@ -214,6 +219,7 @@
     elements.width.addEventListener('change', sizeChangeHandler('width'));
     elements.height.addEventListener('change', sizeChangeHandler('height'));
     elements.language.on('change', selectInputHandler('language'));
+    elements.view.on('change', selectInputHandler('view'));
     elements.style.on('change', selectInputHandler('style'));
 
     elements.layer.onSelect(layerChangeHandler);
@@ -254,6 +260,7 @@
         var options = {
             key: '${api.key.maps}',
             language: state.language,
+            view: state.view,
             style: state.style,
             layer: state.layer,
             format: state.format,
