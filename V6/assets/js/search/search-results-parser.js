@@ -1,31 +1,31 @@
-/*
-* Get the result name from the response.
-*/
-function getResultName(result) {
-    if (typeof result.poi !== 'undefined' && typeof result.poi.name !== 'undefined') {
-        return result.poi.name;
-    }
-    return '';
-}
+function getAddressLines(result) {
+    var type = result.type;
+    var poi = result.poi;
+    var address = result.address;
+    var entityType = result.entityType;
 
-/*
-* Get the result address from the response.
-*/
-function getResultAddress(result) {
-    if (typeof result.address !== 'undefined') {
-        var address = [];
-
-        if (typeof result.address.freeformAddress !== 'undefined') {
-            address.push(result.address.freeformAddress);
+    if (type === 'Point Address' || type === 'Address Range' || type === 'Cross Streets') {
+        return [address.freeformAddress, `${address.municipality}, ${address.country}`];
+    } else if (type === 'POI') {
+        return [poi.name, address.freeformAddress];
+    } else if (type === 'Street') {
+        return [address.streetName, `${address.postalCode} ${address.municipality}`];
+    } else if (type === 'Geography') {
+        switch (entityType) {
+        case 'Municipality':
+            return [address.municipality, address.country];
+        case 'MunicipalitySubdivision':
+            return [address.municipalitySubdivision, address.municipality];
+        case 'Country':
+            return [address.country, address.country];
+        case 'CountrySubdivision':
+            return [address.countrySubdivision, address.country];
+        default:
+            return [address.freeformAddress];
         }
-
-        if (typeof result.address.countryCodeISO3 !== 'undefined') {
-            address.push(result.address.countryCodeISO3);
-        }
-
-        return address.join(', ');
+    } else {
+        return [address.freeformAddress];
     }
-    return '';
 }
 
 /*
@@ -40,8 +40,7 @@ function getResultDistance(result) {
 }
 
 var SearchResultsParser = {
-    getResultName: getResultName,
-    getResultAddress: getResultAddress,
+    getAddressLines: getAddressLines,
     getResultDistance: getResultDistance
 };
 

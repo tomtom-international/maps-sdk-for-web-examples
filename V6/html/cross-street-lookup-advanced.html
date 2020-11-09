@@ -81,7 +81,7 @@
         <div id='map' class='full-map'></div>
     </div>
     <script>
-        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+        tt.setProductInfo('${productInfo.name}', '${productInfo.version}');
         var map = tt.map({
             key: '${api.key.maps}',
             container: 'map',

@@ -1,18 +1,19 @@
-const ncp = require('ncp');
+const fse = require('fs-extra');
 const path = require('path');
 
 const source = path.resolve(__dirname, '../', 'html');
 const destination = path.resolve(__dirname, '../', 'dist');
 
 //eslint-disable-next-line
-console.log("Copying files to dist starting...");
+console.log("Copying html files to dist starting...");
 
-ncp(source, destination, (err) => {
-    if (err) {
-        console.error(err);
-        process.exit(-1);
-    }
+try {
+    fse.copySync(source, destination);
+} catch (error) {
+    console.error(error);
+    process.exit(-1);
+}
 
-    //eslint-disable-next-line
-    console.log("Copying files to dist finished!");
-});
+//eslint-disable-next-line
+console.log("Copying html files to dist finished!");
+

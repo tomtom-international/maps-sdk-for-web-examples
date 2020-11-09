@@ -118,35 +118,43 @@ SearchMarkerPopup.prototype.createPopupContent = function() {
     var popupContentElem = document.createElement('div');
     popupContentElem.className = 'pop-up-content';
 
+    var addressInformationElem = document.createElement('div');
+
     if (this.poiData.name) {
-        this.createDivWithContent('pop-up-result-name', this.poiData.name, popupContentElem);
+        this.createDivWithContent('pop-up-result-name', this.poiData.name, addressInformationElem);
     }
 
-    this.createDivWithContent('pop-up-result-address', this.poiData.address, popupContentElem);
+    this.createDivWithContent('pop-up-result-address', this.poiData.address, addressInformationElem);
+
+
+
+    var longitude = this.poiData.position.lon ? this.poiData.position.lon : this.poiData.position.lng;
+    this.createDivWithContent('pop-up-result-position', this.poiData.position.lat +
+        ', ' + longitude, addressInformationElem);
+
+    if (this.poiData.type) {
+        this.createDivWithContent('pop-up-result-type', this.poiData.type + ' entry', addressInformationElem);
+    }
+
+    popupParentElem.appendChild(popupIconContainer);
+    popupParentElem.appendChild(popupContentElem);
+    popupContentElem.appendChild(addressInformationElem);
 
     if (this.poiData.distance) {
         this.createDivWithContent('pop-up-result-distance',
             this.convertDistance(this.poiData.distance), popupContentElem);
     }
 
-    var longitude = this.poiData.position.lon ? this.poiData.position.lon : this.poiData.position.lng;
-    this.createDivWithContent('pop-up-result-position', this.poiData.position.lat + ', ' + longitude, popupContentElem);
-
-    if (this.poiData.type) {
-        this.createDivWithContent('pop-up-result-type', this.poiData.type + ' entry', popupContentElem);
-    }
-
-    popupParentElem.appendChild(popupIconContainer);
-    popupParentElem.appendChild(popupContentElem);
-
     return popupParentElem;
 };
 
 SearchMarkerPopup.prototype.convertDistance = function(distanceMeters) {
-    if (distanceMeters < 1000) {
-        return Math.ceil(distanceMeters) + ' m';
+    var distance = Math.round(distanceMeters);
+
+    if (distance >= 1000) {
+        return Math.round(distance / 100) / 10 + ' km';
     }
-    return Math.ceil(distanceMeters / 1000) + ' km';
+    return distance + ' m';
 };
 
 SearchMarkerPopup.prototype.createDivWithContent = function(className, content, parent) {

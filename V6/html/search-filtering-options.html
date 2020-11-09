@@ -76,7 +76,7 @@
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
 
     <script>
-        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+        tt.setProductInfo('${productInfo.name}', '${productInfo.version}');
 
         var map = tt.map({
             key: '${api.key.maps}',
@@ -97,6 +97,15 @@
                 type: 'connectorSet',
                 filters: ['Tesla', 'StandardHouseholdCountrySpecific', 'IEC62196Type1',
                     'IEC62196Type2CableAttached', 'IEC62196Type2Outlet', 'IEC62196Type2CCS']
+            },
+            'Gas stations': {
+                locationName: 'London',
+                locationQuery: 'Gas stations',
+                center: [-0.130033, 51.510363],
+                query: 'Gas station',
+                type: 'fuelSet',
+                filters: ['Petrol', 'LPG', 'Diesel', 'Biodiesel', 'DieselForCommercialVehicles',
+                    'E85', 'LNG', 'CNG', 'Hydrogen', 'AdBlue']
             },
             'Brand name (automotive dealers)': {
                 locationName: 'London',
@@ -203,9 +212,10 @@
             if (results.length > 0) {
                 results.forEach(function(result) {
                     var distance = SearchResultsParser.getResultDistance(result);
+                    var addressLines = SearchResultsParser.getAddressLines(result);
                     var searchResult = DomHelpers.createSearchResult(
-                        SearchResultsParser.getResultName(result),
-                        SearchResultsParser.getResultAddress(result),
+                        addressLines[0],
+                        addressLines[1],
                         distance ? Formatters.formatAsMetricDistance(distance) : ''
                     );
 
@@ -231,6 +241,7 @@
         function performSearch() {
             resultsManager.loading();
             var scenario = scenarios[state.selectedScenario];
+            var parameters = ['connectorSet', 'brandSet', 'fuelSet'];
             var searchOptions = {
                 key: '${api.key.search}',
                 query: scenario.query,
@@ -239,14 +250,6 @@
                 language: 'en-GB'
             };
 
-            if (scenario.type === 'connectorSet') {
-                searchOptions.connectorSet = filtersSelector.getSelectedOptions().join(',');
-            }
-
-            if (scenario.type === 'brandSet') {
-                searchOptions.brandSet = filtersSelector.getSelectedOptions().join(',');
-            }
-
             if (scenario.type === 'categorySet') {
                 var categoryIds = [];
                 filtersSelector.getSelectedOptions().forEach(function(filterName) {
@@ -254,6 +257,10 @@
                 });
 
                 searchOptions.categorySet = categoryIds.join(',');
+            }
+
+            if (parameters.indexOf(scenario.type) !== -1) {
+                searchOptions[scenario.type] = filtersSelector.getSelectedOptions().join(',');
             }
 
             tt.services.fuzzySearch(searchOptions).then(function(response) {

@@ -21,10 +21,16 @@ const styleRegexes = Object.keys(config.styles).reduce((acc, customStyle) => {
     return acc;
 }, {});
 
+const productInfoRegexes = Object.keys(config.productInfo).reduce((acc, key) => {
+    acc[key] = new RegExp(`\\\${productInfo.${key}}`, 'gm');
+    return acc;
+}, {});
+
 const regexes = {
     ...cdnRegexes,
     ...keysRegexes,
     ...styleRegexes,
+    ...productInfoRegexes,
     hostedStylesVersion: hostedStylesRegex
 };
 
@@ -32,6 +38,7 @@ const values = {
     ...config.cdn,
     ...config.keys,
     ...config.styles,
+    ...config.productInfo,
     hostedStylesVersion: config.hostedStylesVersion
 };
 

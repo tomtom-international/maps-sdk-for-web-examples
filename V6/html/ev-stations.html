@@ -153,7 +153,7 @@
         <script data-showable type='text/javascript' src='../assets/js/search-markers/search-markers-manager.js'></script>
         <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
         <script>
-            tt.setProductInfo('<your-product-name>', '<your-product-version>');
+            tt.setProductInfo('${productInfo.name}', '${productInfo.version}');
 
             var map = tt.map({
                 key: '${api.key.maps}',
@@ -252,9 +252,10 @@
 
             function createPopupHeaderHTML(id, connectorsList) {
                 var connectorData = displayedConnectors[id];
+                var addressLines = SearchResultsParser.getAddressLines(connectorData);
                 var connectorDataElement = DomHelpers.createSearchResult(
-                    SearchResultsParser.getResultName(connectorData),
-                    SearchResultsParser.getResultAddress(connectorData)
+                    addressLines[0],
+                    addressLines[1]
                 );
 
                 return (
@@ -300,9 +301,11 @@
 
                 [].slice.call(results).forEach(function(result) {
                     var resultItem = DomHelpers.createResultItem(),
+                        addressLines = SearchResultsParser.getAddressLines(result),
                         searchResult = DomHelpers.createSearchResult(
-                            SearchResultsParser.getResultName(result),
-                            SearchResultsParser.getResultAddress(result), ''
+                            addressLines[0],
+                            addressLines[1],
+                            ''
                         );
                     var resultId = result.id;
 

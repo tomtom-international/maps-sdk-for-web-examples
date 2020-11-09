@@ -80,11 +80,9 @@ SearchMarkersManager.prototype.draw = function(poiList) {
     this._poiList.forEach(function(poi) {
         var markerId = poi.id;
 
-        var countryCodeISO3 = poi.address.countryCodeISO3 ? ', ' + poi.address.countryCodeISO3 : '';
-
         var poiOpts = {
             name: poi.poi ? poi.poi.name : undefined,
-            address: poi.address.freeformAddress + countryCodeISO3,
+            address: poi.address.freeformAddress,
             distance: poi.dist,
             classification: poi.poi ? poi.poi.classifications[0].code : undefined,
             position: poi.position,

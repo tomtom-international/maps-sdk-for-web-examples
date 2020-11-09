@@ -1,6 +1,6 @@
 WEB SDK LICENSE AGREEMENT (“AGREEMENT”)
 
-By downloading, accessing this Maps Software Development Kit for Web (the “Web SDK”) you are entering into a binding agreement with TomTom Global Content B.V. (“TomTom”). Your agreement with TomTom includes the following terms and conditions and the Privacy Policy ( https://www.tomtom.com/en_gb/privacy/ ). You should not use the Web SDK if you cannot agree to this Agreement and the Privacy Policy.
+By downloading, accessing this Maps Software Development Kit for Web (the “Web SDK”) you are entering into a binding agreement with TomTom Global Content B.V. (“TomTom”). Your agreement with TomTom includes the following terms and conditions. You should not use the Web SDK if you cannot agree to this Agreement.
 
 You may not use the Web SDK and may not accept the Agreement if you are a person barred from receiving the Web SDK under the laws of the United States or other countries, including the country in which you are resident or from which you use the Web SDK. If you agree to be bound by the Agreement on behalf of your employer or other entity, you represent and warrant that you have full legal authority to bind your employer or such entity to the Agreement. If you do not have the requisite authority, you may not accept the Agreement or use the Web SDK on behalf of your employer or other entity.
 
@@ -21,7 +21,12 @@ You may not use the Web SDK and may not accept the Agreement if you are a person
 3.5. The Web SDK may include data which TomTom licenses from third parties or open source software. You shall comply with all requirements and restrictions which such third parties may require TomTom to impose on you (and as may be updated and amended by TomTom from time to time). All applicable OSS Licenses are included within the Web SDK download package. It shall be your responsibility to check, review and comply with any updated or amended terms that would apply to the Web SDK licensed to you under this Agreement. For the avoidance of doubt, any such software is made available to you under the terms and conditions of the applicable licenses.
 
 
-4. PRIVACY: In order to improve the TomTom Developer Portal and Web SDK, TomTom may collect certain usage related information from the software including but not limited to the general SDK and product identifiers, version numbers, and information on which tools and/or services in the Web SDK are being used and how they are being used by you. In addition, TomTom may collect your unique identifier and associated IP address for legitimate business reasons (such as without limitation the processing of invoices). This data will be retained for a maximum period of 120 days. The information collected is maintained in accordance with our Privacy Policy.
+4. PRIVACY:
+
+4.1. TomTom shall collect, via the Web SDK, the Personal Data specified under http://tomtom.com/en_gb/thirdpartyproductterms/ and shall process such Personal Data in accordance with the terms set out under the same link. The terms under both such links may be updated from time to time by TomTom and shall apply from the date of such update unless otherwise stated.
+
+4.2. In order to improve the TomTom Developer Portal and Web SDK, TomTom may collect certain usage related information from the software including but not limited to your unique identifier, associated IP addresses, version number of the Web SDK used, and information on which tools and/or services in the Web SDK are being used and how they are being used through random session identifiers and session data. The information collected is examined to improve the Web SDK and is maintained in accordance with all applicable data protection laws.
+
 
 5. INTELLECTUAL PROPERTY RIGHTS AND COPYRIGHT NOTICES:
 

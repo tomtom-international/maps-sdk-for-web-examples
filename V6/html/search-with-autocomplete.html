@@ -41,7 +41,7 @@
     <script data-showable type='text/javascript' src='../assets/js/search/dom-helpers.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
     <script>
-        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+        tt.setProductInfo('${productInfo.name}', '${productInfo.version}');
 
         var map = tt.map({
             key: '${api.key.maps}',
@@ -126,7 +126,7 @@
                 placeholder: 'Query e.g. Washington',
                 searchOptions: newSearchOptions,
                 autocompleteOptions: newAutocompleteOptions,
-                distanceFromPoint: state.userLocation || map.getCenter()
+                distanceFromPoint: state.userLocation
             }));
         }
 
@@ -279,9 +279,10 @@
             var resultList = DomHelpers.createResultList();
             results.forEach(function(result) {
                 var distance = SearchResultsParser.getResultDistance(result);
-                var searchResult = DomHelpers.createSearchResult(
-                    SearchResultsParser.getResultName(result),
-                    SearchResultsParser.getResultAddress(result),
+                var addressLines = SearchResultsParser.getAddressLines(result);
+                var searchResult = this.DomHelpers.createSearchResult(
+                    addressLines[0],
+                    addressLines[1],
                     distance ? Formatters.formatAsMetricDistance(distance) : ''
                 );
                 var resultItem = DomHelpers.createResultItem();

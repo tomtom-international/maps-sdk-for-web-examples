@@ -106,7 +106,7 @@
     <script data-showable type='text/javascript' src='../assets/js/search-markers/search-markers-manager.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
     <script>
-        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+        tt.setProductInfo('${productInfo.name}', '${productInfo.version}');
         var map = tt.map({
             key: '${api.key.maps}',
             container: 'map',
@@ -252,8 +252,10 @@
                 Array.prototype.slice.call(response.results)
                     .forEach(function(result) {
                         var distance = this.searchResultsParser.getResultDistance(result);
+                        var addressLines = this.searchResultsParser.getAddressLines(result);
                         var searchResult = this.domHelpers.createSearchResult(
-                            this.searchResultsParser.getResultAddress(result),
+                            addressLines[0],
+                            addressLines[1],
                             distance ? this.formatters.formatAsMetricDistance(distance) : ''
                         );
 

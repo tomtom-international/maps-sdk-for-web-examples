@@ -53,7 +53,7 @@
 
         //here we are extracting geojson data from urban areas displayed in initial viewport
         map.on('idle', function() {
-            if (!isDrawn) {
+            if (!isDrawn && map.getLayer('Built-up area')) {
                 if (map.queryRenderedFeatures({layers: ['Built-up area']}).length > 0) {
                     isDrawn = true;
                     geojsonSource = {

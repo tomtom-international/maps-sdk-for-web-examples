@@ -67,7 +67,7 @@
     <script src='/cdn.web-sdk-services/services-web.min.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
     <script>
-        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+        tt.setProductInfo('${productInfo.name}', '${productInfo.version}');
 
         var map = tt.map({
             key: '${api.key.maps}',

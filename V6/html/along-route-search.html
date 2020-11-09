@@ -270,9 +270,10 @@
             Array.prototype.slice.call(response.results)
                 .forEach(function(result) {
                     var distance = searchResultsParser.getResultDistance(result);
+                    var addressLines = searchResultsParser.getAddressLines(result);
                     var searchResult = this.domHelpers.createSearchResult(
-                        searchResultsParser.getResultName(result),
-                        searchResultsParser.getResultAddress(result),
+                        addressLines[0],
+                        addressLines[1],
                         distance ? formatters.formatAsMetricDistance(distance) : ''
                     );
 

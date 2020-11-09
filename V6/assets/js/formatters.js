@@ -81,7 +81,7 @@ function formatAsMetricDistance(distanceMeters) {
     var distance = Math.round(distanceMeters);
 
     if (distance >= 1000) {
-        return Math.round(distance / 10) / 100 + ' km';
+        return Math.round(distance / 100) / 10 + ' km';
     }
     return distance + ' m';
 }

@@ -97,6 +97,28 @@
                                     <label for='postcode-poi' class='tt-label -full'>POI</label>
                                 </div>
                             </div>
+                            <div class='tt-form-label -group'>
+                                Mapcodes
+                                <div class='tt-checkable-input'>
+                                    <input id='mapcodes-local' name='mapcodes' value='Local' class='tt-checkbox' type='checkbox' checked>
+                                    <label for='mapcodes-local' class='tt-label -full'>Local</label>
+                                </div>
+                                <div class='tt-checkable-input'>
+                                    <input id='mapcodes-international' name='mapcodes' value='International' class='tt-checkbox' type='checkbox' checked>
+                                    <label for='mapcodes-international' class='tt-label -full'>International</label>
+                                </div>
+                                <div class='tt-checkable-input'>
+                                    <input id='mapcodes-alternative' name='mapcodes' value='Alternative' class='tt-checkbox' type='checkbox' checked>
+                                    <label for='mapcodes-alternative' class='tt-label -full'>Alternative</label>
+                                </div>
+                            </div>
+                            <label class='tt-form-label'>
+                                Time zone
+                                <div class='tt-checkable-input'>
+                                    <input id='timeZone' name='timeZone' class='tt-checkbox' type='checkbox'>
+                                    <label for='timeZone' class='tt-label -full'>Include time zone IANA ID</label>
+                                </div>
+                            </label>
                             <label class='tt-form-label'>
                                 Country code(s)
                                 <input class='tt-input -small' name='codes' placeholder='Comma separated list of country codes'>
@@ -163,7 +185,7 @@
     <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
     <script src='/cdn.web-sdk-services/services-web.min.js'></script>
     <script>
-        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+        tt.setProductInfo('${productInfo.name}', '${productInfo.version}');
         var map = tt.map({
             key: '${api.key.maps}',
             container: 'map',
@@ -202,7 +224,8 @@
                 isGeobiasActive: true,
                 language: 'en-GB',
                 radius: this.elements.radius.value,
-                query: this.elements.query.value
+                query: this.elements.query.value,
+                timeZone: false
             };
             this.marker.className = 'tt-icon -location';
             this.initializeStateWithCheckboxesValues();
@@ -213,7 +236,7 @@
         }
 
         SearchOutput.prototype.addIndexesToCallParameters = function() {
-            return Object.keys(this.state.indices)
+            var indices = Object.keys(this.state.indices)
                 .reduce(function(obj, key) {
                     if (this.state.indices[key]) {
                         obj.indices.push(key);
@@ -223,6 +246,13 @@
                     }
                     return obj;
                 }.bind(this), { indices: [], postcode: [] });
+
+            indices.mapcodes = Object.keys(this.state.mapcodes)
+                .filter(function(key) {
+                    return this.state.mapcodes[key] === true;
+                }.bind(this));
+
+            return indices;
         };
 
         SearchOutput.prototype.bindEvents = function() {
@@ -235,11 +265,18 @@
                 element.addEventListener('click', self.updateCheckboxValue.bind(self));
                 self.elements.postcode[index].addEventListener('click', self.updateCheckboxValue.bind(self));
             });
+            [].slice.call(this.elements.mapcodes).forEach(function(element, index) {
+                element.addEventListener('click', self.updateCheckboxValue.bind(self));
+                self.elements.mapcodes[index].addEventListener('click', self.updateCheckboxValue.bind(self));
+            });
             this.elements.language.on('change', this.updateSelectValue.bind(this, 'language'));
             this.elements.latitude.addEventListener('change', this.updateInputValue.bind(this, 'latitude'));
             this.elements.longitude.addEventListener('change', this.updateInputValue.bind(this, 'longitude'));
             this.elements.radius.addEventListener('change', this.updateInputValue.bind(this, 'radius'));
             this.elements.query.addEventListener('change', this.updateInputValue.bind(this, 'query'));
+            this.elements.timeZone.addEventListener('click', function() {
+                this.state.timeZone = !this.state.timeZone;
+            }.bind(this));
             map.on('load', this.updateBiasPosition.bind(this));
             map.on('moveend', this.updateBiasPosition.bind(this));
         };
@@ -312,10 +349,11 @@
                 this.mapCenter = map.getCenter();
                 [].slice.call(results).forEach(function(result) {
                     var distance = this.searchResultsParser.getResultDistance(result),
+                        addressLines = this.searchResultsParser.getAddressLines(result),
                         resultItem = DomHelpers.createResultItem(),
                         searchResult = DomHelpers.createSearchResult(
-                            this.searchResultsParser.getResultName(result),
-                            this.searchResultsParser.getResultAddress(result),
+                            addressLines[0],
+                            addressLines[1],
                             distance ? Formatters.formatAsMetricDistance(distance) : ''
                         );
                     this.markers[result.id] = this.createMarker(result);
@@ -389,11 +427,17 @@
             if (this.state.codes) {
                 callParameters.countrySet = this.state.codes;
             }
+            if (this.state.timeZone) {
+                callParameters.timeZone = 'iana';
+            }
             if (indexes.indices.length) {
                 callParameters.idxSet = indexes.indices.join(',');
             }
             if (indexes.postcode.length) {
                 callParameters.extendedPostalCodesFor = indexes.postcode.join(',');
+            }
+            if (this.state.mapcodes) {
+                callParameters.mapcodes = indexes.mapcodes.join(',');
             }
             tt.services.fuzzySearch(callParameters)
                 .then(this.handleResponse.bind(this))
@@ -401,15 +445,21 @@
         };
 
         SearchOutput.prototype.initializeStateWithCheckboxesValues = function() {
-            var indices = {}, postcode = {};
+            var indices = {}, postcode = {}, mapcodes = {};
             var postcodeElements = [].slice.call(this.elements.postcode);
 
             [].slice.call(this.elements.indices).forEach(function(checkbox, index) {
                 indices[checkbox.value] = checkbox.checked;
                 postcode[postcodeElements[index].value] = postcodeElements[index].checked;
             });
+
+            [].slice.call(this.elements.mapcodes).forEach(function(checkbox) {
+                mapcodes[checkbox.value] = checkbox.checked;
+            });
+
             this.state.indices = indices;
             this.state.postcode = postcode;
+            this.state.mapcodes = mapcodes;
         };
 
         SearchOutput.prototype.makeSearchResultItemSelected = function(clickedResultItem) {
@@ -430,8 +480,10 @@
                 form: document.querySelector('.js-form'),
                 geobiasToggle: document.querySelector('.js-bias-toggle'),
                 indices: document.querySelectorAll('input[name="indices"]'),
+                mapcodes: document.querySelectorAll('input[name="mapcodes"]'),
                 language: languageSelector.getElement(),
-                postcode: document.querySelectorAll('input[name="postcode"]')
+                postcode: document.querySelectorAll('input[name="postcode"]'),
+                timeZone: document.querySelector('#timeZone')
             };
         };
 
@@ -451,7 +503,7 @@
         };
 
         SearchOutput.prototype.shouldCreateDOMElement = function(name) {
-            return name && name !== 'submit' && name !== 'postcode' && name !== 'indices';
+            return name && name !== 'submit' && name !== 'postcode' && name !== 'indices' && name !== 'mapcodes';
         };
 
         SearchOutput.prototype.shouldCreateLiElement = function(properties, property) {

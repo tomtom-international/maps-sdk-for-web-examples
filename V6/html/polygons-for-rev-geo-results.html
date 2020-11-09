@@ -45,7 +45,7 @@
         coordinates: null,
         selectedAddress: null
     };
-    tt.setProductInfo('<your-product-name>', '<your-product-version>');
+    tt.setProductInfo('${productInfo.name}', '${productInfo.version}');
     var map = tt.map({
         key: '${api.key.maps}',
         container: 'map',
@@ -67,6 +67,20 @@
             state.coordinates = coordinates;
             update(state.coordinates, form.geometryZoom(), form.entityType());
         });
+
+    function cleanLayers() {
+        var previousFillLayer = fillLayerManager.getPreviousLayer();
+
+        if (fillLayerManager.hasLayer(previousFillLayer)) {
+            fillLayerManager.removeLayer(previousFillLayer);
+        }
+
+        var previousOutlineLayer = outlineLayerManager.getPreviousLayer();
+
+        if (outlineLayerManager.hasLayer(previousOutlineLayer)) {
+            outlineLayerManager.removeLayer(previousOutlineLayer);
+        }
+    }
 
     function update(coordinates, geometryZoom, selectedEntityType) {
         if (!(coordinates && geometryZoom && selectedEntityType)) {
@@ -100,37 +114,40 @@
             })
             .then(function(aggregatedResponse) {
                 if (!state.selectedAddress) {
-                    var previousLayer = layerManager.getPreviousLayer();
-
-                    if (layerManager.hasLayer(previousLayer)) {
-                        layerManager.removeLayer(previousLayer);
-                    }
-
-                    return;
+                    return cleanLayers();
                 }
 
                 var reverseGeocodeResponse = aggregatedResponse[0],
                     additionalDataResponse = aggregatedResponse[1];
-                var address = reverseGeocodeResponse.addresses[0],
-                    boundingBox = address.address.boundingBox,
-                    geometryData = additionalDataResponse.additionalData[0].geometryData,
-                    geoJSON = geometryData.features[0],
-                    fillLayer = createLayer(geoJSON, geometryZoom, 'fill'),
-                    outlineLayer = createLayer(geoJSON, geometryZoom, 'line');
+                var address = reverseGeocodeResponse.addresses[0];
+                var boundingBox = address.address.boundingBox;
+                var geometryData = additionalDataResponse.additionalData[0].geometryData;
+                var geoJSON = geometryData.features[0];
 
                 if (state.selectedAddress === address.address.freeformAddress) {
-                    const bBox = new tt.LngLatBounds(boundingBox.southWest, boundingBox.northEast);
-                    map.fitBounds(new AntimeridianHandler().normalizeBoundingBox(bBox),
-                        { padding: 100, linear: true });
+                    if (geoJSON) {
+                        var fillLayer = createLayer(geoJSON, geometryZoom, 'fill');
+                        var outlineLayer = createLayer(geoJSON, geometryZoom, 'line');
 
-                    var fillLayerPromise = fillLayerManager.updateLayer(fillLayer),
-                        outlineLayerPromise = outlineLayerManager.updateLayer(outlineLayer);
+                        const bBox = new tt.LngLatBounds(boundingBox.southWest, boundingBox.northEast);
+                        map.fitBounds(new AntimeridianHandler().normalizeBoundingBox(bBox),
+                            { padding: 100, linear: true });
 
-                    return Promise.all([fillLayerPromise, outlineLayerPromise])
-                        .then(function() {
-                            popup.setHTML('<strong>' + address.address.freeformAddress + '</strong>');
-                        });
+                        var fillLayerPromise = fillLayerManager.updateLayer(fillLayer),
+                            outlineLayerPromise = outlineLayerManager.updateLayer(outlineLayer);
+
+                        return Promise.all([fillLayerPromise, outlineLayerPromise])
+                            .then(function() {
+                                popup.setHTML('<strong>' + address.address.freeformAddress + '</strong>');
+                            });
+
+                    } else {
+                        popup.setHTML('<strong>' + address.address.freeformAddress + '</strong>');
+                        errorHint.setMessage('No geometry found');
+                        cleanLayers();
+                    }
                 }
+
             })
             .catch(function(error) {
                 var message = error;
@@ -146,10 +163,8 @@
 
                 popup.setHTML('No address');
                 errorHint.setMessage(message);
-                var previousLayer = layerManager.getPreviousLayer();
-                if (layerManager.hasLayer(previousLayer)) {
-                    layerManager.removeLayer(previousLayer);
-                }
+
+                cleanLayers();
             })
             .finally(function() {
                 loadingHint.hide();

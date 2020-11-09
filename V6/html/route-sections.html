@@ -91,7 +91,7 @@
             }
         };
 
-        var sections = {
+        var sectionsData = {
             JAM: {
                 color: '#ff0000',
                 name: 'Jam'
@@ -198,25 +198,36 @@
                 traffic: state.selectedScenario === 'traffic'
             })
                 .then(function(res) {
+                    // First we draw the whole route and fit map view
                     var geojson = res.toGeoJson();
-
                     drawLayer(geojson, 'route', '#1692E4', 4);
                     fitBounds(geojson);
 
-                    var sectionsGeojsonLines = parseSectionsData(geojson)
-                        .map(function(section) {
-                            return convertToLineGeoJson(section);
-                        });
+                    // Then we extract sections of the route, response may contain multiple routes, but we are only interested in the first one
+                    var routeSections = res.toRouteSectionsCollection()[0];
+                    var legendData = {};
 
-                    sectionsGeojsonLines
-                        .sort(function(line1, line2) {
-                            return getSectionIndex(line1) - getSectionIndex(line2);
-                        })
-                        .forEach(function(line) {
-                            drawLayer(line, getSectionId(line), getColorProperty(line), 8);
-                        });
+                    // For "motorwayAndVignettes" we need to make sure motorways sections are drawn before toll roads to not cover them
+                    routeSections.features.sort(function(first) {
+                        return first.properties.sectionType === 'MOTORWAY' ? -1 : 0;
+                    });
 
-                    createLegend(sectionsGeojsonLines);
+                    // And draw a line for each segment
+                    routeSections.features.forEach(function(lineString, index) {
+                        // In "park" scenario we service returns 3 sections, the one with travelMode=other
+                        // is the same as the one with sectionType=pedestrian, so we can ignore it
+                        if (lineString.properties.travelMode && lineString.properties.travelMode === 'other') {
+                            return;
+                        }
+
+                        var sectionProps = getSectionData(lineString.properties);
+
+                        // Actual drawing
+                        drawLayer(lineString, 'route' + index, sectionProps.color, 8);
+                        legendData[sectionProps.name] = sectionProps.color;
+                    });
+
+                    createLegend(legendData);
                 })
                 .catch(errorHint.setErrorMessage)
                 .finally(function() {
@@ -225,53 +236,26 @@
                 });
         }
 
-        function parseSectionsData(routeJson) {
-            var sectionIndexes = routeJson.features[0].properties.sections;
-            var sectionsData = [];
-            var coordinates = [].concat.apply([], routeJson.features[0].geometry.coordinates);
-
-            var availableSectionMethods = {
-                COUNTRY: 'countryCode',
-                TRAFFIC: 'simpleCategory'
-            };
-
-            // extract sections from the main route
-            for (var i = 0; i < sectionIndexes.length; i++) {
-
-                // for the 'park' scenario we are requesting travelMode and pedestrian sections using travelMode=car.
-                // As part of the route is in a park, the travelMode section reports a section called 'other'
-                // because it is not reachable by car. In this case it is exactly the same as the
-                // reported pedestrian section, therefore we can ignore it
-                if (sectionIndexes[i].travelMode === 'other') {
-                    continue;
+        function getSectionData(properties) {
+            switch (state.selectedScenario) {
+            case 'crossCountry':
+                if (properties.countryCode) {
+                    return sectionsData[properties.countryCode];
                 }
-
-                var sectionMethod = availableSectionMethods[sectionIndexes[i].sectionType] || 'sectionType';
-                var sectionTypeValue = sectionIndexes[i][sectionMethod];
-
-                sectionsData.push({
-                    points: coordinates.slice(sectionIndexes[i].startPointIndex, sectionIndexes[i].endPointIndex + 1),
-                    sectionType: sectionIndexes[i].sectionType,
-                    sectionSubCode: sectionTypeValue
-                });
+                break;
+            case 'motorwayAndVignettes':
+            case 'crossShore':
+            case 'park':
+                if (properties.sectionType) {
+                    return sectionsData[properties.sectionType];
+                }
+                break;
+            case 'traffic':
+                if (properties.simpleCategory) {
+                    return sectionsData[properties.simpleCategory];
+                }
+                break;
             }
-
-            return sectionsData;
-        }
-
-        function convertToLineGeoJson(section) {
-            return {
-                type: 'Feature',
-                properties: {
-                    sectionType: section.sectionType,
-                    sectionSubCode: section.sectionSubCode,
-                    index: sections[section.sectionSubCode].index || 0
-                },
-                geometry: {
-                    type: 'LineString',
-                    coordinates: section.points
-                }
-            };
         }
 
         function fitBounds(geojson) {
@@ -311,35 +295,21 @@
             });
         }
 
-        function getColorProperty(geojson) {
-            return sections[geojson.properties.sectionSubCode].color;
-        }
-
-        function getSectionId(geojson) {
-            return geojson.properties.sectionSubCode + Math.random(100000);
-        }
-
-        function getSectionIndex(geojson) {
-            return geojson.properties.index;
-        }
-
-        function createLegend(lines) {
+        function createLegend(data) {
             var fragment = document.createDocumentFragment();
 
-            Object.keys(lines.reduce(function(acc, line) {
-                acc[line.properties.sectionSubCode] = true;
-                return acc;
-            }, {})).forEach(function(subCode) {
+            for (var name in data) {
+                var color = data[name];
                 var label = document.createElement('div');
-                label.innerText = sections[subCode].name;
+                label.innerText = name;
                 label.className = 'legend-label';
                 var colorLabel = document.createElement('div');
                 colorLabel.className = 'color-label';
-                colorLabel.setAttribute('style', 'background-color:' + sections[subCode].color);
+                colorLabel.setAttribute('style', 'background-color:' + color);
 
                 fragment.appendChild(colorLabel);
                 fragment.appendChild(label);
-            });
+            }
 
             legendContainer.appendChild(fragment);
         }

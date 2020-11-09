@@ -19,12 +19,14 @@ function createSearchResult(name, address, distance) {
     var resultName = elementFactory('div', 'tt-search-result__name');
     resultName.innerText = name;
     var element = elementFactory('div', 'tt-search-result');
-    element.appendChild(resultName);
+    var infoElement = elementFactory('div');
+    infoElement.appendChild(resultName);
+    element.appendChild(infoElement);
 
     if (address) {
         var resultAddress = elementFactory('div', 'tt-search-result__address');
         resultAddress.innerText = address;
-        element.appendChild(resultAddress);
+        infoElement.appendChild(resultAddress);
     }
 
     if (distance) {

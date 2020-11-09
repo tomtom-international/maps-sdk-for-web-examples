@@ -83,7 +83,7 @@
     <script>
         var tt = window.tt;
 
-        tt.setProductInfo('<your-product-name>', '<your-product-version>');
+        tt.setProductInfo('${productInfo.name}', '${productInfo.version}');
 
         var map = tt.map({
             key: '${api.key.maps}',
@@ -165,8 +165,10 @@
 
                 Array.prototype.slice.call(response.results)
                     .forEach(function(result) {
+                        var addressLines = this.searchResultsParser.getAddressLines(result);
                         var searchResult = this.domHelpers.createSearchResult(
-                            this.searchResultsParser.getResultAddress(result)
+                            addressLines[0],
+                            addressLines[1]
                         );
                         var resultItem = this.domHelpers.createResultItem();
                         resultItem.appendChild(searchResult);
