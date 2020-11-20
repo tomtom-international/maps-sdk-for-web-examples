@@ -1,0 +1,779 @@
+<html>
+    <head>
+        <title>Style guide for examples</title>
+        <link rel='stylesheet' type='text/css' href='./styles/components/index.css'/>
+        <link rel='stylesheet' type='text/css' href='./styles/index.css'/>
+        <script src="https://cdn.rawgit.com/google/code-prettify/master/loader/run_prettify.js"></script>
+        <script src="https://unpkg.com/tail.select@0.5.6/js/tail.select.min.js"></script>
+    </head>
+    <body>
+        <nav>
+            <a href="#introduction" class="navlink -section">Introduction</a>
+            <a href="#usage" class="navlink -section">Usage</a>
+            <a href="#stylesheet-link" class="navlink">Stylesheet link</a>
+
+            <a href="#layout" class="navlink -section">Layout</a>
+            <a href="#side-panel" class="navlink">Side panel</a>
+            <a href="#overlay-panel" class="navlink">Overlay panel</a>
+            <a href="#modal" class="navlink">Modal</a>
+
+            <a href="#components" class="navlink -section">Components</a>
+            <a href="#params-box" class="navlink">Params box</a>
+            <a href="#tabs" class="navlink">Tabs</a>
+            <a href="#input" class="navlink">Input</a>
+            <a href="#inline-form-group" class="navlink">Inline form group</a>
+            <a href="#select" class="navlink">Select</a>
+            <a href="#checkbox" class="navlink">Checkbox</a>
+            <a href="#checkable-input" class="navlink">Checkable input</a>
+            <a href="#radio" class="navlink">Radio</a>
+            <a href="#toggle" class="navlink">Toggle</a>
+            <a href="#controls-group" class="navlink">Controls group</a>
+            <a href="#slider" class="navlink">Slider</a>
+            <a href="#buttons" class="navlink">Buttons</a>
+            <a href="#buttons-group" class="navlink">Buttons group</a>
+            <a href="#icon-input" class="navlink">Icon input</a>
+            <a href="#results-list" class="navlink">Results list</a>
+            <a href="#link" class="navlink">Link</a>
+            <a href="#info-hint" class="navlink">Info hint</a>
+            <a href="#legend-label" class="navlink">Legend label</a>
+            <a href="#code-snippet" class="navlink">Code snippet</a>
+
+
+            <a href="#typography" class="navlink -section">Typography</a>
+            <a href="#hint-text" class="navlink">Hint text</a>
+            <a href="#heading-text" class="navlink">Heading text</a>
+
+            <a href="#utils" class="navlink -section">Utils</a>
+            <a href="#spacings" class="navlink">Spacings</a>
+            <a href="#icons" class="navlink">Icons</a>
+            <a href="#variables" class="navlink">Variables</a>
+
+            <a href="#faq" class="navlink -section">FAQ</a>
+            <a href="#when-should-i-use-foldable" class="navlink">When should I use foldable?</a>
+            <a href="#when-should-i-use-side-panel-header" class="navlink">When should I use side panel header (.tt-side-panel__header)?</a>
+        </nav>
+
+        <main>
+            <article>
+                <h1>UI Library</h1>
+                <h2 id="introduction">Introduction</h2>
+
+                This is an internal styleguide for developing Maps Sdk for Web V6 examples.
+
+                All the assets mentioned in this styleguide can be found under <i>V6/assets/ui-library</i> on Github.
+            </article>
+            <article>
+                <h2 id="usage">Usage</h2>
+
+                <h3 id="stylesheet-link">Using stylesheet link</h3>
+
+                The easiest way to use this library is to include the <i>index.css</i> file in the <code>&lt;head&gt</code> section of your HTML page.
+                Please remember that the ui-library assets should be hosted with your own assets.
+
+                <template data-name="link-stylesheet">
+                    <link rel="stylesheet" href="https://<your-domain>/<your-internal-path-to-assets>/index.css">
+                </template>
+
+                <pre class="prettyprint lang-html" data-name="link-stylesheet"></pre>
+
+                This <i>index.css</i> stylesheet contains all the components and classes bundled together for your convenience.
+
+                <b>Please note</b> that you can also import the assets individually if you don't need all the components mentioned in this styleguide.
+
+                <p>
+                    In this styleguide we just showcase the components available and their styles, we don't show how to implement the interactions.
+                    Please refer to our examples to see the implementations, we also provide there some utility classes to work with these components.
+                </p>
+
+            </article>
+            <article>
+                <h2 id="layout">Layout</h1>
+
+                <p>There are two general approaches for creating controls in examples:</p>
+                <ul>
+                    <li>Side panel - for complex examples with lots of options and/or results list (eg. Search, Routing options)</li>
+                    <li>Overlay panel - for simple examples with a few options (eg. Styles and Layers, Traffic Flow)</li>
+                </ul>
+
+                <h3 id="side-panel">Side panel</h3>
+
+                When using a side panel avoid using other panels over the map, all controls should be contained in a single panel.
+                The Side panel can be folded using the fold button. When it's folded, the <code>tt-reveal-sidepanel</code> should be added to map container.
+
+                <section>
+                    <template data-name='side-panel'>
+                        <div class='tt-side-panel'>
+                            <header class='tt-side-panel__header'>
+                                <div class='tt-input-icon'>
+                                    <input class='tt-input' placeholder='Starting point'>
+                                    <span class='tt-icon -start'></span>
+                                </div>
+                                <div class='tt-input-icon'>
+                                    <input class='tt-input' placeholder='Finish point'>
+                                    <span class='tt-icon -finish'></span>
+                                </div>
+                            </header>
+                            <footer class='tt-side-panel__footer'>
+                                <span class='tt-side-panel__close-button tt-icon -fold'></span>
+                            </footer>
+                        </div>
+
+                        <div class="map" style="position: relative; height: 50px;margin-top:50px">
+                            <div class='tt-reveal-side-panel'>
+                                <span class='tt-icon -fold'></span>
+                            </div>
+                        </div>
+                    </template>
+
+                    <div class="example" data-name='side-panel'></div>
+                    <pre class="prettyprint lang-html" data-name='side-panel'></pre>
+
+                </section>
+
+                <figure>
+                    <img src="./images/tabs-switching.gif" />
+                    <figcaption>
+                        <span class="do"></span>
+                        Side panel takes advantage of tabs to show long response lists. After clicking send button in options tab, results tab opens reavealing search results.
+                    </figcaption>
+                </figure>
+
+                <figure>
+                    <img src="./images/do-not.jpg" />
+                    <figcaption>
+                        <span class="dont"></span>
+                        No other panels should be added to map when using side panel (Exception: overlay panel with a legend).
+                    </figcaption>
+                </figure>
+
+                <p>Most important params inputs (eg. those which are required for request and not filled) should go on the top of options list. Options container needs to be unfloded (initialy).</p>
+
+                <h3 id="overlay-panel">Overlay panel</h3>
+
+                Overlay panel contains minimal set of param controls (up to 4). If you have more than 4, search input, route input or result list, use side panel instead. Panel should be always placed in top-left corner of the map.
+
+
+                <template data-name='overlay-panel'>
+                    <div class='tt-overlay-panel'>
+                        Overlay panel content
+                    </div>
+                </template>
+
+                <div class="example" data-name='overlay-panel'></div>
+
+                <h4>Modifiers</h4>
+                <ul>
+                    <li><code>-right-top</code> <small>Use it only for the legend</small></li>
+                    <li><code>-left-top</code></li>
+                    <li><code>-center</code></li>
+                    <li><code>-medium</code></li>
+                </ul>
+
+                <pre class="prettyprint lang-html" data-name='overlay-panel'></pre>
+
+                <figure>
+                    <img src="./images/overlay-panel.jpg" />
+                    <figcaption>
+                        <span class="do"></span>
+                        Overlay panel is great for small examples with few options
+                    </figcaption>
+                </figure>
+
+
+                <ul>
+                    <li>
+                        <span class="do"></span>
+                        Additional controls should be placed in the opposite position (top-right corner).
+                    </li>
+                    <li>
+                        <span class="dont"></span>
+                        No other panels should be added to map when using overlay panel (Exception: overlay panel with a legend).
+                    </li>
+                </ul>
+
+
+                <h3 id="modal">Modal</h3>
+
+                <template data-name='modal'>
+                    <div class='tt-modal'>
+                        <div class="tt-modal__header">Modal title</div>
+                        <div class="tt-modal__close-button tt-icon -clear"></div>
+                        Content
+                    </div>
+                </template>
+
+                <div class="example" data-name='modal'></div>
+
+                <h4>Modifiers</h4>
+                <ul>
+                    <li><code>-hidden</code></li>
+                </ul>
+
+                <pre class="prettyprint lang-html" data-name='modal'></pre>
+
+            </article>
+
+            <article>
+                <h2 id="components">Componets</h1>
+            <section>
+                <h3 id="params-box">Params box</h3>
+
+                <template data-name="params-box">
+                    <div class="tt-params-box">
+                        <header class="tt-params-box__header">
+                            Routing parameters
+                        </header>
+                        <div class="tt-params-box__content">
+                            Content
+                        </div>
+                    </div>
+                </template>
+
+                <div class="example" data-name="params-box"></div>
+
+                <h4>Recommendations</h4>
+                <ul>
+                    <li><span class="do"></span>Always put service name in the title (eg. "Routing parametes, "Search parameters")</li>
+                    <li><span class="dont"></span>Use it to divide params from the same service (two params boxes for the same service)</li>
+                </ul>
+                <pre class="prettyprint lang-html" data-name="params-box"></pre>
+            </section>
+            <section>
+                <h3 id="tabs">Tabs</h3>
+
+                <template data-name='tt-tabs'>
+                    <div class="tt-tabs">
+                        <div class="tt-tabs__tabslist" role="tablist">
+                            <button role="tab" aria-selected="false" class="tt-tabs__tab">Options</button>
+                            <button role="tab" aria-selected="true" class="tt-tabs__tab">Results</button>
+                        </div>
+                        <div role="tabpanel" class="tt-tabs__panel -hidden">
+                            Options
+                        </div>
+                        <div role="tabpanel" class="tt-tabs__panel">
+                            <div class="tt-tabs__placeholder">
+                                NO RESULTS
+                                <br><br>
+                                Choose destination points
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <div class="example" data-name='tt-tabs'></div>
+
+                <h4>Recommendations</h4>
+                <ul>
+                    <li><span class="do"></span>You can put long lists into this container. Scrollbar will appear to prevent from overflow.</li>
+                    <li><span class="do"></span>Always show placeholder when there're no results</li>
+                </ul>
+
+                <pre class="prettyprint lang-html" data-name='tt-tabs'></pre>
+
+            </section>
+            <section>
+                <h3 id="input">Input</h3>
+                <template data-name="input">
+                    <form class="tt-form">
+                        <label class='tt-form-label'>Query
+                            <input
+                                class='tt-input'
+                                placeholder='e.g. pizza'/>
+                        </label>
+
+                        <label class='tt-form-label' disabled="true">Query
+                            <input
+                                class='tt-input'
+                                placeholder='e.g. pizza'
+                                value='pizza'
+                                disabled="true"/>
+                        </label>
+                    </form>
+                </template>
+                <div class="example" data-name="input"></div>
+
+                <h4>Recommendations</h4>
+                <ul>
+                    <li><span class="do"></span>Always use this element with a label</li>
+                    <li><span class="do"></span>Always use a placeholder</li>
+                    <li><span class="dont"></span>Reapeat information from label.</li>
+                </ul>
+
+                <pre class="prettyprint lang-html" data-name="input"></pre>
+            </section>
+            <section>
+                <h3 id="inline-form-group">Inline form group</h3>
+                <template data-name="inline-form-group">
+                    <form class="tt-form">
+                        <div class='tt-inline-input-group'>
+                            <label class='tt-form-label'>Latitude
+                                <input
+                                    class='tt-input'
+                                    placeholder='e.g. 51.686'
+                                    maxlength="6"/>
+                            </label>
+                            <label class='tt-form-label'>Longitude
+                                <input
+                                    class='tt-input'
+                                    placeholder='e.g. 19.640'
+                                    maxlength="6"/>
+                            </label>
+                        </div>
+                        <div class='tt-inline-input-group'>
+                            <input name="format" id='png' class='tt-radio' type='radio' checked='true'>
+                            <label for='png' class='tt-label'>PNG</label>
+
+                            <input name="format" id='jpg' class='tt-radio' type='radio'>
+                            <label for='jpg' class='tt-label'>JPG</label>
+                        </div>
+                    </form>
+                </template>
+                <div class="example" data-name="inline-form-group"></div>
+
+                <h4>Recommendations</h4>
+                <ul>
+                    <li><span class="do"></span>Use it to save space when inputs are related to each other</li>
+                    <li><span class="dont"></span>Place more than two inputs in the same line</li>
+                </ul>
+                <pre class="prettyprint lang-html" data-name="inline-form-group"></pre>
+            </section>
+            <section>
+                <h3 id="select">Select</h3>
+                <template data-name="select">
+                    <div class="tt-form-label">
+                        Select label
+                        <select class="tt-select js-select" multiple>
+                            <option value="option1">Option 1</option>
+                            <option value="option2">Option 2</option>
+                            <option value="option3">Option 3</option>
+                        </select>
+                    </div>
+                    <div class='tt-spacing-top-12'>
+                        <div class='js-filters-container tt-filters-container'></div>
+                    </div>
+                </template>
+
+                <div class="example" data-name="select"></div>
+
+                <h4>Recommendations</h4>
+                <ul>
+                    <li><span class="do"></span>Always use this element with label.</li>
+                </ul>
+
+                <pre class="prettyprint lang-html" data-name="select"></pre>
+            </section>
+            <section>
+                <h3 id="checkbox">Checkbox</h3>
+                <template data-name="checkbox">
+                    <input id="checkbox1" class="tt-checkbox" type="checkbox"/>
+                    <label for="checkbox1" class="tt-label">Checkbox1</label>
+
+                    <input id="checkbox2" class="tt-checkbox" type="checkbox" checked="true"/>
+                    <label for="checkbox2" class="tt-label">Checkbox2</label>
+
+                    <input id="checkbox3" class="tt-checkbox" type="checkbox" disabled="true"/>
+                    <label for="checkbox3" class="tt-label">Checkbox3</label>
+
+                    <input id="checkbox4" class="tt-checkbox" type="checkbox" disabled="true" checked="true"/>
+                    <label for="checkbox4" class="tt-label">Checkbox4</label>
+                </template>
+                <div class="example" data-name="checkbox"></div>
+                <pre class="prettyprint lang-html" data-name="checkbox"></pre>
+            </section>
+            <section>
+                <h3 id="checkable-input">Checkable input</h3>
+                <template data-name="checkable-input">
+                    <div class="tt-form-label">
+                        Label goes here
+                        <div class="tt-checkable-input">
+                            <input id="checkbox-checkable1" class="tt-checkbox" type="checkbox"/>
+                            <label for="checkbox-checkable1" class="tt-label"></label>
+                            <input class="tt-input"/>
+                        </div>
+                    </div>
+                </template>
+                <div class="example" data-name="checkable-input"></div>
+
+                <h4>Recommendations</h4>
+                <ul>
+                    <li><span class="do"></span>Always use this element with label.</li>
+                </ul>
+
+                <pre class="prettyprint lang-html" data-name="checkable-input"></pre>
+            </section>
+            <section>
+                <h3 id="radio">Radio</h3>
+                <template data-name="radio">
+                    <input id="radio1" class="tt-radio" type="radio"/>
+                    <label for="radio1" class="tt-label">Radio 1</label>
+
+                    <input id="radio2" class="tt-radio" type="radio" checked="true"/>
+                    <label for="radio2" class="tt-label">Radio 2</label>
+
+                    <input id="radio3" class="tt-radio" type="radio" disabled="true"/>
+                    <label for="radio3" class="tt-label">Radio 3</label>
+
+                    <input id="radio4" class="tt-radio" type="radio" disabled="true" checked="true"/>
+                    <label for="radio4" class="tt-label">Radio 4</label>
+
+
+                </template>
+                <div class="example" data-name="radio"></div>
+                <pre class="prettyprint lang-html" data-name="radio"></pre>
+            </section>
+            <section>
+                <h3 id="toggle">Toggle</h3>
+                <template data-name="toggle">
+                    <input id="toggle1" class="tt-toggle" type="checkbox"/>
+                    <label for="toggle1" class="tt-label"></label>
+
+                    <input id="toggle2" class="tt-toggle" type="checkbox" checked="true"/>
+                    <label for="toggle2" class="tt-label"></label>
+
+                    <input id="toggle3" class="tt-toggle" type="checkbox" disabled="true"/>
+                    <label for="toggle3" class="tt-toggle"></label>
+
+                    <input id="toggle4" class="tt-toggle" type="checkbox" disabled="true" checked="true"/>
+                    <label for="toggle4" class="tt-label"></label>
+                </template>
+                <div class="example" data-name="toggle"></div>
+
+                <h4>Recommendations</h4>
+                <ul>
+                    <li><span class="do"></span>This is only mean to be used to enable/disable group of controls</li>
+                </ul>
+
+                <pre class="prettyprint lang-html" data-name="toggle"></pre>
+            </section>
+            <section>
+                <h3 id="controls-group">Controls-group</h3>
+                <template data-name="controls-group">
+                    <div class='tt-controls-group'>
+                        <div class='tt-controls-group__title'>
+                            Controls group
+                        </div>
+                        <div class='tt-controls-group__toggle'>
+                            <input id='controls-group-toggle' class='tt-toggle' type='checkbox'>
+                            <label for='controls-group-toggle' class='tt-label'></label>
+                        </div>
+                        <label class='tt-form-label js-slider'>Radius (1000m)
+                            <input class='tt-slider' type='range' min='1' max='10000' value='1000'>
+                        </label>
+                        <label class='tt-form-label'>Latitude
+                            <input class='tt-input' placeholder='e.g. 37.9717162'>
+                        </label>
+                        <label class='tt-form-label'>Longitude
+                            <input class='tt-input' placeholder='e.g. 23.7263126'>
+                        </label>
+                    </div>
+                </template>
+                <div class="example" data-name="controls-group"></div>
+                <pre class="prettyprint lang-html" data-name="controls-group"></pre>
+            </section>
+            <section>
+                <h3 id="slider">Slider</h3>
+                <template data-name="slider">
+                    <label class='tt-form-label'>Zoom (16)
+                        <input class="tt-slider" type="range" min="0" max="150"/>
+                    </label>
+                    <label class='tt-form-label' disabled>Zoom (16)
+                        <input class="tt-slider" type="range" min="0" max="150" disabled="true"/>
+                    </label>
+                </template>
+                <div class="example" data-name="slider"></div>
+
+                <h4>Recommendations</h4>
+                <ul>
+                    <li><span class="do"></span>Always use this element with a label</li>
+                    <li><span class="do"></span>Place current value of slider in the label (inside brackets)</li>
+                </ul>
+
+                <pre class="prettyprint lang-html" data-name="slider"></pre>
+            </section>
+            <section>
+                <h3 id="buttons">Buttons</h3>
+
+                <template data-name="buttons">
+                    <button class="tt-button">Cancel</button>
+                    <button class="tt-button" disabled="true">Cancel</button>
+                    <button class="tt-button -primary">OK</button>
+                    <button class="tt-button -primary" disabled="true">OK</button>
+                    <button class="tt-button -primary -big">Submit</button>
+                    <button class="tt-button -primary -full-width">Full-width</button>
+                </template>
+                <div class="example" data-name="buttons"></div>
+
+                <h4>Modifiers</h4>
+                <ul>
+                    <li><code>-primary</code></li>
+                    <li><code>-big</code></li>
+                    <li><code>-full-width</code></li>
+                </ul>
+
+                <h4>Recommendations</h4>
+                <ul>
+                    <li><span class="do"></span>Always put primary button on the left side</li>
+                    <li><span class="dont"></span>Use more than one primary button in the panel</li>
+                </ul>
+
+                <pre class="prettyprint lang-html" data-name="buttons"></pre>
+            </section>
+            <section>
+                <h3 id="buttons-group">Buttons group</h3>
+
+                <template data-name="buttons-group">
+                    <div class='tt-form-label'>Map size
+                        <div class="tt-buttons-group">
+                            <button class="tt-buttons-group__button">100%</button>
+                            <button class="tt-buttons-group__button -active">50%</button>
+                            <button class="tt-buttons-group__button">25%</button>
+                        </div>
+                    </div>
+
+                    <div class='tt-form-label' disabled>Map size
+                        <div class="tt-buttons-group">
+                            <button class="tt-buttons-group__button">100%</button>
+                            <button class="tt-buttons-group__button -active">50%</button>
+                            <button class="tt-buttons-group__button" disabled="true">25%</button>
+                        </div>
+                    </div>
+                </template>
+                <div class="example" data-name="buttons-group"></div>
+
+                <h4>Recommendations</h4>
+                <ul>
+                    <li><span class="do"></span>Always use this element with a label</li>
+                    <li><span class="do"></span>Prefer this element over checkboxes if there are max 3 options.</li>
+                    <li><span class="dont"></span>Overuse this element. It shouln't be repeated in the same panel</li>
+                    <li><span class="dont"></span>Use it with more than 3 buttons</li>
+                </ul>
+
+                <pre class="prettyprint lang-html" data-name="buttons-group"></pre>
+            </section>
+            <section>
+                <h3 id="icon-input">Icon input</h3>
+
+                <template data-name="icon-input">
+                    <form class="tt-form">
+                        <div class='tt-input-icon'>
+                            <input
+                                class='tt-input'
+                                placeholder='Starting point'/>
+                            <span class="tt-icon -start"></span>
+                        </div>
+                        <div class='tt-input-icon'>
+                            <input
+                                class='tt-input'
+                                placeholder='Finish point'/>
+                            <span class="tt-icon -finish"></span>
+                        </div>
+                    </form>
+                </template>
+                <div class="example" data-name="icon-input"></div>
+                <pre class="prettyprint lang-html" data-name="icon-input"></pre>
+            </section>
+
+            <section>
+                <h3 id="results-list">Results list</h3>
+
+                <template data-name="results-list">
+                    <ul class="tt-results-list">
+                        <li class='tt-results-list__item'>Result 1</li>
+                        <li class='tt-results-list__item'>Result 2</li>
+                        <li class='tt-results-list__item -selected'>Result 3 - selected</li>
+                        <li class='tt-results-list__item'>Result 4</li>
+                    </ul>
+                </template>
+                <div class="example" data-name="results-list"></div>
+
+
+                <h4>Recommendations</h4>
+                <ul>
+                    <li><span class="do"></span>Use this to display search results (eg. POIs).</li>
+                </ul>
+
+                <pre class="prettyprint lang-html" data-name="results-list"></pre>
+            </section>
+
+            <section>
+                <h3 id="link">Link</h3>
+
+                <template data-name="link">
+                    <a href="#link" class='tt-link'>Link</a>
+                </template>
+
+                <div class="example" data-name="link"></div>
+
+                <pre class="prettyprint lang-html" data-name="link"></pre>
+            </section>
+
+            <section>
+                <h3 id="info-hint">Info hint</h3>
+
+                <template data-name="info-hint">
+                    <div class="tt-info-hint -info">Check our examples to see the implementation</div>
+                    <div class="tt-info-hint -error">We have failed to find results for this query</div>
+                </template>
+                <div class="example" data-name="info-hint"></div>
+
+                <h4>Modifiers</h4>
+                <ul>
+                    <li><code>-bottom-center</code></li>
+                    <li><code>-info</code></li>
+                    <li><code>-warning</code></li>
+                </ul>
+
+                <h4>Recommendations</h4>
+                <ul>
+                    <li><span class="do"></span>Always put info hint at the bottom center of map</li>
+                </ul>
+
+                <pre class="prettyprint lang-html" data-name="info-hint"></pre>
+            </section>
+
+            <section>
+                <h3 id="legend-label">Legend label</h3>
+
+                <template data-name="legend-label">
+                    <div class="tt-legend-label">720</div>
+                    <div class="tt-legend-label">540</div>
+                    <div class="tt-legend-label">360</div>
+                </template>
+
+                <div class="example" data-name="legend-label"></div>
+                <pre class="prettyprint lang-html" data-name="legend-label"></pre>
+            </section>
+
+            <section>
+                <h3 id="code-snippet">Legend label</h3>
+
+                <template data-name="code-snippet">
+                    <pre class="tt-code-snippet">const exampleCodeSnippet = () => {()}</pre>
+                </template>
+
+                <div class="example" data-name="code-snippet"></div>
+                <pre class="prettyprint lang-html" data-name="code-snippet"></pre>
+            </section>
+        </article>
+
+        <article>
+            <h2 id="typography">Typography</h2>
+            <section>
+                <h3 id="hint-text">Hint text</h3>
+
+                <template data-name="hint-text">
+                    <span class="tt-hint-text">*This is a hint on how to use example. Start it with asterisk.</span>
+                </template>
+
+                <div class="example" data-name="hint-text"></div>
+                <pre class="prettyprint lang-html" data-name="hint-text"></pre>
+            </section>
+
+            <section>
+                <h3 id="heading-text">Heading text</h3>
+
+                <template data-name="heading-text">
+                    <div class="tt-heading-text">This is a heading</div>
+                </template>
+                <div class="example" data-name="heading-text"></div>
+                <pre class="prettyprint lang-html" data-name="heading-text"></pre>
+            </section>
+        </article>
+
+        <article>
+            <h2 id="utils">Utils</h2>
+            <section>
+                <h3 id="spacings">Spacings</h3>
+
+                <template data-name="spacings">
+                    <div class="tt-spacing-top-8"></div>
+                    <div class="tt-spacing-top-12"></div>
+                    <div class="tt-spacing-top-16"></div>
+                    <div class="tt-spacing-top-24"></div>
+                </template>
+
+                <div class="example" data-name="spacings"></div>
+                <pre class="prettyprint lang-html" data-name="spacings"></pre>
+            </section>
+
+            <section>
+                <h3 id="icons">Icons</h3>
+
+                <template data-name="icons">
+                    <span class="tt-icon -start"></span>
+                    <span class="tt-icon -finish"></span>
+                    <span class="tt-icon -trash"></span>
+                    <span class="tt-icon -flag"></span>
+                    <span class="tt-icon -clock"></span>
+                    <span class="tt-icon -calendar"></span>
+                    <span class="tt-icon -search"></span>
+                    <span class="tt-icon -clear"></span>
+                </template>
+                <div class="example" data-name="icons"></div>
+                <pre class="prettyprint lang-html" data-name="icons"></pre>
+            </section>
+
+            <section>
+                <h3 id="variables">Variables</h3>
+                <template data-name="variables">
+                    --tt-border-radius: 1px;
+                    --tt-transition-function: ease;
+                    --tt-transition-time: .2s;
+                </template>
+                <pre class="prettyprint lang-css" data-name="variables"></pre>
+            </section>
+        </article>
+
+        <article>
+            <h2 id="faq">FAQ</h2>
+            <h3 id="when-should-i-use-foldable">When should I use foldable?</h3>
+            <p>Foldable should be used for examples which contain more than one control. Valid example for <strong>not</strong> using foldable is Resize Map.</p>
+            <h3 id="when-should-i-use-side-panel-header">When should I use side panel header (<code>.tt-side-panel__header</code>)?</h3>
+            <p>Side panel header is used to display most important parameters. For example in routing examples, place there inputs for starting/finish points (wrapped in <code>.tt-input-icon</code>)</p>
+        </article>
+    </main>
+    </body>
+
+    <script>
+    function escapeHtml(unsafe) {
+        return unsafe
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&#039;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function removeLeadingWhitespace(html) {
+        const pattern = html.match(/\s*\n[\t\s]*/);
+        return html.replace(new RegExp(pattern, 'g'), '\n');
+    }
+
+    const templates = document.querySelectorAll('template');
+
+    Array.from(templates).forEach(template => {
+        const name = template.getAttribute('data-name');
+        let example = document.querySelector(`div[data-name=${name}]`);
+        const code = document.querySelector(`pre[data-name=${name}]`);
+
+        if (!example) {
+            example = document.createElement('div');
+        }
+
+        example.appendChild(template.content.cloneNode(true));
+
+        const escaped = escapeHtml(example.innerHTML);
+        const cleaned = removeLeadingWhitespace(escaped);
+
+        code.innerHTML = cleaned;
+    });
+
+    tail.select('.js-select', {
+        classNames: 'tt-fake-select',
+        placeholder: 'Add filters from the list',
+        multiShowCount: false,
+        hideSelected: true,
+        multiContainer: '.js-filters-container'
+    });
+    </script>
+</html>

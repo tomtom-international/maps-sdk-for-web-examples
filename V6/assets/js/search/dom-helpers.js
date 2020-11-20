@@ -51,11 +51,25 @@ function checkIfElementOrItsParentsHaveClass(element, className) {
     return false;
 }
 
+function getElementOrItsParentId(element) {
+    if (element.id) {
+        return element.id;
+    }
+    while (element.parentNode) {
+        element = element.parentNode;
+        if (element.id) {
+            return element.id;
+        }
+    }
+    return false;
+}
+
 var DomHelpers = {
     createResultItem: createResultItem,
     createResultList: createResultList,
     createSearchResult: createSearchResult,
     checkIfElementOrItsParentsHaveClass: checkIfElementOrItsParentsHaveClass,
+    getElementOrItsParentId: getElementOrItsParentId,
     elementFactory: elementFactory
 };
 

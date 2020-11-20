@@ -1,0 +1,111 @@
+*,
+*:before,
+*:after {
+    box-sizing: border-box;
+}
+
+html {
+    font-family: "Arial";
+    margin: 0 auto;
+    max-width: 1024px;
+}
+
+h1 {
+    font-size: 40px;
+}
+
+.example {
+    border: 1px solid #eeeeee;
+    border-radius: 1px;
+    padding: 50px;
+    width: 100%;
+    position: relative;
+}
+
+pre {
+    border: 1px solid #eeeeee !important;
+    border-radius: 1px !important;
+    overflow-x: auto;
+    padding: 16px !important;
+}
+
+.example + pre {
+    margin-top: 16px;
+}
+
+table {
+    text-align: left;
+    width: 100%;
+}
+
+img {
+    max-width: 100%;
+}
+
+nav {
+    background: #edf2f7;
+    height: 100vh;
+    left: 0;
+    overflow-y: scroll;
+    position: fixed;
+    top: 0;
+    width: 200px;
+}
+
+.navlink {
+    color: #4a4c4c;
+    display: block;
+    font-size: 14px;
+    line-height: 2;
+    padding: .5rem;
+    padding-left: 1rem;
+    text-decoration: none;
+}
+
+.navlink.-section {
+    background: #b2b2b2;
+    padding-left: .5rem;
+    text-indent: 0;
+}
+
+main {
+    margin-left: 200px;
+    padding-bottom: 1rem;
+    padding-top: 1rem;
+}
+
+.do {
+    background:#b3d800;
+    border-radius: 1px;
+    color: #fff;
+    margin-right: .5rem;
+    padding: 2px 6px;
+}
+
+.do:before {
+    content: "Do";
+}
+.dont:before {
+    content: "Don\'t";
+}
+
+.dont {
+    background: #ec453d;
+    border-radius: 1px;
+    color: #fff;
+    margin-right: .5rem;
+    padding: 2px 6px;
+}
+
+ul li {
+    line-height: 2;
+}
+
+section + section {
+    border-top: 1px solid #edf2f7;
+    padding-top: 4rem;
+}
+
+article + article {
+    padding-top: 6rem;
+}

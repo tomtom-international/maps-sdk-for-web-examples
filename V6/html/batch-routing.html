@@ -170,7 +170,7 @@
 
         BatchRouting.prototype.init = function() {
             this.elements.inputDate.value = this.state.date;
-            var formattedTime =  this.getInputFormattedDate();
+            var formattedTime = this.getInputFormattedDate();
             this.inputTime = new InputTime(this.elements.inputTime, formattedTime);
             this.errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
             this.loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
@@ -178,7 +178,7 @@
             map.on('load', function() {
                 this.bindEvents();
                 if (this.validateRouteDateTime()) {
-                    this.calculateRoute();                
+                    this.calculateRoute();
                 }
             }.bind(this));
         };
@@ -189,8 +189,10 @@
 
             if (!this.state.isRequesting && this.validateRouteDateTime() && date) {
                 this.inputTime.setDate(date);
-                this.barChart ? this.barChart.setDate(date) : '';
-                this.calculateRoute();                
+                if (this.barChart) {
+                    this.barChart.setDate(date);
+                }
+                this.calculateRoute();
             }
         };
 
@@ -203,7 +205,7 @@
             }
 
             this.state.isRequesting = true;
-            this.toogleTabVisibility(true);
+            this.toggleTabVisibility(true);
             this.errorHint.hide();
             this.chartLoader.show();
 
@@ -212,12 +214,12 @@
                 key: '${api.key.routing}',
                 batchItems: this.getBatchItems(this.visibleHours)
             })
-            .then(this.handleBatchResponse.bind(this))
-            .catch(this.handleError.bind(this))
-            .finally(function() {
-                this.state.isRequesting = false;
-                this.chartLoader.hide();
-            }.bind(this));
+                .then(this.handleBatchResponse.bind(this))
+                .catch(this.handleError.bind(this))
+                .finally(function() {
+                    this.state.isRequesting = false;
+                    this.chartLoader.hide();
+                }.bind(this));
         };
 
         BatchRouting.prototype.handleBatchResponse = function(routeData) {
@@ -225,7 +227,7 @@
             if (data.length) {
                 return this.drawBarChart(data);
             }
-            this.toogleTabVisibility(false);
+            this.toggleTabVisibility(false);
         };
 
         BatchRouting.prototype.handleResponse = function(response) {
@@ -239,7 +241,7 @@
             this.errorHint.setErrorMessage(error);
         };
 
-        BatchRouting.prototype.toogleTabVisibility = function(isVisible) {
+        BatchRouting.prototype.toggleTabVisibility = function(isVisible) {
             var status = isVisible ? 'remove' : 'add';
             this.elements.tabs.classList[status]('hide');
         };
@@ -314,7 +316,7 @@
 
         BatchRouting.prototype.prepareBarChartData = function(routeData) {
             try {
-                return routeData.map(function(data, i) {
+                return routeData.map(function(data) {
                     var item = data.routes.map(function(route) {
                         var routeRes = {
                             arrivalTime: route.summary.arrivalTime,
@@ -327,10 +329,10 @@
 
                     var hours = new Date(item[0].departureTime).getHours();
                     var minutes = new Date(item[0].departureTime).getMinutes();
-                    
+
                     var batchKey = new Date(item[0].departureTime).getTime();
                     this.routeBatchStore[batchKey] = data;
-                    
+
                     return {
                         name: this.addZero(hours) + ':' + this.addZero(minutes),
                         value: item[0].travelTimeInSeconds / 60 / 60,
@@ -369,7 +371,9 @@
             if (this.state.chosenBar) {
                 var routeData = this.routeBatchStore[this.state.chosenBar];
                 var data = this.prepareBarChartData([routeData]);
-                data.length ? this.drawBarChartDetails(data[0]) : '';
+                if (data.length) {
+                    this.drawBarChartDetails(data[0]);
+                }
             }
         };
 
@@ -377,12 +381,14 @@
             try {
                 var batchKey = new Date(data.departureTime).getTime();
                 if (batchKey in this.routeBatchStore) {
-                    chosenBar ? this.state.chosenBar = batchKey : '';
+                    if (chosenBar) {
+                        this.state.chosenBar = batchKey;
+                    }
                     var response = this.routeBatchStore[batchKey];
                     this.applyGeoJsonToMap(response);
                 }
                 if (data) {
-                    this.elements.chartDetails.duration.innerHTML = 
+                    this.elements.chartDetails.duration.innerHTML =
                         Formatters.formatToDurationTimeString(data.travelTimeInSeconds);
                     this.elements.chartDetails.distance.innerHTML = Formatters.formatAsMetricDistance(data.lengthInMeters);
                     this.elements.chartDetails.arrival.innerHTML = Formatters.formatToTimeString(data.arrivalTime);
@@ -422,7 +428,7 @@
             return document.querySelector('.js-' + name);
         };
 
-        BatchRouting.prototype.validateRouteDateTime = function(name) {
+        BatchRouting.prototype.validateRouteDateTime = function() {
             try {
                 var isValid = true;
                 var dateInputElement = this.elements.inputDate;

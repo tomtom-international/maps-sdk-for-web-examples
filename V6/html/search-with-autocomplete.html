@@ -278,7 +278,7 @@
             resultsManager.clear();
             var resultList = DomHelpers.createResultList();
             results.forEach(function(result) {
-                var distance = SearchResultsParser.getResultDistance(result);
+                var distance = state.userLocation ? SearchResultsParser.getResultDistance(result) : undefined;
                 var addressLines = SearchResultsParser.getAddressLines(result);
                 var searchResult = this.DomHelpers.createSearchResult(
                     addressLines[0],

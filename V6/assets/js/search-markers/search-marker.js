@@ -126,8 +126,6 @@ SearchMarkerPopup.prototype.createPopupContent = function() {
 
     this.createDivWithContent('pop-up-result-address', this.poiData.address, addressInformationElem);
 
-
-
     var longitude = this.poiData.position.lon ? this.poiData.position.lon : this.poiData.position.lng;
     this.createDivWithContent('pop-up-result-position', this.poiData.position.lat +
         ', ' + longitude, addressInformationElem);

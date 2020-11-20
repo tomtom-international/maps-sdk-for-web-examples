@@ -30,6 +30,18 @@ function formatToDurationTimeString(secondsValue) {
     return 'No delay';
 }
 
+function formatToShortDurationTimeString(secondsValue) {
+    var duration = moment.duration(secondsValue, 'seconds');
+
+    if (secondsValue > 3600) {
+        return duration.format('h [h] m [m]');
+    } else if (secondsValue > 60) {
+        return duration.format('m [m]');
+    }
+
+    return 'No delay';
+}
+
 // Takes date (of the current day) as a parameter and returns a time (HH:MM:SS) in AM/PM or 24H format depending on the user's location
 function formatToTimeString(date) {
     return moment(date).format('HH:mm:ss');
@@ -68,6 +80,10 @@ function formatToDateTimeString(date) {
     return moment(date).format('MMM D, HH:mm:ss');
 }
 
+function formatToDateTimeStringForTrafficIncidents(date) {
+    return moment(date).format('YYYY-MM-DD HH:mm');
+}
+
 function formatAsImperialDistance(distanceMeters) {
     var yards = Math.round(distanceMeters * 1.094);
 
@@ -99,6 +115,7 @@ var Formatters = {
     convertToPoint: convertToPoint,
     convertToSpeedFormat: convertToSpeedFormat,
     formatToDurationTimeString: formatToDurationTimeString,
+    formatToShortDurationTimeString: formatToShortDurationTimeString,
     formatToTimeString: formatToTimeString,
     formatToExpandedDateTimeString: formatToExpandedDateTimeString,
     formatAsImperialDistance: formatAsImperialDistance,
@@ -110,7 +127,8 @@ var Formatters = {
     dateStringToObject: dateStringToObject,
     formatToDateWithFullMonth: formatToDateWithFullMonth,
     formatCategoryName: formatCategoryName,
-    formatToDateTimeString: formatToDateTimeString
+    formatToDateTimeString: formatToDateTimeString,
+    formatToDateTimeStringForTrafficIncidents: formatToDateTimeStringForTrafficIncidents
 };
 
 window.Formatters = window.Formatters || Formatters;

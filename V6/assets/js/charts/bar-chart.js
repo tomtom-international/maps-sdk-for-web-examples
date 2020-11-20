@@ -55,15 +55,15 @@ BarChart.prototype.bindEvents = function() {
 BarChart.prototype.create = function(data) {
     this.xTickInfo.i = null;
     this.x = d3.scaleBand()
-    .domain(d3.range(data.length))
-    .range([this.config.margin.left, this.config.width - this.config.margin.right]);
-    
+        .domain(d3.range(data.length))
+        .range([this.config.margin.left, this.config.width - this.config.margin.right]);
+
     this.y = d3.scaleLinear()
-    .domain([0, d3.max(data, function(d) {
-        return d.value;
-    } )]).nice()
-    .range([this.config.height - this.config.margin.bottom, this.config.margin.top]);
-    
+        .domain([0, d3.max(data, function(d) {
+            return d.value;
+        })]).nice()
+        .range([this.config.height - this.config.margin.bottom, this.config.margin.top]);
+
     var svg = d3.create('svg').attr('viewBox', [0, 0, this.config.width, this.config.height]);
     svg.append('g')
         .selectAll('rect')
@@ -83,8 +83,8 @@ BarChart.prototype.create = function(data) {
     var xAxis = this.xAxisBuilder(data);
     var yAxis = this.yAxisBuilder();
 
-    svg.append('g').call(xAxis.bind(this)).attr("class", "x-axis");
-    svg.append("g").call(yAxis.bind(this)).attr("class", "y-axis");
+    svg.append('g').call(xAxis.bind(this)).attr('class', 'x-axis');
+    svg.append('g').call(yAxis.bind(this)).attr('class', 'y-axis');
 
     this.chartHolder.appendChild(svg.node());
     if (this.xTickInfo.i !== null) {
@@ -96,22 +96,21 @@ BarChart.prototype.create = function(data) {
 BarChart.prototype.xAxisBuilder = function(data) {
     return function(g) {
         g.attr('transform', 'translate(0,' + (this.config.height - this.config.margin.bottom) + ')')
-        .call(
-            d3.axisBottom(this.x)
-            .tickFormat(function (i) {
-                if ((i % 2) !== 0) {
-                    return '';
-                }
-                if (this.isTomorrow(data[i].departureTime) && this.xTickInfo.i === null) {
-                    this.xTickInfo.i = i;
-                    this.xTickInfo.date = data[i].departureTime;
-                }
-                return data[i].name;
-            }.bind(this))
-        )
-        .call(function(g) {
-            g.select('.domain').attr('d', 'M45.5,0V0.5H300.5V6')
-                .attr('stroke', this.colors.axis);
+            .call(d3.axisBottom(this.x)
+                .tickFormat(function(i) {
+                    if (i % 2 !== 0) {
+                        return '';
+                    }
+                    if (this.isTomorrow(data[i].departureTime) && this.xTickInfo.i === null) {
+                        this.xTickInfo.i = i;
+                        this.xTickInfo.date = data[i].departureTime;
+                    }
+                    return data[i].name;
+                }.bind(this))
+            )
+            .call(function(g) {
+                g.select('.domain').attr('d', 'M45.5,0V0.5H300.5V6')
+                    .attr('stroke', this.colors.axis);
 
                 var shiftInPx = 16;
                 var shiftCounter = 0;
@@ -121,55 +120,52 @@ BarChart.prototype.xAxisBuilder = function(data) {
                 }
                 g.selectAll('.tick')._groups[0].forEach(function(el, i) {
                     el.setAttribute('transform', 'translate(' + (this.config.margin.left + shiftCounter) + ', 8)');
-                    
-                    if ((i % 2) !== 0) {
+
+                    if (i % 2 !== 0) {
                         el.getElementsByTagName('line')[0].setAttribute('stroke', this.colors.lightText);
                         el.getElementsByTagName('line')[0].setAttribute('y2', 5);
-                    } else {   
+                    } else {
                         el.getElementsByTagName('line')[0].setAttribute('y2', 10);
                         el.getElementsByTagName('line')[0].setAttribute('stroke', this.colors.axis);
                         el.getElementsByTagName('text')[0].setAttribute('y', 15);
                     }
-    
+
                     shiftCounter += shiftInPx;
                 }, this);
 
                 var target = g.selectAll('.tick text');
                 this.makeCommonFont(target);
-        }.bind(this));
+            }.bind(this));
     };
 };
 
 BarChart.prototype.yAxisBuilder = function() {
     return function(g) {
         g
-        .attr('transform', 'translate(' + this.config.margin.left + ',0)')
-        .call(
-            d3.axisLeft(this.y)
-            .tickFormat(function(d) {
-                return d % 1 === 0 && d !== 0 ? d + ' h' : '';
-            })
-        )
-        .call(
-            function (g) {
-                g.selectAll(".tick:first-of-type line")
+            .attr('transform', 'translate(' + this.config.margin.left + ',0)')
+            .call(d3.axisLeft(this.y)
+                .tickFormat(function(d) {
+                    return d % 1 === 0 && d !== 0 ? d + ' h' : '';
+                })
+            )
+            .call(function(g) {
+                g.selectAll('.tick:first-of-type line')
                     .attr('stroke', this.colors.axis)
                     .attr('x2', -20)
                     .attr('width', 50);
 
-                g.selectAll(".tick:not(:first-of-type) line")
+                g.selectAll('.tick:not(:first-of-type) line')
                     .attr('x2', '80%')
                     .attr('stroke-width', '1px')
                     .attr('stroke-opacity', 0.5)
                     .attr('stroke-dasharray', 2)
                     .attr('stroke', this.colors.lightText);
 
-                    var target = g.selectAll('.tick text');
-                    this.makeCommonFont(target);
+                var target = g.selectAll('.tick text');
+                this.makeCommonFont(target);
 
-                    g.select('.domain').remove();
-            }.bind(this)
-        );
+                g.select('.domain').remove();
+            }.bind(this));
     };
 };
 
@@ -178,16 +174,16 @@ BarChart.prototype.createDaySeparator = function(svg) {
     if (!ticks._groups.length || this.xTickInfo.i === null) {
         return;
     }
-    
+
     var currentTick = ticks._groups[0][this.xTickInfo.i];
 
     var bbox = currentTick.getBBox();
-    var middleX = bbox.x + (bbox.width / 2);
-    var middleY = bbox.y + (bbox.height / 2);
+    var middleX = bbox.x + bbox.width / 2;
+    var middleY = bbox.y + bbox.height / 2;
 
     var data = {
         matrix: currentTick.getScreenCTM(),
-        x: middleX, y: middleY 
+        x: middleX, y: middleY
     };
     var absoluteCoords = this.convertCoords(data, svg);
     if (!absoluteCoords) {
@@ -195,30 +191,29 @@ BarChart.prototype.createDaySeparator = function(svg) {
     }
     var yAxisSeparator = function(g) {
         g.attr('transform', 'translate(' + absoluteCoords.x + ',0)')
-        .call(
-            d3.axisLeft(this.y)
-            .tickFormat(function(d) {
-                return '';
-            })
-        )
-        .call(function(g) {
-            return g.select('.domain').attr('d', 'M-0,170.5V030')
-            .attr('stroke-width', '1px')
-            .attr('stroke', this.colors.axis);
-        }.bind(this))
-        .call(function(g) {
-            return g.selectAll("line").remove();
-        }.bind(this));
+            .call(d3.axisLeft(this.y)
+                .tickFormat(function() {
+                    return '';
+                })
+            )
+            .call(function(g) {
+                return g.select('.domain').attr('d', 'M-0,170.5V030')
+                    .attr('stroke-width', '1px')
+                    .attr('stroke', this.colors.axis);
+            }.bind(this))
+            .call(function(g) {
+                return g.selectAll('line').remove();
+            });
     };
 
     var target = svg.append('g')
-    .call(yAxisSeparator.bind(this))
-    .append("text")
-    .attr("transform", "rotate(90)")
-    .attr("x", 80)
-    .attr("y", -5)
-    .text(this.getFormattedDate(this.xTickInfo.date));
-    
+        .call(yAxisSeparator.bind(this))
+        .append('text')
+        .attr('transform', 'rotate(90)')
+        .attr('x', 80)
+        .attr('y', -5)
+        .text(this.getFormattedDate(this.xTickInfo.date));
+
     this.makeCommonFont(target);
 };
 
@@ -254,14 +249,14 @@ BarChart.prototype.convertCoords = function(data, svg) {
     var offset = svg._groups[0][0].getBoundingClientRect();
     var shiftLeft = 15;
     return {
-        x: (data.matrix.a * data.x) + (data.matrix.c * data.y) + data.matrix.e - offset.left - shiftLeft,
-        y: (data.matrix.b * data.x) + (data.matrix.d * data.y) +  data.matrix.f - offset.top
+        x: data.matrix.a * data.x + data.matrix.c * data.y + data.matrix.e - offset.left - shiftLeft,
+        y: data.matrix.b * data.x + data.matrix.d * data.y + data.matrix.f - offset.top
     };
 };
 
 BarChart.prototype.rectHoverColor = function(e) {
     var rect = e.target;
-    var attr = rect.attributes.getNamedItem('data-selected');    
+    var attr = rect.attributes.getNamedItem('data-selected');
     if (!attr) {
         rect.setAttribute('fill', this.colors.hovered);
     }
@@ -276,7 +271,7 @@ BarChart.prototype.rectDefaultColor = function(e) {
 };
 
 BarChart.prototype.selectFirstRect = function() {
-    var rectList =  this.svg.selectAll('rect')._groups[0];
+    var rectList = this.svg.selectAll('rect')._groups[0];
     if (!rectList.length) {
         return;
     }
@@ -312,7 +307,7 @@ BarChart.prototype.rectClickHandler = function(e) {
 };
 
 BarChart.prototype.clearBarColor = function(clearChosenRect) {
-    var rectList =  this.svg.selectAll('rect')._groups[0];
+    var rectList = this.svg.selectAll('rect')._groups[0];
     if (!rectList.length) {
         return;
     }
@@ -326,7 +321,7 @@ BarChart.prototype.clearBarColor = function(clearChosenRect) {
 
 BarChart.prototype.getCrossBrowserDispatchEvent = function(eventName) {
     if (typeof Event === 'function') {
-      return new Event(eventName);
+        return new Event(eventName);
     }
     var event = document.createEvent('Event');
     event.initEvent(eventName, true, true);
@@ -334,7 +329,7 @@ BarChart.prototype.getCrossBrowserDispatchEvent = function(eventName) {
 };
 
 BarChart.prototype.setDate = function(date) {
-   this.todayDate = date;
+    this.todayDate = date;
 };
 
 window.BarChart = window.BarChart || BarChart;

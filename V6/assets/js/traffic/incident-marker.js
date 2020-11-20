@@ -48,6 +48,14 @@ IncidentMarker.prototype._validateRoadNumber = function(properties) {
     return properties && properties.roadNumber;
 };
 
+IncidentMarker.prototype._validateAndParseEndTime = function(properties) {
+    var endDate = properties && properties.endDate;
+
+    if (endDate) {
+        return window.Formatters.formatToDateTimeStringForTrafficIncidents(endDate);
+    }
+};
+
 IncidentMarker.prototype._createClusterPopupContent = function(renderData) {
     var properties = renderData.properties,
         features = properties.features,
@@ -74,6 +82,8 @@ IncidentMarker.prototype._createClusterPopupContent = function(renderData) {
 
 IncidentMarker.prototype._createPopupBody = function(displayedFeatures) {
     return displayedFeatures.map(function(feature) {
+        var endDate = this._validateAndParseEndTime(feature.properties) || 'No info';
+
         return (
             '<div class="tt-traffic-cluster__item">' +
                 '<div class="tt-traffic-icon">' +
@@ -86,13 +96,14 @@ IncidentMarker.prototype._createPopupBody = function(displayedFeatures) {
                     '<p>To: ' + feature.properties.to + '</p>' +
                 '</div>' +
                 '<div>' + window.formatters.formatAsMetricDistance(feature.properties.lengthMeters) + '</div>' +
+                '<div>' + endDate + '</div>' +
             '</div>'
         );
-    }).join('');
+    }.bind(this)).join('');
 };
 
 IncidentMarker.prototype._createPopupHeader = function() {
-    return ['Category', 'Streets', 'Length'].map(function(text) {
+    return ['Category', 'Streets', 'Length', 'Est. end time'].map(function(text) {
         return '<div>' + text + '</div>';
     }).join('');
 };
@@ -105,27 +116,36 @@ IncidentMarker.prototype._createPopupContent = function(feature) {
     var time = this._validateTime(properties);
     var distance = this._validateDistance(properties);
     var roadNumber = this._validateRoadNumber(properties);
+    var estimatedEndTime = this._validateAndParseEndTime(properties);
 
-    var wrapper = DomHelpers.elementFactory('div', 'tt-traffic-details');
+    var wrapper = DomHelpers.elementFactory('div');
 
     wrapper.innerHTML = '<div class="tt-traffic-details">' +
+        '<div class="tt-traffic-details__header">' +
             '<div class="tt-traffic-icon">' +
-                '<div class="tt-icon-circle-' + severity + '">' +
-                    '<div class="tt-icon-' + this.iconsMapping[incidentCategory] + '"></div>' +
+                    '<div class="tt-icon-circle-' + severity + '">' +
+                        '<div class="tt-icon-' + this.iconsMapping[incidentCategory] + '"></div>' +
+                    '</div>' +
                 '</div>' +
+
+            (roadNumber ? '<div class="tt-road-shield">' + roadNumber + '</div>' : '') +
+
+            '<div class="tt-incident-category">' + incidentCategory + '</div>' +
             '</div>' +
-           (roadNumber ? '<div class="tt-road-shield">' + roadNumber + '</div>' : '') +
-            '<div class="tt-traffic-description">' +
-                '<div class="tt-incident-category">' + incidentCategory + '</div>' +
-                '<div ' +
-                    'class="tt-incident-delay-length" ' +
-                    (!time && !distance ? 'style="display:none;"' : '') +
-                '>' +
-                    (time ? '<div class="tt-incident-delay">' + time + '</div>' : '') +
-                    (distance ? '<div class="tt-incident-length">' + distance + '</div>' : '') +
-                '</div>' +
-            '</div>' +
-        '</div>';
+        '</div>' +
+
+        '<div class="tt-traffic-description">' +
+            (time ? '<div class="tt-incident-delay">' +
+                (time === 'No delay' ? '<b>' + time + '</b>' : '<b>Delay: </b>' + time) +
+            '</div>' : '') +
+
+            (distance ? '<div class="tt-incident-length"><b>Traffic length: </b>' + distance + '</div>' : '') +
+
+            (estimatedEndTime ? '<div class="tt-incident-end-time"><b>Estimated end time: </b>' +
+                estimatedEndTime +
+            '</div>' : '') +
+        '</div>' +
+    '</div>';
 
     return wrapper;
 };

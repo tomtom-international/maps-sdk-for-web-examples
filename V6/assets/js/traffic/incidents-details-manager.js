@@ -11,14 +11,13 @@ function IncidentDetailsMarkersManager(map, incidentMarkerFactory) {
 
 IncidentDetailsMarkersManager.prototype.addMarkers = function(incidents) {
     var newMarkers = this._mapResponseToFeaturesDictionary(incidents);
-    /**
-     * Diff steps:
-     * 1. Iterate over all existing markers
-     * 2. If newMarkers doesn't contain the element, then remove EXISTING marker
-     * 3. If newMarkers contain the element, then update EXISTING marker and remove
-     * updated marker from the list, so it is not added twice
-     * 4. Add all remaining new markers.
-     */
+
+    //Diff steps:
+    // 1. Iterate over all existing markers
+    // 2. If newMarkers doesn't contain the element, then remove EXISTING marker
+    // 3. If newMarkers contain the element, then update EXISTING marker and remove
+    //    updated marker from the list, so it is not added twice
+    // 4. Add all remaining new markers.
     Object.keys(this.incidentMarkers).forEach(function(featureId) {
         if (!newMarkers[featureId]) {
             this.incidentMarkers[featureId].getMarker().remove();

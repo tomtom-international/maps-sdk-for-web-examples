@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+    <head>
+        <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+        <meta charset='UTF-8'>
+        <title>Maps SDK for Web - Multi-stop EV routing</title>
+        <meta name='viewport'
+            content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+        <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+        <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+        <link rel='stylesheet' type='text/css' href='../assets/ui-library/icons-css/routing.css'/>
+    </head>
+    <style>
+        .tt-results-list {
+            background: #ffffff;
+            padding: 40px 0 10px !important;
+        }
+        .map-view .icon {
+            height: 30px;
+            width: 30px;
+        }
+        .map-view .tt-icon.-finish {
+            height: 16px;
+            width: 16px;
+        }
+        .map-view .icon-spacing {
+            float: left;
+            margin-right: 14px;
+            margin-top: 24px;
+        }
+        .map-view .tt-results-list__item {
+            padding: 0;
+        }
+        .route-marker {
+            align-items: center;
+            background-color: #4a90e2;
+            border: solid 3px #2faaff;
+            border-radius: 50%;
+            display: flex;
+            height: 32px;
+            justify-content: center;
+            transition: width .1s, height .1s;
+            width: 32px;
+        }
+        .route-summary-panel {
+            background-color: #3f9cd9;
+            color: #ffffff;
+            height: 120px;
+            padding: 22px 22px 12px;
+            position: relative;
+        }
+        .loading-header {
+            font-size: 16px;
+            font-weight: bold;
+            margin: auto;
+            padding-bottom: 16px;
+            text-align: center;
+        }
+        .loading-circle-small {
+            margin: auto;
+        }
+        .summary-container > div {
+            display: inline-block;
+            font-size: 11px;
+            height: 50px;
+            margin-right: 25px;
+            max-width: 28%;
+            text-align: left;
+        }
+        .summary-container {
+            border-bottom: 1px solid #cfcfcfc5;
+            padding-bottom: 10px;
+        }
+        .number-of-stops {
+            font-family: Noway, Helvetica, Arial, sans-serif;
+            font-size: 13px;
+            padding-top: 10px;
+            text-align: center;
+        }
+        .route-info-value {
+            font-size: 15px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        .route-info-label {
+            font-family: Noway, Helvetica, Arial, sans-serif;
+            font-size: 12px;
+        }
+        .trip-time .route-info-value {
+            font-size: 16px;
+            margin-top: 8px;
+        }
+        .route-stage {
+            background: #ffffff;
+            border-left: 4px dotted #a4abb1;
+            margin-left: 40px;
+            padding: 2px 15px 15px 0;
+        }
+        .last-stage {
+            background: #ffffff;
+            border: 0;
+            margin-bottom: 20px;
+            padding: 15px 15px 15px 4px;
+        }
+        .route-addresses {
+            font-weight: bold;
+            margin-left: 35px;
+            margin-top: -5px;
+        }
+        .car-option-container {
+            justify-content: center;
+            margin-top: 26px;
+        }
+        .-disabled {
+            pointer-events: none;
+        }
+        .-chosen {
+            color: #000000 !important;
+        }
+        .-chosen .params-info,
+        .-chosen .car-icon {
+            background-color: #000000;
+        }
+        .car-option {
+            color: rgba(0, 0, 0, .35);
+        }
+        .car-option:hover {
+            color: rgba(0, 0, 0, .6) !important;
+        }
+        .car-option:hover .params-info,
+        .car-option:hover .car-icon {
+            background-color: rgba(0, 0, 0, .6) !important;
+        }
+        .car-option-container > div {
+            cursor: pointer;
+            display: inline-block;
+            font-size: 13px;
+            font-weight: bold;
+            text-align: left;
+            width: 49%;
+        }
+        .ev-capacity {
+            float: left;
+            font-weight: normal;
+        }
+        .bmw {
+            border-left: 1px solid rgb(197, 197, 197);
+            padding-left: 15px;
+        }
+        .car-info-box {
+            background-color: rgba(0, 0, 0, .8);
+            color: #ffffff;
+            font-family: Noway, Helvetica, Arial, sans-serif;
+            padding: 16px;
+            position: absolute;
+            width: 250px;
+            z-index: 2;
+        }
+        .info-box-header {
+            font-size: 18px;
+            font-weight: bold;
+            padding: 8px 0 18px;
+        }
+        .info-box-row {
+            color: #cdcdcd;
+            font-size: 14px;
+            margin-top: 6px;
+        }
+        .info-box-row .value {
+            color: #ffffff;
+            float: right;
+            font-weight: bold;
+        }
+        .car-params-container {
+            border-bottom: 1px solid rgba(255, 255, 255, .21);
+            padding-bottom: 16px;
+        }
+        .car-params-hint {
+            color: #ffffff;
+            font-size: 12px;
+            padding-top: 16px;
+        }
+        .start-icon {
+            background-image: url("../assets/svg/ev/cars/tesla_white.svg");
+            padding: 16px;
+        }
+        .finish-icon {
+            background-image: url("../assets/svg/finish_white.svg");
+            background-position: center;
+            background-repeat: no-repeat;
+            padding: 16px;
+        }
+        .icon-container {
+            background-color: #3f9cd9;
+            border-radius: 50%;
+            float: left;
+            margin: -16px 0 0 -22px;
+            padding: 4px;
+            z-index: 2;
+        }
+        .icon-container__small {
+            background-color: #3f9cd9;
+            border-radius: 50%;
+            float: left;
+            margin-left: -16px;
+            padding: 2px;
+            width: 29px;
+            z-index: 2;
+        }
+        .-start {
+            background-image: url("../assets/svg/ev/cars/tesla_white.svg") !important;
+            background-size: 24px;
+        }
+        .ev-station-marker {
+            background-color: #3f9cd9;
+            border: 2.5px solid #ffffff;
+            border-radius: 30px;
+            color: #ffffff;
+            font-family: Noway, Helvetica, Arial, sans-serif;
+            font-size: 13px;
+            font-weight: bold;
+            height: 36px;
+            max-width: 135px;
+            padding: 7px 10px 4px 5px;
+        }
+        .ev-marker-tip-external {
+            border: 11px solid transparent;
+            border-bottom: none;
+            border-top-color: #ffffff;
+            height: 0;
+            margin: 5px 0 0 3px;
+            width: 0;
+        }
+        .ev-marker-tip-internal {
+            border: 10px solid transparent;
+            border-bottom: none;
+            border-top-color: #3f9cd9;
+            height: 0;
+            margin: -13px 0 0 -10px;
+            width: 0;
+        }
+        .ev-marker-icon {
+            float: left;
+            margin-top: -7px;
+        }
+        .params-info {
+            background-color: rgba(0, 0, 0, .35);
+            border-radius: 50%;
+            color: #ffffff;
+            display: inline;
+            font-family: Arial;
+            font-size: 9px;
+            font-weight: bold;
+            margin-left: 7px;
+            padding: 1px 5px;
+        }
+        .car-icon {
+            float: left;
+            height: 32px;
+            margin-right: 8px;
+            width: 32px;
+        }
+        .tesla-icon {
+            background-color: rgba(0, 0, 0, .35);
+            -webkit-mask-image: url("../assets/svg/ev/cars/tesla.svg");
+            mask-image: url("../assets/svg/ev/cars/tesla.svg");
+        }
+        .bmw-icon {
+            background-color: rgba(0, 0, 0, .35);
+            -webkit-mask-image: url("../assets/svg/ev/cars/bmwi3.svg");
+            mask-image: url("../assets/svg/ev/cars/bmwi3.svg");
+        }
+        .leg-data-row {
+            color: rgb(122, 126, 128);
+            font-family: Noway, Helvetica, Arial, sans-serif;
+            font-size: 13px;
+            font-weight: bold;
+            margin: 7px 0 0 35px;
+        }
+        .leg-data-row > img {
+            float: left;
+            margin: auto;
+            margin-right: 4px;
+
+        }
+        .leg-data-row > div {
+            padding-top: 3px;
+        }
+        .leg-time-distance {
+            color: #afaeae;
+            font-family: Noway, Helvetica, Arial, sans-serif;
+            font-size: 12px;
+            margin: 33px 0 10px 16px;
+        }
+        .dividing-line {
+            border-color: rgba(0, 0, 0, .05);
+            display: inline-block;
+            float: right;
+            margin: 6px 0 0 5px;
+            width: 150px;
+        }
+        .ev-hovered {
+            background-color: #002c5e;
+        }
+        .ev-hovered .ev-marker-tip-external .ev-marker-tip-internal {
+            border-top-color: #002c5e;
+        }
+    </style>
+    <body>
+        <div class='map-view'>
+            <form class='tt-side-panel js-form'>
+                <header class='tt-side-panel__header'>
+                    <b>Change car model</b>
+                    <div class='car-info-box' hidden>
+                        <div class='car-params-container'></div>
+                        <div class='car-params-hint'>
+                            These parameters are used to calculate the route with charging stops.
+                        </div>
+                    </div>
+                    <div class='car-option-container'>
+                        <div class='car-option' id='tesla'>
+                            <div class='car-icon tesla-icon'></div>
+                            <div>
+                                <div>Tesla Model S<span class='params-info' id='tesla-info'>i</span>
+                                </div>
+                                <div class='ev-capacity'>100 kWh</div>
+                            </div>
+                        </div>
+                        <div class='car-option bmw' id='bmw'>
+                            <div class='car-icon bmw-icon'></div>
+                            <div>
+                                <div>BMW i3<span class='params-info' id='bmw-info'>i</span>
+                                </div>
+                                <div class='ev-capacity'>33 kWh</div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+                <div class='route-summary-panel'></div>
+                <div class='tt-tabs js-tabs'>
+                    <div class='tt-tabs__panel'>
+                        <div class='tt-results-list js-results'></div>
+                    </div>
+                </div>
+            </form>
+            <div id='map' class='full-map'></div>
+        </div>
+        <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+        <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+        <script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.24.0/moment.min.js'></script>
+        <script src='https://cdnjs.cloudflare.com/ajax/libs/moment-duration-format/2.3.2/moment-duration-format.min.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/search/dom-helpers.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+        <script>
+            var map = tt.map({
+                key: '${api.key.maps}',
+                container: 'map',
+                dragPan: !isMobileOrTablet(),
+                zoom: 5.02,
+                center: [7.89189, 48.66192]
+            });
+
+            var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
+            var loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
+
+            var evMarkers = {}, currentScenario = {}, startMarker = {}, finishMarker = {};
+
+            var points = {
+                startPoint: [4.897070, 52.377956],
+                finishPoint: [10.886712, 44.650232]
+            };
+
+            map.addControl(new tt.FullscreenControl());
+            map.addControl(new tt.NavigationControl());
+            map.on('load', function() {
+                handleDrawRoute('tesla');
+            });
+
+            var scenario = {
+                tesla: {
+                    vehicleWeight: { value: 2200, label: 'Vehicle weight' },
+                    currentChargeInkWh: { value: 100, label: 'Current charge' },
+                    maxChargeInkWh: { value: 100, label: 'Max charge' },
+                    auxilaryPower: { value: 1.7, label: 'Auxilary power' },
+                    accelerationEfficency: { value: 0.66, label: 'Acceleration efficency' },
+                    decelerationEfficency: { value: 0.91, label: 'Deceleration efficency' },
+                    uphillEfficency: { value: 0.74, label: 'Uphill efficency' },
+                    downhillEfficency: { value: 0.73, label: 'Downhill efficency' },
+                    constantSpeedConsumption: [[100, 20.09]],
+                    chargingModes: [
+                        {
+                            chargingConnections: [
+                                {
+                                    facilityType: 'Charge_200_to_480V_Direct_Current_at_255A_120kW',
+                                    plugType: 'Tesla_Connector'
+                                },
+                                {
+                                    facilityType: 'Charge_380_to_480V_3_Phase_at_63A',
+                                    plugType: 'Tesla_Connector'
+                                },
+                                {
+                                    facilityType: 'Charge_50_to_500V_Direct_Current_at_125A_50kW',
+                                    plugType: 'Tesla_Connector'
+                                },
+                                {
+                                    facilityType: 'Charge_50_to_500V_Direct_Current_at_62A_25kW',
+                                    plugType: 'Tesla_Connector'
+                                },
+                                {
+                                    facilityType: 'Charge_50_to_500V_Direct_Current_at_62A_25kW',
+                                    plugType: 'SAE_J1772'
+                                },
+                                {
+                                    facilityType: 'Charge_50_to_500V_Direct_Current_at_125A_50kW',
+                                    plugType: 'SAE_J1772'
+                                },
+                                {
+                                    facilityType: 'Charge_380_to_480V_3_Phase_at_63A',
+                                    plugType: 'SAE_J1772'
+                                },
+                                {
+                                    facilityType: 'Charge_380_to_480V_3_Phase_at_32A',
+                                    plugType: 'SAE_J1772'
+                                },
+                                {
+                                    facilityType: 'Charge_380_to_480V_3_Phase_at_16A',
+                                    plugType: 'SAE_J1772'
+                                }
+                            ],
+                            chargingCurve: [
+                                {
+                                    chargeInkWh: 50,
+                                    timeToChargeInSeconds: 1200
+                                },
+                                {
+                                    chargeInkWh: 80,
+                                    timeToChargeInSeconds: 2400
+                                },
+                                {
+                                    chargeInkWh: 100,
+                                    timeToChargeInSeconds: 4500
+                                }
+                            ]
+                        },
+                        {
+                            chargingConnections: [
+                                {
+                                    facilityType: 'Charge_380_to_480V_3_Phase_at_32A',
+                                    plugType: 'Tesla_Connector'
+                                },
+                                {
+                                    facilityType: 'Charge_100_to_120V_1_Phase_at_16A',
+                                    plugType: 'Tesla_Connector'
+                                },
+                                {
+                                    facilityType: 'Charge_200_to_240V_1_Phase_at_32A',
+                                    plugType: 'Tesla_Connector'
+                                },
+                                {
+                                    facilityType: 'Charge_200_to_240V_1_Phase_at_16A',
+                                    plugType: 'Tesla_Connector'
+                                },
+                                {
+                                    facilityType: 'Charge_200_to_240V_3_Phase_at_32A',
+                                    plugType: 'Tesla_Connector'
+                                },
+                                {
+                                    facilityType: 'Charge_200_to_240V_1_Phase_at_12A',
+                                    plugType: 'SAE_J1772'
+                                },
+                                {
+                                    facilityType: 'Charge_200_to_240V_1_Phase_at_32A',
+                                    plugType: 'SAE_J1772'
+                                },
+                                {
+                                    facilityType: 'Charge_200_to_240V_1_Phase_at_10A',
+                                    plugType: 'SAE_J1772'
+                                },
+                                {
+                                    facilityType: 'Charge_200_to_240V_3_Phase_at_32A',
+                                    plugType: 'SAE_J1772'
+                                },
+                                {
+                                    facilityType: 'Charge_200_to_240V_1_Phase_at_16A',
+                                    plugType: 'SAE_J1772'
+                                },
+                                {
+                                    facilityType: 'Charge_100_to_120V_1_Phase_at_16A',
+                                    plugType: 'SAE_J1772'
+                                }
+                            ],
+                            chargingCurve: [
+                                {
+                                    chargeInkWh: 100,
+                                    timeToChargeInSeconds: 90000
+                                }
+                            ]
+                        }
+                    ]
+
+                },
+                bmw: {
+                    vehicleWeight: { value: 1195, label: 'Vehicle weight' },
+                    currentChargeInkWh: { value: 33, label: 'Current charge' },
+                    maxChargeInkWh: { value: 33, label: 'Max charge' },
+                    auxilaryPower: { value: 1.7, label: 'Auxilary power' },
+                    accelerationEfficency: { value: 0.66, label: 'Acceleration efficency' },
+                    decelerationEfficency: { value: 0.91, label: 'Deceleration efficency' },
+                    uphillEfficency: { value: 0.74, label: 'Uphill efficency' },
+                    downhillEfficency: { value: 0.73, label: 'Downhill efficency' },
+                    constantSpeedConsumption: [[80, 14.8], [100, 18.5], [120, 22.7]],
+                    chargingModes: [
+                        {
+                            chargingConnections: [
+                                {
+                                    facilityType: 'Charge_50_to_500V_Direct_Current_at_125A_50kW',
+                                    plugType: 'IEC_62196_Type_2_Outlet'
+                                },
+                                {
+                                    facilityType: 'Charge_200_to_450V_Direct_Current_at_200A_90kW',
+                                    plugType: 'IEC_62196_Type_2_Outlet'
+                                },
+                                {
+                                    facilityType: 'Charge_380_to_480V_3_Phase_at_63A',
+                                    plugType: 'IEC_62196_Type_2_Outlet'
+                                },
+                                {
+                                    facilityType: 'Charge_50_to_500V_Direct_Current_at_62A_25kW',
+                                    plugType: 'IEC_62196_Type_2_Outlet'
+                                },
+                                {
+                                    facilityType: 'Charge_50_to_500V_Direct_Current_at_125A_50kW',
+                                    plugType: 'IEC_62196_Type_2_Connector_Cable_Attached'
+                                },
+                                {
+                                    facilityType: 'Charge_50_to_500V_Direct_Current_at_62A_25kW',
+                                    plugType: 'IEC_62196_Type_2_Connector_Cable_Attached'
+                                },
+                                {
+                                    facilityType: 'Charge_380_to_480V_3_Phase_at_63A',
+                                    plugType: 'IEC_62196_Type_2_Connector_Cable_Attached'
+                                },
+                                {
+                                    facilityType: 'Charge_200_to_480V_Direct_Current_at_255A_120kW',
+                                    plugType: 'IEC_62196_Type_2_Connector_Cable_Attached'
+                                }
+                            ],
+                            chargingCurve: [
+                                {
+                                    chargeInkWh: 8,
+                                    timeToChargeInSeconds: 600
+                                },
+                                {
+                                    chargeInkWh: 18,
+                                    timeToChargeInSeconds: 1200
+                                },
+                                {
+                                    chargeInkWh: 27,
+                                    timeToChargeInSeconds: 1800
+                                },
+                                {
+                                    chargeInkWh: 33,
+                                    timeToChargeInSeconds: 3600
+                                }
+                            ]
+                        },
+                        {
+                            chargingConnections: [
+                                {
+                                    facilityType: 'Charge_100_to_120V_1_Phase_at_8A',
+                                    plugType: 'IEC_62196_Type_2_Outlet'
+                                },
+                                {
+                                    facilityType: 'Charge_200_to_240V_1_Phase_at_12A',
+                                    plugType: 'IEC_62196_Type_2_Outlet'
+                                },
+                                {
+                                    facilityType: 'Charge_200_to_240V_1_Phase_at_32A',
+                                    plugType: 'IEC_62196_Type_2_Outlet'
+                                },
+                                {
+                                    facilityType: 'Charge_200_to_240V_1_Phase_at_10A',
+                                    plugType: 'IEC_62196_Type_2_Outlet'
+                                },
+                                {
+                                    facilityType: 'Charge_200_to_240V_1_Phase_at_8A',
+                                    plugType: 'IEC_62196_Type_2_Outlet'
+                                },
+                                {
+                                    facilityType: 'Charge_380_to_480V_3_Phase_at_16A',
+                                    plugType: 'IEC_62196_Type_2_Outlet'
+                                },
+                                {
+                                    facilityType: 'Charge_380_to_480V_3_Phase_at_32A',
+                                    plugType: 'IEC_62196_Type_2_Outlet'
+                                },
+                                {
+                                    facilityType: 'Charge_200_to_240V_3_Phase_at_32A',
+                                    plugType: 'IEC_62196_Type_2_Outlet'
+                                },
+                                {
+                                    facilityType: 'Charge_200_to_240V_1_Phase_at_16A',
+                                    plugType: 'IEC_62196_Type_2_Outlet'
+                                },
+                                {
+                                    facilityType: 'Charge_200_to_240V_3_Phase_at_16A',
+                                    plugType: 'IEC_62196_Type_2_Outlet'
+                                },
+                                {
+                                    facilityType: 'Charge_100_to_120V_1_Phase_at_16A',
+                                    plugType: 'IEC_62196_Type_2_Outlet'
+                                },
+                                {
+                                    facilityType: 'Charge_100_to_120V_1_Phase_at_8A',
+                                    plugType: 'IEC_62196_Type_2_Connector_Cable_Attached'
+                                },
+                                {
+                                    facilityType: 'Charge_200_to_240V_3_Phase_at_16A',
+                                    plugType: 'IEC_62196_Type_2_Connector_Cable_Attached'
+                                },
+                                {
+                                    facilityType: 'Charge_100_to_120V_1_Phase_at_16A',
+                                    plugType: 'IEC_62196_Type_2_Connector_Cable_Attached'
+                                },
+                                {
+                                    facilityType: 'Charge_380_to_480V_3_Phase_at_16A',
+                                    plugType: 'IEC_62196_Type_2_Connector_Cable_Attached'
+                                }
+                            ],
+                            chargingCurve: [
+                                {
+                                    chargeInkWh: 33,
+                                    timeToChargeInSeconds: 48600
+                                }
+                            ]
+                        }
+                    ]
+                }
+            };
+
+            bindEvents();
+
+            function bindEvents() {
+                document.querySelectorAll('.params-info').forEach(function(carOption) {
+                    carOption.addEventListener('mouseenter', function(event) {
+                        var infoBox = document.querySelector('.car-info-box');
+                        infoBox.style.left = event.clientX;
+                        infoBox.style.top = event.clientY + 15;
+                        infoBox.removeAttribute('hidden');
+
+                        if (DomHelpers.checkIfElementOrItsParentsHaveClass(event.target, 'bmw')) {
+                            createInfoBoxContent(scenario.bmw, document.querySelector('.car-params-container'), 'BMW i3');
+                        } else {
+                            createInfoBoxContent(scenario.tesla, document.querySelector('.car-params-container'), 'Tesla Model S');
+                        }
+                    });
+                    carOption.addEventListener('mouseleave', function() {
+                        document.querySelector('.car-info-box').setAttribute('hidden', true);
+                    });
+                });
+
+                document.getElementById('tesla').addEventListener('click', switchCarScenario);
+                document.getElementById('bmw').addEventListener('click', switchCarScenario);
+            }
+
+            function enableHoverHighlight(event) {
+                document.getElementById('icon-' + getIdNumber(event.target.id)).classList.add('ev-hovered');
+                document.getElementById('marker-' + getIdNumber(event.target.id)).classList.add('ev-hovered');
+            }
+
+            function disableHoverHighlight(event) {
+                document.getElementById('icon-' + getIdNumber(event.target.id)).classList.remove('ev-hovered');
+                document.getElementById('marker-' + getIdNumber(event.target.id)).classList.remove('ev-hovered');
+            }
+
+            function scrollToElement(event) {
+                document.getElementById('list-' + getIdNumber(DomHelpers.getElementOrItsParentId(event.target)))
+                    .scrollIntoView({ block: 'center' });
+            }
+
+            function getIdNumber(id) {
+                return id.split('-')[1];
+            }
+
+            function switchCarScenario(event) {
+                clearMap();
+
+                if (DomHelpers.checkIfElementOrItsParentsHaveClass(event.target, 'bmw')) {
+                    handleDrawRoute('bmw');
+                } else {
+                    handleDrawRoute('tesla');
+                }
+            }
+
+            function markChosenOption(id) {
+                var notPickedOption = id === 'tesla' ? 'bmw' : 'tesla';
+                document.getElementById(id).classList.add('-chosen');
+                document.getElementById(notPickedOption).classList.remove('-chosen');
+            }
+
+            function carScenarioToggle(enable) {
+                if (!enable) {
+                    document.querySelector('.car-option-container').classList.add('-disabled');
+                } else {
+                    document.querySelector('.car-option-container').classList.remove('-disabled');
+                }
+            }
+
+            function displayLoader() {
+                var summaryPanel = document.querySelector('.route-summary-panel');
+                summaryPanel.innerHTML = '<div class="loading-header">Calculating the route...</div>' +
+                '<div class="loading-circle-small"></div>';
+            }
+
+            function createInfoBoxContent(scenario, container, name) {
+                container.innerHTML = '<div class="info-box-header">' + name + '</div>';
+
+                Object.keys(scenario).forEach(function(key) {
+                    if (scenario[key].label) {
+                        container.innerHTML += '<div class="info-box-row">' +
+                            scenario[key].label + '<div class="value">' + scenario[key].value + '</div>' +
+                        '</div>';
+                    }
+                });
+            }
+
+            function createMarkerElement(type) {
+                var element = document.createElement('div');
+                var innerElement = document.createElement('div');
+
+                element.className = 'route-marker';
+                innerElement.className = 'icon tt-icon -white -' + type;
+                element.appendChild(innerElement);
+
+                return element;
+            }
+
+            function createMarker(type, lngLat, numberOfLegs) {
+                var markerElement = type === 'start' ? createMarkerElement('start') : createMarkerElement('finish');
+                var index = numberOfLegs || 0;
+
+                markerElement.setAttribute('id', 'marker-' + index);
+                markerElement.addEventListener('mouseenter', enableHoverHighlight);
+                markerElement.addEventListener('click', scrollToElement);
+                markerElement.addEventListener('mouseleave', disableHoverHighlight);
+
+                return new tt.Marker({element: markerElement })
+                    .setLngLat(lngLat)
+                    .addTo(map);
+            }
+
+            function createEVStationMarker(point, chargingTime, id) {
+                var evMarkerContainer = document.createElement('div');
+                evMarkerContainer.setAttribute('id', 'marker-' + id);
+                evMarkerContainer.classList.add('ev-station-marker');
+
+                evMarkerContainer.addEventListener('mouseenter', enableHoverHighlight);
+                evMarkerContainer.addEventListener('mouseleave', disableHoverHighlight);
+                evMarkerContainer.addEventListener('click', scrollToElement);
+
+                evMarkerContainer.innerHTML =
+                    '<img src="../assets/svg/ev/ev_station.svg" class="ev-marker-icon"/>' +
+                        Formatters.formatToShortDurationTimeString(chargingTime) +
+                    '<div class="ev-marker-tip-external"><div class="ev-marker-tip-internal"></div></div>';
+
+                return new tt.Marker({element: evMarkerContainer, offset: [25, 0] })
+                    .setLngLat(point)
+                    .addTo(map);
+            }
+
+            function createEVList(response) {
+                var evListContainer = document.querySelector('.js-results');
+                var legs = response.routes[0].legs;
+
+                //creating first item
+                evListContainer.innerHTML += '<div class="route-stage" id="list-0">' +
+                    '<div class="icon-container" id="icon-0"><div class="start-icon"></div></div>' +
+                    '<div class="route-addresses">Amsterdam, Netherlands</div>' +
+                    '<div class="leg-data-row"><img src="../assets/svg/ev/battery_levels/' +
+                        getCurrentBatteryLevelIcon(100) + '"/><div>100%</div></div>' +
+                    '<div class="leg-time-distance">' +
+                        Formatters.formatToShortDurationTimeString(legs[0].summary.travelTimeInSeconds) + ' - ' +
+                        Formatters.formatAsMetricDistance(legs[0].summary.lengthInMeters) +
+                    '<hr class="dividing-line"></div>' +
+                '</div>';
+
+                var evPoints = [];
+
+                legs.forEach(function(leg) {
+                    const chargeInfo = leg.summary.chargingInformationAtEndOfLeg;
+
+                    if (chargeInfo) {
+                        var evStation = createEVStationListElement(leg, legs, chargeInfo);
+                        evListContainer.appendChild(evStation.routeStage);
+                        evPoints.push({ position: evStation.position });
+                    }
+                });
+
+                getAddressesWithReverseGeocode(evPoints);
+
+                var lastLegSummary = legs[legs.length - 1].summary;
+                var batteryLeftPercentage =
+                    Math.ceil(100 * lastLegSummary.remainingChargeAtArrivalInkWh / currentScenario.maxChargeInkWh.value);
+
+                //creating last item
+                evListContainer.innerHTML += '<div class="route-stage last-stage" id="list-' + legs.length + '">' +
+                    '<div class="icon-container" id="icon-' + legs.length + '"/><div class="finish-icon"></div></div>' +
+                    '<div class="route-addresses">Verona, Italy</div>' +
+                    '<div class="leg-data-row"><img src="../assets/svg/ev/battery_levels/' +
+                        getCurrentBatteryLevelIcon(batteryLeftPercentage) + '"/><div>' +
+                        batteryLeftPercentage +
+                    '%</div></div></div>';
+
+                addListenersToListElements();
+            }
+
+            function createEVStationListElement(currentSegment, allSegments, chargeInfo) {
+                var id = allSegments.indexOf(currentSegment) + 1;
+                var routeStage = document.createElement('div');
+                routeStage.classList.add('route-stage');
+                routeStage.setAttribute('id', 'list-' + id);
+
+                routeStage.innerHTML = '<div>' +
+                    '<img class="icon-container__small" src="../assets/svg/ev/ev_station.svg" id="icon-' + id + '"/>' +
+                    '<div class="route-addresses" id="' + id + '"></div>' +
+                    '<div class="leg-charging-level leg-data-row">' +
+                        '<img src="../assets/svg/ev/battery_charging.svg"/><div>' +
+                        getChargingLevels(
+                            currentSegment.summary.remainingChargeAtArrivalInkWh,
+                            chargeInfo.targetChargeInkWh
+                        ) + '</div></div>' +
+                    '<div class="leg-charging-time leg-data-row">' +
+                        '<img src="../assets/svg/ev/charging_time.svg"/><div>' +
+                        Formatters.formatToShortDurationTimeString(chargeInfo.chargingTimeInSeconds) +
+                    '</div></div>' +
+                    '<div class="leg-time-distance">' +
+                        Formatters.formatToShortDurationTimeString(allSegments[id].summary.travelTimeInSeconds) + ' - ' +
+                        Formatters.formatAsMetricDistance(allSegments[id].summary.lengthInMeters) +
+                '<hr class="dividing-line"></div></div>';
+
+                return {
+                    routeStage: routeStage,
+                    position: currentSegment.points[currentSegment.points.length - 1]
+                };
+            }
+
+            function addListenersToListElements() {
+                document.querySelectorAll('.route-stage').forEach(function(stage) {
+                    stage.addEventListener('mouseenter', enableHoverHighlight);
+                    stage.addEventListener('mouseleave', disableHoverHighlight);
+                });
+            }
+
+            function getChargingLevels(atArrival, atDeparture) {
+                var maxLevel = currentScenario.maxChargeInkWh.value;
+                return Math.ceil(100 * atArrival / maxLevel) + '% to ' + Math.ceil(100 * atDeparture / maxLevel) + '%';
+            }
+
+            function getCurrentBatteryLevelIcon(batteryLevel) {
+                if (batteryLevel >= 85) {
+                    return 'battery_85_100.svg';
+                } else if (batteryLevel >= 60) {
+                    return 'battery_60_85.svg';
+                } else if (batteryLevel >= 40) {
+                    return 'battery_40_60.svg';
+                } else if (batteryLevel >= 20) {
+                    return 'battery_20_40.svg';
+                }
+
+                return 'battery_0_20.svg';
+            }
+
+            function getAddressesWithReverseGeocode(evPoints) {
+                tt.services.reverseGeocode({
+                    batchMode: 'sync',
+                    key: '${api.key.search}',
+                    batchItems: evPoints
+                })
+                    .then(function(response) {
+                        response.batchItems.forEach(function(item) {
+                            var address = item.addresses[0].address;
+                            document.getElementById(response.batchItems.indexOf(item) + 1)
+                                .innerHTML = address.localName + ', ' + address.country;
+                        });
+                    })
+                    .catch(function() {
+                        errorHint.setMessage('Error while obtaining addresses.');
+                    });
+
+            }
+
+            function createRouteSummary(summary) {
+                const summaryPanel = document.querySelector('.route-summary-panel');
+
+                summaryPanel.innerHTML = '<div class="summary-container">' +
+                        '<div class="trip-time"><div class="route-info-label">Total trip time</div>' +
+                            '<div class="route-info-value">' +
+                                Formatters.formatToShortDurationTimeString(summary.travelTimeInSeconds) + '</div></div>' +
+                        '<div class="charging-time"><div class="route-info-label">Charging time</div>' +
+                            '<div class="route-info-value">' +
+                                Formatters.formatToShortDurationTimeString(summary.totalChargingTimeInSeconds) + '</div></div>' +
+                        '<div class="distance"><div class="route-info-label">Distance</div>' +
+                            '<div class="route-info-value">' +
+                                Formatters.formatAsMetricDistance(summary.lengthInMeters) + '</div></div></div>' +
+                    '<div class="number-of-stops">' + Object.keys(evMarkers).length + ' charging stops</div>';
+            }
+
+            function clearMap() {
+                if (map.getLayer('route')) {
+                    map.removeLayer('route');
+                    map.removeSource('route');
+                }
+
+                Object.keys(evMarkers).forEach(function(key) {
+                    evMarkers[key].remove();
+                });
+
+                startMarker.remove();
+                finishMarker.remove();
+
+                evMarkers = {};
+            }
+
+            function handleEVRoutingResponse(response) {
+                var geojson = response.toGeoJson();
+
+                map.addLayer({
+                    'id': 'route',
+                    'type': 'line',
+                    'source': {
+                        'type': 'geojson',
+                        'data': geojson
+                    },
+                    'paint': {
+                        'line-color': '#4a90e2',
+                        'line-width': 6
+                    }
+                });
+
+                var bounds = new tt.LngLatBounds();
+
+                [points.startPoint, points.finishPoint].forEach(function(point) {
+                    bounds.extend(tt.LngLat.convert(point));
+                });
+                map.fitBounds(bounds, { duration: 0, padding: 50 });
+
+                drawEVMarkers(response);
+                createEVList(response);
+                createRouteSummary(response.routes[0].summary);
+            }
+
+            function drawEVMarkers(response) {
+                startMarker = createMarker('start', points.startPoint);
+                finishMarker = createMarker('finish', points.finishPoint, response.routes[0].legs.length);
+
+                response.routes[0].legs.forEach(function(leg) {
+                    const chargeInfo = leg.summary.chargingInformationAtEndOfLeg;
+
+                    if (chargeInfo) {
+                        var id = response.routes[0].legs.indexOf(leg) + 1;
+                        evMarkers[id] =
+                            createEVStationMarker(leg.points[leg.points.length - 1], chargeInfo.chargingTimeInSeconds, id);
+                    }
+                });
+            }
+
+            function handleDrawRoute(scenarioName) {
+                currentScenario = scenario[scenarioName];
+                document.querySelector('.js-results').innerHTML = '';
+
+                markChosenOption(scenarioName);
+                carScenarioToggle(false);
+                displayLoader();
+                errorHint.hide();
+                loadingHint.setMessage('Loading...');
+
+                performEVRoutingRequest(currentScenario)
+                    .then(function(response) {
+                        handleEVRoutingResponse(response);
+                    })
+                    .catch(function() {
+                        errorHint.setMessage('There was a problem calculating the route');
+                    })
+                    .finally(function() {
+                        carScenarioToggle(true);
+                        loadingHint.hide();
+                    });
+            }
+
+            function performEVRoutingRequest(scenario) {
+                return tt.services.longDistanceEVRouting({
+                    key: '${api.key.routing}',
+                    traffic: false,
+                    locations: '4.897070,52.377956:10.886712,44.650232',
+                    vehicleEngineType: 'electric',
+                    chargingModes: scenario.chargingModes,
+                    constantSpeedConsumptionInkWhPerHundredkm: scenario.constantSpeedConsumption,
+                    vehicleWeight: scenario.vehicleWeight.value,
+                    currentChargeInkWh: scenario.currentChargeInkWh.value,
+                    maxChargeInkWh: scenario.maxChargeInkWh.value,
+                    accelerationEfficency: 0.66,
+                    decelerationEfficency: 0.91,
+                    uphillEfficiency: 0.74,
+                    downhillEfficiency: 0.73,
+                    minChargeAtDestinationInkWh: 2,
+                    minChargeAtChargingStopsInkWh: 2
+                });
+            }
+        </script>
+    </body>
+</html>

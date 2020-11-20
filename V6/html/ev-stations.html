@@ -347,9 +347,14 @@
                         text: availableConnectors + '/' + length + ' Available',
                         class: '-available'
                     };
-                } else {
+                } else if (availableConnectors === 0) {
                     return {
                         text: availableConnectors + '/' + length + ' Available',
+                        class: '-unknown'
+                    };
+                } else {
+                    return {
+                        text: 'Information about chargers is currently unavailable',
                         class: '-unknown'
                     };
                 }

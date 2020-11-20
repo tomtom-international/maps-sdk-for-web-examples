@@ -9,13 +9,13 @@ function InputTime(element, date) {
     };
 
     this.constraints = null;
-    
+
     this.elements = {
         time: this.createSelect('select'),
         arrowLeft: this.createArrow('left', this.decreaseValue.bind(this)),
         arrowRight: this.createArrow('right', this.increaseValue.bind(this))
     };
-    
+
     element.appendChild(this.elements.arrowLeft);
     element.appendChild(this.elements.time);
     element.appendChild(this.elements.arrowRight);
@@ -60,7 +60,7 @@ InputTime.prototype.addZero = function(value) {
 };
 
 InputTime.prototype.checkConstraints = function(index) {
-    if (index > (this.constraints - 1)) {
+    if (index > this.constraints - 1) {
         this.elements.time.selectedIndex = 0;
         this.state.selectedIndex = 0;
         this.setStateTime();
@@ -77,11 +77,11 @@ InputTime.prototype.checkConstraints = function(index) {
     this.setStateTime();
 };
 
-InputTime.prototype.setStateTime = function(event) {
+InputTime.prototype.setStateTime = function() {
     var time = this.elements.time.value.split(':');
     if (time.length) {
-        this.state.h = +time[0];
-        this.state.m = +time[1];
+        this.state.h = Number(time[0]);
+        this.state.m = Number(time[1]);
         var stateDate = new Date(this.state.date);
         stateDate.setHours(this.state.h, this.state.m, 0);
         this.state.date = stateDate.toISOString();
@@ -99,7 +99,7 @@ InputTime.prototype.createSelect = function(key) {
     for (var i = 0; i <= hours; ++i) {
         var optionEven = this.createTimeOption(i, 0);
         var optionOdd = this.createTimeOption(i, 30);
-        
+
         select.appendChild(optionEven);
         select.appendChild(optionOdd);
     }
