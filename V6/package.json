@@ -13,7 +13,8 @@
   "license": "SEE LICENSE IN LICENSE.TXT",
   "devDependencies": {
     "ncp": "2.0.0",
-    "replace-in-file": "4.1.3"
+    "replace-in-file": "4.1.3",
+    "fs-extra": "9.0.1"
   },
   "dependencies": {
     "live-server": "1.2.1"
