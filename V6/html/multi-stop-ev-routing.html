@@ -93,6 +93,7 @@
         .route-stage {
             background: #ffffff;
             border-left: 4px dotted #a4abb1;
+            cursor: pointer;
             margin-left: 40px;
             padding: 2px 15px 15px 0;
         }
@@ -365,7 +366,7 @@
             var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
             var loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
 
-            var evMarkers = {}, currentScenario = {}, startMarker = {}, finishMarker = {};
+            var evMarkers = {}, currentScenario = {};
 
             var points = {
                 startPoint: [4.897070, 52.377956],
@@ -680,6 +681,11 @@
                     .scrollIntoView({ block: 'center' });
             }
 
+            function panMapToStation(event) {
+                var targetMarker = evMarkers[getIdNumber(DomHelpers.getElementOrItsParentId(event.target))];
+                map.jumpTo({ center: targetMarker._lngLat, zoom:  5.02 });
+            }
+
             function getIdNumber(id) {
                 return id.split('-')[1];
             }
@@ -777,7 +783,7 @@
                 //creating first item
                 evListContainer.innerHTML += '<div class="route-stage" id="list-0">' +
                     '<div class="icon-container" id="icon-0"><div class="start-icon"></div></div>' +
-                    '<div class="route-addresses">Amsterdam, Netherlands</div>' +
+                    '<div class="route-addresses" id="address-0">Amsterdam, Netherlands</div>' +
                     '<div class="leg-data-row"><img src="../assets/svg/ev/battery_levels/' +
                         getCurrentBatteryLevelIcon(100) + '"/><div>100%</div></div>' +
                     '<div class="leg-time-distance">' +
@@ -789,7 +795,7 @@
                 var evPoints = [];
 
                 legs.forEach(function(leg) {
-                    const chargeInfo = leg.summary.chargingInformationAtEndOfLeg;
+                    var chargeInfo = leg.summary.chargingInformationAtEndOfLeg;
 
                     if (chargeInfo) {
                         var evStation = createEVStationListElement(leg, legs, chargeInfo);
@@ -807,7 +813,7 @@
                 //creating last item
                 evListContainer.innerHTML += '<div class="route-stage last-stage" id="list-' + legs.length + '">' +
                     '<div class="icon-container" id="icon-' + legs.length + '"/><div class="finish-icon"></div></div>' +
-                    '<div class="route-addresses">Verona, Italy</div>' +
+                    '<div class="route-addresses" id="address-' + legs.length + '">Verona, Italy</div>' +
                     '<div class="leg-data-row"><img src="../assets/svg/ev/battery_levels/' +
                         getCurrentBatteryLevelIcon(batteryLeftPercentage) + '"/><div>' +
                         batteryLeftPercentage +
@@ -822,9 +828,9 @@
                 routeStage.classList.add('route-stage');
                 routeStage.setAttribute('id', 'list-' + id);
 
-                routeStage.innerHTML = '<div>' +
+                routeStage.innerHTML =
                     '<img class="icon-container__small" src="../assets/svg/ev/ev_station.svg" id="icon-' + id + '"/>' +
-                    '<div class="route-addresses" id="' + id + '"></div>' +
+                    '<div class="route-addresses" id="address-' + id + '"></div>' +
                     '<div class="leg-charging-level leg-data-row">' +
                         '<img src="../assets/svg/ev/battery_charging.svg"/><div>' +
                         getChargingLevels(
@@ -838,7 +844,7 @@
                     '<div class="leg-time-distance">' +
                         Formatters.formatToShortDurationTimeString(allSegments[id].summary.travelTimeInSeconds) + ' - ' +
                         Formatters.formatAsMetricDistance(allSegments[id].summary.lengthInMeters) +
-                '<hr class="dividing-line"></div></div>';
+                '<hr class="dividing-line"></div>';
 
                 return {
                     routeStage: routeStage,
@@ -850,6 +856,7 @@
                 document.querySelectorAll('.route-stage').forEach(function(stage) {
                     stage.addEventListener('mouseenter', enableHoverHighlight);
                     stage.addEventListener('mouseleave', disableHoverHighlight);
+                    stage.addEventListener('click', panMapToStation);
                 });
             }
 
@@ -881,18 +888,18 @@
                     .then(function(response) {
                         response.batchItems.forEach(function(item) {
                             var address = item.addresses[0].address;
-                            document.getElementById(response.batchItems.indexOf(item) + 1)
+                            document.getElementById('address-' + (response.batchItems.indexOf(item) + 1))
                                 .innerHTML = address.localName + ', ' + address.country;
                         });
                     })
-                    .catch(function() {
+                    .catch(function(error) {
                         errorHint.setMessage('Error while obtaining addresses.');
                     });
 
             }
 
             function createRouteSummary(summary) {
-                const summaryPanel = document.querySelector('.route-summary-panel');
+                var summaryPanel = document.querySelector('.route-summary-panel');
 
                 summaryPanel.innerHTML = '<div class="summary-container">' +
                         '<div class="trip-time"><div class="route-info-label">Total trip time</div>' +
@@ -916,9 +923,6 @@
                 Object.keys(evMarkers).forEach(function(key) {
                     evMarkers[key].remove();
                 });
-
-                startMarker.remove();
-                finishMarker.remove();
 
                 evMarkers = {};
             }
@@ -952,11 +956,13 @@
             }
 
             function drawEVMarkers(response) {
-                startMarker = createMarker('start', points.startPoint);
-                finishMarker = createMarker('finish', points.finishPoint, response.routes[0].legs.length);
+                var legsNumber = response.routes[0].legs.length;
+
+                evMarkers[0] = createMarker('start', points.startPoint);
+                evMarkers[legsNumber] = createMarker('finish', points.finishPoint, legsNumber);
 
                 response.routes[0].legs.forEach(function(leg) {
-                    const chargeInfo = leg.summary.chargingInformationAtEndOfLeg;
+                    var chargeInfo = leg.summary.chargingInformationAtEndOfLeg;
 
                     if (chargeInfo) {
                         var id = response.routes[0].legs.indexOf(leg) + 1;

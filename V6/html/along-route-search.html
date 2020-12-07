@@ -70,6 +70,10 @@
                                     Query
                                     <input id='query' class='tt-input' name='query' placeholder='Query e.g. pizza'>
                                 </label>
+                                <label class='tt-form-label'>
+                                    Sort by
+                                    <select id='sort-select' class='tt-select'></select>
+                                </label>
                                 <label class='tt-form-label js-slider'>
                                     Max detour time in seconds (<span id='maxDetourTimeLabel' class='js-counter'>900</span>)
                                     <input class='tt-slider' id='maxDetourTime' type='range' min='1' max='3600' value='900'>
@@ -104,6 +108,7 @@
         </form>
     <div id='map' class='full-map'></div>
     </div>
+    <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
     <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
     <script src='/cdn.web-sdk-services/services-web.min.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
@@ -118,6 +123,7 @@
     <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/results-manager.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/searchbox-enter-submit.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/tail-selector.js'></script>
     <script src='/cdn.web-sdk-plugin-searchbox/SearchBox-web.js'></script>
     <script>
         var state = {
@@ -133,6 +139,12 @@
             dragPan: !isMobileOrTablet()
         });
 
+        var sortOptions = {
+            'Detour time': 'detourTime',
+            'Detour distance': 'detourDistance',
+            'Detour offset': 'detourOffset'
+        };
+
         map.addControl(new tt.FullscreenControl());
         map.addControl(new tt.NavigationControl());
 
@@ -143,6 +155,7 @@
         var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
         var loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
         var resultsManager = new ResultsManager();
+        var sortSelector = new window.TailSelector(Object.keys(sortOptions), '#sort-select', 'Detour time');
         var domHelpers = DomHelpers;
         var searchResultsParser = SearchResultsParser;
         var formatters = Formatters;
@@ -313,13 +326,15 @@
             }
             searchMarkersManager.clear();
             loadingHint.setMessage('Loading...');
+
             tt.services.alongRouteSearch({
                 key: '${api.key.search}',
                 query: query.value,
                 maxDetourTime: maxDetourTime.value,
                 limit: limit.value,
                 route: state.routePoints,
-                spreadingMode: getSpreadingMode()
+                spreadingMode: getSpreadingMode(),
+                sortBy: sortOptions[sortSelector.getSelectedOptions()]
             })
                 .then(function(response) {
                     loadingHint.hide();

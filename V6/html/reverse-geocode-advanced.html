@@ -34,7 +34,6 @@
     <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/tabs.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/languages.js'></script>
-    <script data-showable type='text/javascript' src='../assets/js/antimeridian-handler.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/buttons-group.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search/dom-helpers.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
@@ -325,8 +324,7 @@
                 var sw = result.address.boundingBox.southWest;
                 var bounds = new tt.LngLatBounds(sw, ne);
 
-                map.fitBounds(new window.AntimeridianHandler().normalizeBoundingBox(bounds),
-                    { duration: 1000, padding: 100 });
+                map.fitBounds(bounds, { duration: 1000, padding: 100 });
             } else {
                 map.flyTo({ center: clickPosition, duration: 1000 });
             }

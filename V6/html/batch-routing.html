@@ -34,11 +34,11 @@
             color: #000000;
         }
         .tt-bar-chart .details__value {
-            display: inline-block;
             color: #004b7f;
+            display: inline-block;
             font-size: 16px;
             font-weight: bold;
-            letter-spacing: -0.49px;
+            letter-spacing: -.49px;
             margin-top: 8px;
         }
 
@@ -66,7 +66,7 @@
                 </div>
                 <div class='tt-inline-input-group tt-spacing-top-16'>
                     <span class='tt-form-label'>Depart at
-                        <span class='tt-input-time tt-input' id='js-depart-at'></span>                        
+                        <span class='tt-input-time tt-input' id='js-depart-at'></span>
                     </span>
                     <span class='tt-form-label'>Date <span class="tt-hint-text">(dd/mm/yyyy)</span>
                         <input class='js-date-input tt-input'>
@@ -133,7 +133,7 @@
 
         map.addControl(new tt.FullscreenControl({ container: document.querySelector('body') }));
         map.addControl(new tt.NavigationControl());
-        
+
         new SidePanel('.tt-side-panel', map);
 
         function BatchRouting() {
@@ -245,7 +245,7 @@
             var status = isVisible ? 'remove' : 'add';
             this.elements.tabs.classList[status]('hide');
         };
-        
+
         BatchRouting.prototype.applyGeoJsonToMap = function(response) {
             var geojson = response.toGeoJson();
             if (map.getLayer('route')) {

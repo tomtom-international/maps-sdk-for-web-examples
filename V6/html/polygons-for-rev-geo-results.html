@@ -12,7 +12,6 @@
 <body>
 <script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
 <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
-<script data-showable type='text/javascript' src='../assets/js/antimeridian-handler.js'></script>
 <script data-showable type='text/javascript' src='../assets/js/polygons-for-reverse-geocode/layer-manager.js'></script>
 <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
 <script data-showable type='text/javascript' src='../assets/js/buttons-group.js'></script>
@@ -130,8 +129,7 @@
                         var outlineLayer = createLayer(geoJSON, geometryZoom, 'line');
 
                         const bBox = new tt.LngLatBounds(boundingBox.southWest, boundingBox.northEast);
-                        map.fitBounds(new AntimeridianHandler().normalizeBoundingBox(bBox),
-                            { padding: 100, linear: true });
+                        map.fitBounds(bBox, { padding: 100, linear: true });
 
                         var fillLayerPromise = fillLayerManager.updateLayer(fillLayer),
                             outlineLayerPromise = outlineLayerManager.updateLayer(outlineLayer);

@@ -40,7 +40,6 @@
 <script src='/cdn.web-sdk-services/services-web.min.js'></script>
 <script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
 <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
-<script data-showable type='text/javascript' src='../assets/js/antimeridian-handler.js'></script>
 <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
 <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
 <script data-showable type='text/javascript' src='../assets/js/search/searchbox-enter-submit.js'></script>
@@ -125,8 +124,7 @@
             [boundingBox.topLeftPoint.lng, boundingBox.btmRightPoint.lat],
             [boundingBox.btmRightPoint.lng, boundingBox.topLeftPoint.lat]
         ]);
-        boundingBox = new AntimeridianHandler()
-            .normalizeBoundingBox(boundingBox);
+
         map.fitBounds(boundingBox, { padding: 100, linear: true });
     }
 
@@ -193,6 +191,7 @@
         }).catch(function(error) {
             clearPopup();
             if (error.message) {
+                console.log(error);
                 errorHint.setMessage(error.message);
             }
         });

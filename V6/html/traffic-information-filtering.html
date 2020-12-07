@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Traffic information filtering</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+</head>
+<body>
+    <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
+    <style>
+        .tt-checkbox + .tt-label {
+            height: initial;
+            width: 100%;
+        }
+    </style>
+    <div id='map' class='map'>
+        <div class='tt-overlay-panel -left-top -medium js-foldable'>
+            <div class='tt-form'>
+                <div class='tt-spacing-top-24'>
+                    <input 
+                        type='checkbox' 
+                        data-filter='0,1,2'
+                        class='tt-checkbox' 
+                        id='motorways' 
+                        checked='true'
+                    />
+                    <label class='tt-label' for='motorways'>Motorway, International road, Major road</label>
+                    <input 
+                        type='checkbox'
+                        data-filter='3,4'
+                        class='tt-checkbox' 
+                        id='connecting-roads' 
+                        checked='true'
+                    />
+                    <label class='tt-label' for="connecting-roads">Connecting road, Secondary road</label>
+                    <input 
+                        type='checkbox' 
+                        data-filter='5,6,7'
+                        class='tt-checkbox' 
+                        id='local-roads' 
+                        checked='true'
+                    />
+                    <label class='tt-label' for="local-roads">Local roads</label>
+                    <input 
+                        type='checkbox' 
+                        data-filter='8'
+                        class='tt-checkbox' 
+                        id='other-roads' 
+                        checked='true'
+                    />
+                    <label class='tt-label' for="other-roads">Other roads</label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script>
+        // Storing roadTypes used for filtering traffic data
+        var selectedRoadTypesSets = Array.from(document.querySelectorAll('input[type=checkbox]:checked'))
+            .map(function(checkbox) {
+                return checkbox.getAttribute('data-filter');
+            });
+        // Name of the source with traffic flow
+        var TRAFFIC_FLOW_SOURCE_NAME = 'vectorTilesFlow';
+
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            center: [17.10214, 48.13022],
+            zoom: 15.32,
+            stylesVisibility: {
+                trafficFlow: true
+            },
+            dragPan: !isMobileOrTablet(),
+            // Injecting "roadTypes" param to traffic flow tiles
+            transformRequest: function(url, resourceType) {
+                if (resourceType === 'Tile' && url.includes('flow')) {
+                    return { url: url + '&roadTypes=[' + selectedRoadTypesSets.join() + ']'};
+                }
+            }
+        });
+        
+        Array.from(document.querySelectorAll('input[type=checkbox]'))
+            .forEach(function(checkbox) {
+                checkbox.addEventListener('change', checkboxHandler);
+            });
+
+        function checkboxHandler(event) {
+            var filter = event.target.getAttribute('data-filter');
+            if (event.target.checked) {
+                selectedRoadTypesSets.push(filter);
+            } else {
+                var setIndex = selectedRoadTypesSets.indexOf(filter);
+                selectedRoadTypesSets.splice(setIndex, 1);
+            }
+            // Updating traffic flow tiles URLs
+            updateTiles();
+        }
+
+        function updateTiles() {
+            // Getting source object of flow tiles
+            var vectorTilesFlowSource = map.getSource(TRAFFIC_FLOW_SOURCE_NAME);
+            // Setting roadTypes query parameter on tile URLs
+            var tiles = vectorTilesFlowSource.tiles.map(function(tileRawUrl) {
+                return queryParamUpdater(tileRawUrl, 'roadTypes', '[' + selectedRoadTypesSets.join() + ']');
+            });
+
+            // Calling setTiles to update tiles URLs and repaint map
+            vectorTilesFlowSource.setTiles(tiles);
+        }
+
+        function findSeparator(uri) {
+            const questionMarkIndex = uri.indexOf('?');
+            if (questionMarkIndex === -1) {
+                return '?';
+            }
+            return questionMarkIndex === uri.length - 1 ? '' : '&';
+        }
+
+        function queryParamUpdater(uri, key, value) {
+            const re = new RegExp('([?&])' + key + '=.*?(&|$)', 'i');
+            if (uri.match(re)) {
+                if (value) {
+                    return uri.replace(re, '$1' + key + '=' + value + '$2');
+                } else {
+                    return uri.replace(re, '$1$2').replace('&&', '&');
+                }
+            } else if (value) {
+                const separator = findSeparator(uri);
+                return uri + separator + key + '=' + value;
+            } else {
+                return uri;
+            }
+        }
+
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+        new Foldable('.js-foldable', 'top-right');
+    </script>
+</body>
+</html>

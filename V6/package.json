@@ -7,7 +7,7 @@
   "main": "index.js",
   "scripts": {
     "build": "node scripts/copyToDist.js && node scripts/replacePlaceholders.js",
-    "start": "live-server"
+    "start": "live-server --open=dist"
   },
   "author": "Tomtom",
   "license": "SEE LICENSE IN LICENSE.TXT",
