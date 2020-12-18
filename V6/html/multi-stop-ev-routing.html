@@ -229,7 +229,7 @@
             border-bottom: none;
             border-top-color: #ffffff;
             height: 0;
-            margin: 5px 0 0 3px;
+            margin: 4px 0 0 3px;
             width: 0;
         }
         .ev-marker-tip-internal {
@@ -373,7 +373,7 @@
                 finishPoint: [10.886712, 44.650232]
             };
 
-            map.addControl(new tt.FullscreenControl());
+            map.addControl(new tt.FullscreenControl({ container: document.querySelector('body') }));
             map.addControl(new tt.NavigationControl());
             map.on('load', function() {
                 handleDrawRoute('tesla');
@@ -677,8 +677,8 @@
             }
 
             function scrollToElement(event) {
-                document.getElementById('list-' + getIdNumber(DomHelpers.getElementOrItsParentId(event.target)))
-                    .scrollIntoView({ block: 'center' });
+                var target = document.getElementById('list-' + getIdNumber(DomHelpers.getElementOrItsParentId(event.target)));
+                target.parentNode.parentNode.scrollTop = target.offsetTop - 400;
             }
 
             function panMapToStation(event) {
@@ -892,7 +892,7 @@
                                 .innerHTML = address.localName + ', ' + address.country;
                         });
                     })
-                    .catch(function(error) {
+                    .catch(function() {
                         errorHint.setMessage('Error while obtaining addresses.');
                     });
 

@@ -33,12 +33,15 @@
         }
         .popup-name {
             -webkit-box-orient: vertical;
+            color: #262626;
             display: -webkit-box;
+            font-family: "Gotham", Helvetica, Arial, sans-serif;
             font-size: 13px;
+            font-weight: bold;
             -webkit-line-clamp: 2;
+            margin-top: 8px;
             overflow: hidden;
             text-overflow: ellipsis;
-
         }
         .category {
             color: #3f9cd9;
@@ -51,8 +54,15 @@
             white-space: nowrap;
         }
         .popup-category {
+            color: #3f9cd9;
+            font-family: "Gotham", Helvetica, Arial, sans-serif;
             font-size: 10px;
+            font-weight: bold;
             margin-top: -10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-transform: uppercase;
+            white-space: nowrap;
         }
         .coordinates {
             color: #505050;
@@ -82,12 +92,14 @@
         var map = tt.map({
             key: '${api.key.maps}',
             container: 'map',
+            style: 'https://api.tomtom.com/style/1/style/${hostedStylesVersion}?map=basic_main&poi=poi_dynamic',
             center: {
                 lat: 52.35815,
                 lng: 4.86707
             },
-            zoom: 13,
-            dragPan: !isMobileOrTablet()
+            zoom: 14,
+            dragPan: !isMobileOrTablet(),
+            fadeDuration: 50
         });
 
         map.addControl(new tt.FullscreenControl());
@@ -98,41 +110,60 @@
         var infoHint = new InfoHint('info', 'bottom-center', 4000)
             .addTo(document.getElementById('map'));
 
+        var popup = null;
+        var hoveredFeature = null;
+
         var initialFeature = {
-            properties: {
-                id: 'g6JpZK81MjgwMDkwMDExMzA2MDahY6NOTEShdqdVbmlmaWVk'
+            'geometry': {
+                'coordinates': [4.86707, 52.35815]
             },
-            geometry: {
-                coordinates: [4.86707, 52.35815]
+            'layer': {
+                'paint': {
+                    'text-color': { r: 0.1294, g: 0.3215, b: 0.2588 }
+                }
+            },
+            'properties': {
+                'name': 'Vondelpark',
+                'icon': 169,
+                'id': 'g6JpZK81MjgwMDkwMDExMzA2MDahY6NOTEShdqdVbmlmaWVk'
             }
         };
 
         map.on('load', function() {
-            map.loadImage('https://api.tomtom.com/maps-sdk-for-web/cdn/static/ic_map_address_red.png', function(err, image) {
-                if (err) {
-                    return;
-                }
-
-                infoHint.setMessage('Click on POI icons to get their names and category information.');
-                map.addImage('selectedPoi', image);
-                bindMapEvents();
-            });
+            infoHint.setMessage('Click on POI icons to get their names and category information.');
+            bindMapEvents();
         });
 
         function bindMapEvents() {
-            map.on('click', 'POI', handlePoiClick.bind(this));
+            map.on('click', 'POI', handlePoiClick);
             map.on('click', function(event) {
                 var feature = map.queryRenderedFeatures(event.point)[0];
 
-                if (feature.layer.id !== 'Point of Interest' && feature.layer.id !== 'selectedPoi') {
+                if (feature.layer.id !== 'POI' && feature.layer.id !== 'selectedPoi') {
                     hideResult();
                 }
             });
-            map.on('mousemove', 'POI', function() {
+            map.on('mousemove', 'POI', function(event) {
                 map.getCanvas().style.cursor = 'pointer';
+                var feature = map.queryRenderedFeatures(event.point)[0];
+
+                createPopup(feature);
+                hoveredFeature = feature;
+
+                map.setFeatureState(feature, { hover: true });
             });
-            map.on('mouseleave', 'POI', function() {
+            map.on('mouseleave', 'POI', function(event) {
                 map.getCanvas().style.cursor = '';
+
+                if (hoveredFeature) {
+                    map.setFeatureState(hoveredFeature, { hover: false });
+                }
+
+                hoveredFeature = null;
+
+                if (!event.originalEvent.relatedTarget) {
+                    removePopup();
+                }
             });
             map.on('mousemove', 'selectedPoi', function() {
                 map.getCanvas().style.cursor = 'pointer';
@@ -142,45 +173,15 @@
             });
 
             serviceCall(initialFeature);
+            renderSelectedPoi(initialFeature);
         }
 
         function hideResult() {
             document.querySelector('.js-form').innerHTML = '';
-
-            if (map.getLayer('selectedPoi')) {
-                map.removeLayer('selectedPoi');
-                map.removeSource('selectedPoi');
-            }
-        }
-
-        function showPoiMarker(position) {
-            map.addSource('selectedPoi', {
-                'type': 'geojson',
-                'data': {
-                    'type': 'Feature',
-                    'geometry': {
-                        'type': 'Point',
-                        'coordinates': position
-                    }
-                }
-            });
-            map.addLayer({
-                'id': 'selectedPoi',
-                'source': 'selectedPoi',
-                'type': 'symbol',
-                'layout': {
-                    'symbol-sort-key': 1000,
-                    'icon-image': 'selectedPoi',
-                    'icon-anchor': 'bottom',
-                    'text-letter-spacing': 0.1,
-                    'icon-padding': 5,
-                    'icon-offset': [0, 5]
-                }
-            });
+            hidePoiMarker();
         }
 
         function handleResult(result) {
-
             if (result && result.poi) {
                 document.querySelector('.js-form').innerHTML =
                 '<div class="result-card">' +
@@ -202,6 +203,11 @@
         function handlePoiClick(event) {
             var feature = map.queryRenderedFeatures(event.point)[0];
 
+            hideResult();
+
+            if (feature.sourceLayer === 'Point of Interest') {
+                renderSelectedPoi(feature);
+            }
             errorHint.hide();
             infoHint.hide();
 
@@ -212,15 +218,47 @@
             }
         }
 
-        function serviceCall(feature) {
-            hideResult();
+        function renderSelectedPoi(feature) {
+            map.addLayer({
+                'id': 'selectedPoi',
+                'source': {
+                    'type': 'geojson',
+                    'data': {
+                        'type': 'Feature',
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': feature.geometry.coordinates
+                        }
+                    }
+                },
+                'type': 'symbol',
+                'paint': {
+                    'text-color': 'rgba(0, 0, 0, 1)',
+                    'text-halo-color': 'rgba(255, 255, 255, 1)',
+                    'text-halo-width': 1
+                },
+                'layout': {
+                    'text-field': feature.properties.name || feature.properties.description,
+                    'icon-image': `${feature.properties.icon}_pin`,
+                    'icon-anchor': 'bottom',
+                    'text-letter-spacing': 0.1,
+                    'icon-padding': 5,
+                    'icon-offset': [0, 5],
+                    'text-max-width': 10,
+                    'text-variable-anchor': ['top'],
+                    'text-font': ['Noto-Bold'],
+                    'text-size': 14,
+                    'text-radial-offset': 0.2
+                }
+            });
+        }
 
+        function serviceCall(feature) {
             tt.services.placeById({
                 key: '${api.key.search}',
                 entityId: feature.properties.id
             })
                 .then(function(response) {
-                    showPoiMarker(feature.geometry.coordinates);
                     map.flyTo({
                         center: feature.geometry.coordinates
                     });
@@ -231,6 +269,57 @@
                     infoHint.hide();
                     errorHint.setMessage(error.message);
                 });
+        }
+
+        function createPopup(result) {
+            var markerSize = 10;
+            removePopup();
+
+            var popupOffset = {
+                'top': [0, markerSize],
+                'top-left': [0, markerSize],
+                'top-right': [0, markerSize],
+                'bottom': [0, -markerSize],
+                'bottom-left': [0, -markerSize],
+                'bottom-right': [0, -markerSize],
+                'left': [markerSize, -markerSize],
+                'right': [-markerSize, -markerSize]
+            };
+
+            var htmlContent = document.createElement('div');
+
+            htmlContent.innerHTML = '<div class="popup-container">' +
+                '<div class="popup-category">' +
+                    Formatters.formatCategoryName(result.properties.category) +
+                '</div>' +
+                '<div class="popup-name">' + result.properties.name + '</div>' +
+            '</div>';
+
+            popup = new tt.Popup({ offset: popupOffset })
+                .setLngLat(result.geometry.coordinates)
+                .setDOMContent(htmlContent)
+                .addTo(map)
+                .setMaxWidth('200px');
+
+            htmlContent.addEventListener('mouseleave', function() {
+                removePopup();
+            });
+
+            popup.getElement().children[1].children[0].style.visibility = 'hidden';
+        }
+
+        function removePopup() {
+            if (popup) {
+                popup.remove();
+                popup = null;
+            }
+        }
+
+        function hidePoiMarker() {
+            if (map.getLayer('selectedPoi')) {
+                map.removeLayer('selectedPoi');
+                map.removeSource('selectedPoi');
+            }
         }
     </script>
 </body>

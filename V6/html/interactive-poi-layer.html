@@ -21,7 +21,6 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-
         .category {
             color: #3f9cd9;
             font-family: "Gotham", Helvetica, Arial, sans-serif;
@@ -45,12 +44,14 @@
         var map = tt.map({
             key: '${api.key.maps}',
             container: 'map',
+            style: 'https://api.tomtom.com/style/1/style/${hostedStylesVersion}?map=basic_main&poi=poi_dynamic',
             center: {
                 lat: 52.232765,
                 lng: 21.008468
             },
             zoom: 13,
-            dragPan: !isMobileOrTablet()
+            dragPan: !isMobileOrTablet(),
+            fadeDuration: 50
         });
 
         map.addControl(new tt.FullscreenControl());
@@ -59,65 +60,100 @@
         var infoHint = new InfoHint('info', 'bottom-center', 10000)
             .addTo(document.getElementById('map'));
 
-        infoHint.setMessage('Click on POI icons to get their names and category information.');
+        infoHint.setMessage('Click on POI icons to select them.');
 
         var popup = null;
+        var hoveredFeature = null;
 
         map.on('load', function() {
-            map.loadImage('https://api.tomtom.com/maps-sdk-for-web/cdn/static/ic_map_address_red.png', function(err, image) {
-                if (err) {
-                    return;
-                }
-
-                map.addImage('selectedPoi', image);
-                bindMapEvents();
-            });
+            bindMapEvents();
         });
 
         function bindMapEvents() {
             map.on('click', function(event) {
                 var feature = map.queryRenderedFeatures(event.point)[0];
+
                 hidePoiMarker();
 
                 if (feature.sourceLayer === 'Point of Interest') {
-                    createPopup(feature);
-                    showPoiMarker(feature.geometry.coordinates);
+                    map.addLayer({
+                        'id': 'selectedPoi',
+                        'source': {
+                            'type': 'geojson',
+                            'data': {
+                                'type': 'Feature',
+                                'geometry': {
+                                    'type': 'Point',
+                                    'coordinates': feature.geometry.coordinates
+                                }
+                            }
+                        },
+                        'type': 'symbol',
+                        'paint': {
+                            'text-color': 'rgba(0, 0, 0, 1)',
+                            'text-halo-color': 'rgba(255, 255, 255, 1)',
+                            'text-halo-width': 1
+                        },
+                        'layout': {
+                            'text-field': feature.properties.name || feature.properties.description,
+                            'icon-image': `${feature.properties.icon}_pin`,
+                            'icon-anchor': 'bottom',
+                            'text-letter-spacing': 0.1,
+                            'icon-padding': 5,
+                            'icon-offset': [0, 5],
+                            'text-max-width': 10,
+                            'text-variable-anchor': ['top'],
+                            'text-font': ['Noto-Bold'],
+                            'text-size': 14,
+                            'text-radial-offset': 0.2
+                        }
+                    });
                 }
             });
-            map.on('mousemove', 'POI', function() {
+
+            map.on('mouseenter', 'POI', function(event) {
                 map.getCanvas().style.cursor = 'pointer';
+                var feature = map.queryRenderedFeatures(event.point)[0];
+
+                createPopup(feature);
+                hoveredFeature = feature;
+
+                map.setFeatureState(feature, { hover: true });
             });
-            map.on('mouseleave', 'POI', function() {
+
+            map.on('mouseleave', 'POI', function(event) {
                 map.getCanvas().style.cursor = '';
-            });
-            map.on('mousemove', 'selectedPoi', function() {
-                map.getCanvas().style.cursor = 'pointer';
-            });
-            map.on('mouseleave', 'selectedPoi', function() {
-                map.getCanvas().style.cursor = '';
+
+                if (hoveredFeature) {
+                    map.setFeatureState(hoveredFeature, { hover: false });
+                }
+
+                hoveredFeature = null;
+
+                if (!event.originalEvent.relatedTarget) {
+                    removePopup();
+                }
             });
         }
 
         function createPopup(result) {
-            if (popup) {
-                popup.remove();
-                popup = null;
-            }
-
-            var markerSize = 60;
+            var markerSize = 10;
+            removePopup();
 
             var popupOffset = {
-                'top': [0, 0],
-                'top-left': [0, 5],
-                'top-right': [0, 5],
+                'top': [0, markerSize],
+                'top-left': [0, markerSize],
+                'top-right': [0, markerSize],
                 'bottom': [0, -markerSize],
                 'bottom-left': [0, -markerSize],
                 'bottom-right': [0, -markerSize],
-                'left': [markerSize / 2, -markerSize / 2],
-                'right': [-markerSize / 2, -markerSize / 2]
+                'left': [markerSize, -markerSize],
+                'right': [-markerSize, -markerSize]
             };
 
-            var htmlContent = '<div class="popup-container">' +
+            var htmlContent = document.createElement('div');
+
+            htmlContent.innerHTML = '<div class="popup-container">' +
                 '<div class="category">' +
                     Formatters.formatCategoryName(result.properties.category) +
                 '</div>' +
@@ -126,11 +162,22 @@
 
             popup = new tt.Popup({ offset: popupOffset })
                 .setLngLat(result.geometry.coordinates)
-                .setHTML(htmlContent)
+                .setDOMContent(htmlContent)
                 .addTo(map)
                 .setMaxWidth('200px');
 
+            htmlContent.addEventListener('mouseleave', function() {
+                removePopup();
+            });
+
             popup.getElement().children[1].children[0].style.visibility = 'hidden';
+        }
+
+        function removePopup() {
+            if (popup) {
+                popup.remove();
+                popup = null;
+            }
         }
 
         function hidePoiMarker() {
@@ -138,31 +185,6 @@
                 map.removeLayer('selectedPoi');
                 map.removeSource('selectedPoi');
             }
-        }
-
-        function showPoiMarker(position) {
-            map.addSource('selectedPoi', {
-                'type': 'geojson',
-                'data': {
-                    'type': 'Feature',
-                    'geometry': {
-                        'type': 'Point',
-                        'coordinates': position
-                    }
-                }
-            });
-            map.addLayer({
-                'id': 'selectedPoi',
-                'source': 'selectedPoi',
-                'type': 'symbol',
-                'layout': {
-                    'icon-image': 'selectedPoi',
-                    'icon-anchor': 'bottom',
-                    'text-letter-spacing': 0.1,
-                    'icon-padding': 5,
-                    'icon-offset': [0, 5]
-                }
-            });
         }
     </script>
 </body>
