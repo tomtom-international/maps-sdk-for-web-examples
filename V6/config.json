@@ -8,13 +8,13 @@
         "extendedSearch": "<your extended search key>"
     },
     "cdn": {
-        "web-sdk-maps": "https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.1.2-public-preview.20/maps",
-        "web-sdk-services": "https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.1.2-public-preview.20/services",
+        "web-sdk-maps": "https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.1.2-public-preview.22/maps",
+        "web-sdk-services": "https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.1.2-public-preview.22/services",
         "web-sdk-plugin-searchbox": "https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/SearchBox/3.1.6-public-preview.1/",
         "web-sdk-plugin-pancontrols": "https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/PanControls/2.1.2-public-preview.2/",
         "web-sdk-plugin-zoomcontrols": "https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/ZoomControls/2.1.2-public-preview.2/",
-        "web-sdk-plugin-minimap": "https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/Minimap/2.1.2-public-preview.2/",
-        "web-sdk-plugin-drawingtools": "https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/DrawingTools/undefined/"
+        "web-sdk-plugin-drawingtools": "https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/DrawingTools/undefined/",
+        "web-sdk-plugin-minimap": "https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/Minimap/2.1.2-public-preview.2/"
     },
     "styles": {
         "custom.incidents.markers.style": "${publicUrl}/pages/examples/assets/style/custom_incidents_style.json",
