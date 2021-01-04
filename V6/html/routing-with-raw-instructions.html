@@ -97,7 +97,7 @@
             var instructionsContent = document.querySelector('.groups-content');
             var spinner = document.querySelector('.spinner');
 
-            map.addControl(new tt.FullscreenControl());
+            map.addControl(new tt.FullscreenControl({container: document.querySelector('body')}));
             map.addControl(new tt.NavigationControl());
             map.once('load', handleCalculateRouteRequest);
 

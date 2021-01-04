@@ -171,7 +171,7 @@
             var loadingHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
             var resultHint = new InfoHint('info', 'bottom-center', 2000).addTo(document.getElementById('map'));
 
-            map.addControl(new tt.FullscreenControl());
+            map.addControl(new tt.FullscreenControl({container: document.querySelector('body')}));
             map.addControl(new tt.NavigationControl());
             map.once('load', function() {
                 addListeners();

@@ -14,6 +14,9 @@
                 display: flex;
                 min-height: 52px;
             }
+            .map-view .tt-side-panel {
+                background: #ffffff;
+            }
             .map-view .tt-form-label .tt-input,
             .map-view .tt-input-icon > .tt-icon:last-child {
                 margin: 0;
@@ -28,24 +31,23 @@
             .map-view .select-label.-disable {
                 background: #bebebe;
             }
-            .icon-wrapper {
-                padding-left: 5px;
-            }
             .popup-wrapper {
                 font-family: Gotham;
-                margin: 10px 16px 16px;
-                width: 398px;
+                margin: 0 -16px;
+                width: 350px;
             }
             .popup-header-content {
                 padding-left: 3px;
             }
             .popup-header-wrapper {
-                display: flex;
-                margin-bottom: 20px;
+                box-shadow: 0 10px 10px 0 rgba(0, 0, 0, .05);
+                margin: -6px 6px 0;
+                padding: 0 0 20px 18px;
             }
             .status-wrapper {
+                color: #7a6e80;
                 display: flex;
-                margin-top: 15px;
+                margin-top: 11px;
             }
             .status-icon {
                 background: #4caf50;
@@ -55,7 +57,8 @@
                 width: 12px;
             }
             .popup-list-wrapper {
-                max-height: 200px;
+                margin: 0 6px -10px 10px;
+                max-height: 140px;
             }
             .tt-filters-container.-scrollable,
             .popup-list-wrapper.-scrollable {
@@ -63,22 +66,34 @@
             }
             .popup-list-item-wrapper {
                 display: flex;
-                padding: 25px 0;
+                margin-left: 10px;
+                padding: 10px;
             }
-            .icon-wrapper.-item,
+            .header-icon {
+                background-color: #000000;
+                background-position: center;
+                background-size: 24px;
+                border-radius: 50%;
+                height: 30px;
+                margin: 0 0 12px 15px;
+                width: 30px;
+            }
+            .icon-wrapper .tt-icon {
+                background-size: 16px;
+            }
+            .icon-wrapper.-item {
+                margin-right: -4px;
+            }
             .popup-list-item-content {
-                font-size: 14px;
-                padding-left: 10px;
-            }
-            .popup-list-item-name {
-                margin-bottom: 6px;
+                font-size: 12px;
+                margin-left: -5px;
             }
             .popup-list-item-status {
                 color: #ffffff;
                 display: inline;
-                font-family: Noway;
+                font-family: Gotham;
                 font-size: 12px;
-                padding: 3px 10px;
+                padding: 1px 7px;
             }
             .popup-list-item-status.-available {
                 background-color: #4caf50;
@@ -100,8 +115,40 @@
             .popup-list-item-status.-outOfService {
                 background-color: #bebebe;
             }
+            .popup-list-item-power-icon {
+                background-image: url("../assets/svg/ev/power.svg");
+                background-position: center;
+                background-repeat: no-repeat;
+                margin-left: 5px;
+                padding: 4px;
+            }
+            .popup-list-item-power {
+                color: #7a7e80;
+                padding-left: 4px;
+            }
+            .popup-list-item-electric-icon {
+                background-image: url("../assets/svg/ev/electric_current.svg");
+                background-position: center;
+                background-repeat: no-repeat;
+                margin-left: 4px;
+                padding: 6px;
+            }
             .tt-filters-container {
                 max-height: 155px;
+            }
+            .tt-search-result__address {
+                color: #505050 !important;
+                font-size: 14px !important;
+            }
+            .tt-search-result__address,
+            .tt-search-result__name {
+                max-width: 300px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+            .tt-search-result {
+                font-size: 16px !important;
             }
         </style>
     </head>
@@ -116,6 +163,14 @@
                             <span class='tt-icon -search'></span>
                         </div>
                     </label>
+                    <label class='tt-form-label js-slider'>
+                        Min. charging power (<span class='js-counter'>1</span> kW)
+                        <input class='tt-slider' name='minPower' type='range' min='1' max='120' value='0'>
+                    </label>
+                    <label class='tt-form-label js-slider'>
+                        Max. charging power (<span class='js-counter'>100</span> kW)
+                        <input class='tt-slider' name='maxPower' type='range' min='1' max='120' value='100'>
+                    </label>
                     <div class='tt-spacing-top-36' id='filters-select-container'>
                         <label class='tt-form-label'>
                             EV connector types
@@ -126,17 +181,6 @@
                         </div>
                     </div>
                 </header>
-                <div class='tt-tabs js-tabs'>
-                    <div class='tt-tabs__panel' id='results'>
-                        <div class='js-results' hidden='hidden'></div>
-                        <div class='js-results-loader' hidden='hidden'>
-                            <div class='loader-center'><span class='loader'></span></div>
-                        </div>
-                        <div class='tt-tabs__placeholder js-results-placeholder -small'>
-                            NO RESULTS
-                        </div>
-                    </div>
-                </div>
             </form>
             <div id='map' class='full-map'></div>
         </div>
@@ -147,7 +191,7 @@
         <script data-showable type='text/javascript' src='../assets/js/search/dom-helpers.js'></script>
         <script data-showable type='text/javascript' src='../assets/js/formatters.js'></script>
         <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
-        <script data-showable type='text/javascript' src='../assets/js/search/results-manager.js'></script>
+        <script data-showable type='text/javascript' src='../assets/js/search/slider.js'></script>
         <script data-showable type='text/javascript' src='../assets/js/tail-selector.js'></script>
         <script data-showable type='text/javascript' src='../assets/js/search-markers/search-marker.js'></script>
         <script data-showable type='text/javascript' src='../assets/js/search-markers/search-markers-manager.js'></script>
@@ -180,15 +224,24 @@
                     multiShowCount: false,
                     multiContainer: '.tt-filters-container'
                 });
+            
+            Array.from(document.querySelectorAll('.js-slider'))
+                .forEach(function(slider) {
+                    new Slider(slider);
+                });
+
+            var minPowerSlider = document.querySelector('[name=minPower]');
+            var maxPowerSlider = document.querySelector('[name=maxPower]');
+
+            minPowerSlider.addEventListener('change', handlePowerValueChange);
+            maxPowerSlider.addEventListener('change', handlePowerValueChange);
 
             var searchMarkersManager = new SearchMarkersManager(map);
-            var resultsManager = new ResultsManager();
 
             var formElement = document.querySelector('.js-form');
             var queryInputElement = document.querySelector('.tt-input.-query');
             var filtersContainerElement = document.querySelector('.tt-filters-container');
 
-            var resultListElement = DomHelpers.elementFactory('div', 'tt-results-list');
             var displayedConnectors = null;
             var popup = new tt.Popup();
 
@@ -261,7 +314,7 @@
                 return (
                     '<div class="popup-header-wrapper">' +
                         '<div class="icon-wrapper">' +
-                            '<div class="tt-icon -connector"></div>' +
+                            '<div class="header-icon tt-icon-ic_map_poi_073-white"></div>' +
                         '</div>' +
                         '<div class="popup-header-text">' +
                             connectorDataElement.outerHTML +
@@ -291,32 +344,15 @@
                         '<div class="popup-list-item-content">' +
                             '<div class="popup-list-item-name">' + connectorData.type + '</div>' +
                             '<div class="popup-list-item-status -' + connectorData.status + '">' + connectorData.status + '</div>' +
+                            '<span class="popup-list-item-power-icon"></span>' +
+                            '<span class="popup-list-item-power">' + connectorData.power + ' kW</span>' +
+                            '<span class="popup-list-item-electric-icon"></span>' +
+                            '<span class="popup-list-item-power">' + connectorData.electricType + ' -</span>' +
+                            '<span class="popup-list-item-power">' + connectorData.amperage + 'A -</span>' +
+                            '<span class="popup-list-item-power">' + connectorData.voltage + 'V</span>' +
                         '</div>' +
                     '</div>'
                 );
-            }
-
-            function createResultsListElement(results) {
-                resultListElement.innerHTML = '';
-
-                [].slice.call(results).forEach(function(result) {
-                    var resultItem = DomHelpers.createResultItem(),
-                        addressLines = SearchResultsParser.getAddressLines(result),
-                        searchResult = DomHelpers.createSearchResult(
-                            addressLines[0],
-                            addressLines[1],
-                            ''
-                        );
-                    var resultId = result.id;
-
-                    resultItem.appendChild(searchResult);
-                    resultItem.setAttribute('data-id', resultId);
-                    resultItem.addEventListener('click', handleResultItemClick.bind(null, resultId));
-
-                    resultListElement.appendChild(resultItem);
-                    bindMarkerElementEvent(searchMarkersManager.getMarkers()[resultId].marker, resultId);
-                });
-                return resultListElement;
             }
 
             function getAvailabilityData(connectorsList) {
@@ -363,14 +399,13 @@
             function getConnectorsData(results) {
                 searchMarkersManager.clear();
                 if (!results.length) {
-                    resultsManager.resultsNotFound();
+                    errorHint.setMessage('No results found.');
                     return;
                 }
                 searchMarkersManager.draw(results);
-
-                resultsManager.success();
-                resultsManager.append(createResultsListElement(results));
-
+                [].slice.call(results).forEach(function(result) {
+                    bindMarkerElementEvent(searchMarkersManager.getMarkers()[result.id].marker, result.id);
+                });
                 displayedConnectors = convertResultsListToObject(results);
 
                 if (results.length === 1) {
@@ -393,7 +428,6 @@
             }
 
             function handleResultItemClick(id) {
-                selectResultItem(id);
                 errorHint.hide();
 
                 if (!displayedConnectors[id].dataSources) {
@@ -412,10 +446,12 @@
 
                 tt.services.evChargingStationsAvailability({
                     key: '${api.key.extendedSearch}',
-                    chargingAvailability: displayedConnectors[id].dataSources.chargingAvailability.id
+                    chargingAvailability: displayedConnectors[id].dataSources.chargingAvailability.id,
+                    minPowerKW: minPowerSlider.value,
+                    maxPowerKW: maxPowerSlider.value
                 })
                     .then(function(response) {
-                        setPopupContent(id, response.connectors);
+                        setPopupContent(id, response.connectors, displayedConnectors);
                         searchMarkersManager.openPopup(id);
                     })
                     .catch(handleErrorResponse)
@@ -431,13 +467,24 @@
                     categorySet: '7309',
                     center: map.getCenter(),
                     connectorSet: connectorSelector.getSelectedOptions().join(','),
-                    language: 'en-GB'
+                    language: 'en-GB',
+                    minPowerKW: minPowerSlider.value,
+                    maxPowerKW: maxPowerSlider.value
                 });
+            }
+
+            function handlePowerValueChange() {
+                if (parseInt(minPowerSlider.value, 10) > parseInt(maxPowerSlider.value, 10)) {
+                    minPowerSlider.value = maxPowerSlider.value - 1;
+                    var sliderEvent = new Event('change');
+                    minPowerSlider.dispatchEvent(sliderEvent);
+                }
+
+                performSearchCall();
             }
 
             function performSearchCall() {
                 errorHint.hide();
-                resultsManager.loading();
                 loadingHint.setMessage('Loading...');
 
                 performFuzzySearchRequest()
@@ -450,27 +497,33 @@
                     });
             }
 
-            function selectResultItem(id) {
-                var selectedResultElement = document.querySelector('[data-id="' + id + '"]');
+            function createConnectorsList(connectors, connectorsParams) {
+                var voltage, amperage, electricType;
 
-                if (selectedResultElement.classList.contains('-selected')) {
-                    return;
+                function getConnectorParameters(connector, connectorParams) {
+                    if (connectorParams.connectorType === connector.type) {
+                        voltage = connector.voltageV;
+                        amperage = connector.currentA;
+                        electricType = connector.currentType;
+                    }
                 }
-                [].forEach.call(resultListElement.childNodes, function(node) {
-                    node.classList.remove('-selected');
-                });
-                selectedResultElement.classList.add('-selected');
-            }
 
-            function createConnectorsList(connectors) {
                 return connectors
                     .reduce(function(acc, ele) {
                         for (var status in ele.availability.current) {
                             var currentType = ele.availability.current[status];
 
+                            connectorsParams.forEach(getConnectorParameters);
+
                             while (currentType > 0) {
+                                var power = ele.availability.perPowerLevel[0].powerKW;
+
                                 acc.push({
                                     type: ele.type,
+                                    power: power,
+                                    electricType: electricType,
+                                    voltage: voltage,
+                                    amperage: amperage,
                                     status: status
                                 });
                                 currentType = currentType - 1;
@@ -480,11 +533,11 @@
                     }, []);
             }
 
-            function setPopupContent(id, connectors) {
+            function setPopupContent(id, connectors, connectorsParams) {
                 var popupContent;
 
                 if (connectors) {
-                    var connectorsList = createConnectorsList(connectors);
+                    var connectorsList = createConnectorsList(connectors, connectorsParams[id].chargingPark.connectors);
 
                     popupContent =
                         '<div class="popup-wrapper">' +

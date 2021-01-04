@@ -50,7 +50,7 @@
             zoom: 10,
             dragPan: !isMobileOrTablet()
         });
-        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.FullscreenControl({container: document.querySelector('body')}));
         map.addControl(new tt.NavigationControl());
         var button = document.getElementById('reset-button');
         var popup;

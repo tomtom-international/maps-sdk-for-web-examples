@@ -94,7 +94,7 @@
             dragPan: !window.isMobileOrTablet()
         });
 
-        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.FullscreenControl({container: document.querySelector('body')}));
         map.addControl(new tt.NavigationControl());
 
         var initialTime = new Date();

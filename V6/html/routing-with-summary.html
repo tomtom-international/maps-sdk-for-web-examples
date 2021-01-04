@@ -130,7 +130,7 @@
             var detailsWrapper = document.createElement('div');
             var summaryContent = document.createElement('div'), summaryHeader;
 
-            map.addControl(new tt.FullscreenControl());
+            map.addControl(new tt.FullscreenControl({container: document.querySelector('body')}));
             map.addControl(new tt.NavigationControl());
             map.on('load', function() {
                 searchBoxes.start = createSearchBox('start');

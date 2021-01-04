@@ -199,7 +199,7 @@
                 allowVignette: false
             };
 
-            map.addControl(new tt.FullscreenControl());
+            map.addControl(new tt.FullscreenControl({container: document.querySelector('body')}));
             map.addControl(new tt.NavigationControl());
 
             var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
