@@ -33,7 +33,7 @@ InfoHint.prototype.show = function() {
 };
 
 InfoHint.prototype.setErrorMessage = function(error) {
-    this.element.innerText = error.message || error.data.error.description;
+    this.element.innerText = error && (error.message || error.data.message) || 'There was an error.';
     this._createMessage();
 };
 

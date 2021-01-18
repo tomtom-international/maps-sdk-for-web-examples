@@ -137,8 +137,7 @@
         var supportingPoints = [];
         var resultItemSelected;
         var markerSelected;
-        var isExecuting = false;
-        var newPointwaiting = false;
+        var abortController;
 
         var resultList = document.querySelector('.tt-results-list');
         var noResultsDiv = document.querySelector('.tt-tabs__placeholder');
@@ -193,24 +192,16 @@
             }
         }
 
-        function repeatRequest() {
-            newPointwaiting = false;
-            isExecuting = false;
-            drawRoute();
-        }
-
         function drawRoute(fitBounds) {
             if (!route.start || !route.finish) {
                 return;
             }
 
-            // this logic helps us prevent requesting the route multiple times when
-            // several points are added sequentially
-            if (isExecuting) {
-                newPointwaiting = true;
-                return;
+            if (abortController) {
+                abortController.abort();
             }
-            isExecuting = true;
+
+            abortController = new AbortController();
 
             loadingHint.setMessage('Loading...');
 
@@ -225,52 +216,48 @@
                 locations: route.start.join() + ':' + route.finish.join()
             };
 
-            tt.services.calculateRoute(calculateRouteData)
-                .then(function(response) {
-                    // if points have been added while we are waiting for the response we request the route again
-                    if (newPointwaiting) {
-                        repeatRequest();
-                        return;
-                    }
+            (function() {
+                var signal = abortController.signal;
 
-                    clearMap();
+                tt.services.calculateRoute(calculateRouteData, { abortSignal: signal })
+                    .then(function(response) {
+                        clearMap();
 
-                    var geojson = response.toGeoJson();
-                    map.addLayer({
-                        'id': 'route',
-                        'type': 'line',
-                        'source': {
-                            'type': 'geojson',
-                            'data': geojson
-                        },
-                        'paint': {
-                            'line-color': '#4a90e2',
-                            'line-width': 6
+                        var geojson = response.toGeoJson();
+                        map.addLayer({
+                            'id': 'route',
+                            'type': 'line',
+                            'source': {
+                                'type': 'geojson',
+                                'data': geojson
+                            },
+                            'paint': {
+                                'line-color': '#4a90e2',
+                                'line-width': 6
+                            }
+                        }, findFirstBuildingLayerId());
+
+                        addRouteMarkers(geojson.features[0]);
+
+                        if (fitBounds) {
+                            var bounds = new tt.LngLatBounds();
+                            geojson.features[0].geometry.coordinates.forEach(function(point) {
+                                bounds.extend(tt.LngLat.convert(point));
+                            });
+                            map.fitBounds(bounds, { duration: 0, padding: 50 });
                         }
-                    }, findFirstBuildingLayerId());
 
-                    addRouteMarkers(geojson.features[0]);
+                        loadingHint.hide();
+                    }).catch(function() {
+                        if (signal.aborted === true) {
+                            return;
+                        }
 
-                    if (fitBounds) {
-                        var bounds = new tt.LngLatBounds();
-                        geojson.features[0].geometry.coordinates.forEach(function(point) {
-                            bounds.extend(tt.LngLat.convert(point));
-                        });
-                        map.fitBounds(bounds, { duration: 0, padding: 50 });
-                    }
-
-                    loadingHint.hide();
-                    isExecuting = false;
-                }).catch(function() {
-                    clearMap();
-                    isExecuting = false;
-                    if (newPointwaiting) {
-                        repeatRequest();
-                        return;
-                    }
-                    errorHint.setMessage('There was a problem calculating the route');
-                    loadingHint.hide();
-                });
+                        clearMap();
+                        errorHint.setMessage('There was a problem calculating the route');
+                        loadingHint.hide();
+                    });
+            })();
         }
 
         // handling searchbox input

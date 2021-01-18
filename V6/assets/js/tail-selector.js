@@ -109,6 +109,16 @@ var TailSelector = (function() {
         return this.tailElem;
     };
 
+    TailSelector.prototype.setValue = function(key) {
+        var options = this.tailElem.options;
+
+        for (var i = 0; i < options.length; i++) {
+            if (options[i].value === key) {
+                options.select(i, '#');
+            }
+        }
+    };
+
     TailSelector.prototype.getSelectedOptions = function() {
         var selectElem = this.selectorElem;
         var selectedOptions = [];

@@ -9,7 +9,7 @@ function getAddressLines(result) {
     } else if (type === 'POI') {
         return [poi.name, address.freeformAddress];
     } else if (type === 'Street') {
-        return [address.streetName, `${address.postalCode} ${address.municipality}`];
+        return [address.streetName, `${address.postalCode || ''} ${address.municipality || ''}`];
     } else if (type === 'Geography') {
         switch (entityType) {
         case 'Municipality':

@@ -134,6 +134,20 @@
                     removePopup();
                 }
             });
+
+            map.on('click', 'POI', function(event) {
+                map.getCanvas().style.cursor = '';
+
+                if (hoveredFeature) {
+                    map.setFeatureState(hoveredFeature, { hover: false });
+                }
+
+                hoveredFeature = null;
+
+                if (!event.originalEvent.relatedTarget) {
+                    removePopup();
+                }
+            });
         }
 
         function createPopup(result) {

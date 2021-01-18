@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Related POIs</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/icons-css/relatedPois.css'/>
+    <style>
+        .tt-side-panel__header {
+            box-shadow: 0 4px 16px rgba(0,0,0,.1);
+            z-index: 2;
+        }
+        .tt-filters-container.tail-select-container
+        .select-handle.disabled::after {
+            background-image: none;
+        }
+        .result-card {
+            background-color: #ffffff;
+            padding: 20px;
+        }
+        .poi-name {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 18px;
+        }
+        .poi-category,
+        .children-list-header {
+            color: #505050;
+            font-size: 12px;
+            margin-top: 12px;
+        }
+        .children-list-element {
+            cursor: pointer;
+            display: flex;
+            font-size: 14px;
+            margin: 9px 0 0 -8px;
+            padding: 4px;
+        }
+        .child-name {
+            padding-top: 4px;
+        }
+        .children-list-element:hover,
+        .parent-reference-item:hover {
+            background-color: rgba(0, 0, 0, .05);
+            cursor: pointer;
+        }
+        .separator {
+            border-top: 2px solid rgba(0, 0, 0, .05);
+            margin: 20px 0 15px -20px;
+        }
+        .tt-search-box-result-suggestion-icon {
+            background-position: center;
+            background-size: 22px;
+            border-radius: 50%;
+            padding: 15px;
+            width: 20px;
+        }
+        .parent-reference-item {
+            cursor: pointer;
+            display: flex;
+            font-size: 14px;
+            margin-left: -4px;
+            padding: 4px;
+        }
+        .poi-address,
+        .parent-reference-item {
+            color: #505050;
+            font-size: 14px;
+            margin-top: 7px;
+        }
+        .parent-reference-label {
+            padding-top: 4px;
+        }
+        .parent-reference-name {
+            color: #000000;
+            margin-left: -3px;
+            padding-top: 4px;
+        }
+        .result-icon {
+            background-position: center;
+            border-radius: 50%;
+            padding: 20px;
+            width: 35px;
+        }
+        .reference-icon {
+            background-size: 25px;
+            height: 20px;
+            margin: 0 4px -4px 0;
+            width: 22px;
+        }
+    </style>
+</head>
+<body>
+    <div class='map-view'>
+        <form class='tt-side-panel js-form'>
+            <header class='tt-side-panel__header'>
+                <label class='tt-form-label'>
+                    Relation type
+                    <select id='place-select' class='tt-select'></select>
+                </label>
+            </header>
+            <div class='tt-tabs js-tabs'>
+                <div class='tt-tabs__panel' id='results'>
+                    <div class='js-results' hidden='hidden'></div>
+                    <div class='js-results-loader' hidden='hidden'>
+                        <div class='loader-center'><span class='loader'></span></div>
+                    </div>
+                    <div class='result-card'></div>
+                </div>
+            </div>
+        </form>
+        <div id='map' class='full-map'></div>
+    </div>
+    <script type='text/javascript' src='../assets/js/tail.select.min.js'></script>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script src='/cdn.web-sdk-services/services-web.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/search-results-parser.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/search/dom-helpers.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/tail-selector.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script>
+        tt.setProductInfo('${productInfo.name}', '${productInfo.version}');
+
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            style: 'https://api.tomtom.com/style/1/style/${hostedStylesVersion}?map=basic_main&poi=poi_dynamic',
+            center: [-118.2421560, 34.0500226],
+            zoom: 19.7,
+            bearing: -99.54455,
+            dragPan: !isMobileOrTablet()
+        });
+
+        map.addControl(new tt.FullscreenControl({ container: document.querySelector('body') }));
+        map.addControl(new tt.NavigationControl());
+
+        var places = {};
+        var selectedPlace = null;
+        var isRequesting = false;
+
+        var initialFeature = {
+            'geometry': {
+                'coordinates': [-118.24213, 34.05007]
+            },
+            'layer': {
+                'paint': {
+                    'text-color': { r: 0.1294, g: 0.3215, b: 0.2588 }
+                }
+            },
+            'properties': {
+                'name': 'Weller Court',
+                'icon': 163,
+                'id': 'g6JpZK84NDAwNjkwMjEyMTMxNjKhY6NVU0GhdqdVbmlmaWVk'
+            }
+        };
+
+        var elements = {
+            errorHint: new InfoHint('error', 'bottom-center', 4000).addTo(document.getElementById('map')),
+            resultCard: document.querySelector('.result-card'),
+            placesSelector: null
+        };
+
+        var categoryMapping = {
+            '7373': 'shoppingCenter',
+            '7315012': 'chinese',
+            '9376005': 'cafe',
+            '9361053': 'hobby'
+        };
+
+        var markerIconMapping = {
+            '7373': 163,
+            '7315012': 231,
+            '9376005': 320,
+            '9361053': 162
+        };
+
+        var colorMapping = {
+            '7373': '#C272D0',
+            '7315012': '#F08A3F',
+            '9376005': '#F08A3F',
+            '9361053': '#C272D0'
+        };
+
+        map.on('load', function() {
+            renderPoi(initialFeature, false);
+            map.setLayoutProperty('POI', 'visibility', 'none');
+
+            //initial search call
+            tt.services.fuzzySearch({
+                key: '${api.key.search}',
+                query: 'Weller Court 123 Astronaut Ellison S. Onizuka Street, Los Angeles',
+                relatedPois: 'child'
+            }).then(function(response) {
+                var result = response.results[0];
+
+                places['Parent (Weller Court)'] = {
+                    id: result.id,
+                    name: result.poi.name,
+                    address: result.address.freeformAddress,
+                    categoryID: result.poi.categorySet[0].id,
+                    categoryName: result.poi.categories[0],
+                    feature: initialFeature
+                };
+
+                map.on('click', places['Parent (Weller Court)'].id, function() {
+                    renderPoi(places['Parent (Weller Court)'].feature, true);
+                    elements.placeSelector.setValue('Parent (Weller Court)');
+                });
+
+                getChildren(result);
+
+                renderPoi(initialFeature, true);
+            }).catch(function(error) {
+                elements.errorHint.setMessage(error.message);
+            });
+        });
+
+        function getChildren(result) {
+            var promises = [];
+
+            result.relatedPois.forEach(function(child) {
+                promises.push(tt.services.placeById({
+                    key: '${api.key.search}',
+                    entityId: child.id
+                }).then(function(result) {
+                    var child = result.results[0];
+
+                    places['Child (' + child.poi.name + ')'] = {
+                        id: child.id,
+                        position: child.position,
+                        name: child.poi.name,
+                        address: child.address.freeformAddress,
+                        categoryID: child.poi.categorySet[0].id,
+                        categoryName: child.poi.categories[0]
+                    };
+                }));
+            });
+
+            Promise.all(promises).then(function() {
+                elements.placeSelector = new TailSelector(Object.keys(places), '#place-select');
+
+                renderChildrenMarkers();
+
+                elements.placeSelector.getElement().on('change', function(event) {
+                    selectedPlace = event.value;
+                    renderPoi(places[selectedPlace].feature, true);
+
+                    if (selectedPlace === 'Parent (Weller Court)') {
+                        createParentResultElement(places[selectedPlace]);
+                    } else {
+                        createChildResultElement(places[selectedPlace]);
+                    }
+                });
+
+                createParentResultElement(places['Parent (Weller Court)']);
+            });
+        }
+
+        function renderChildrenMarkers() {
+            Object.keys(places).forEach(function(place) {
+                if (place.includes('Child')) {
+                    var position = places[place].position;
+
+                    places[place].feature = {
+                        'geometry': {
+                            'coordinates': [position.lng, position.lat]
+                        },
+                        'layer': {
+                            'paint': {
+                                'text-color': { r: 0.1294, g: 0.3215, b: 0.2588 }
+                            }
+                        },
+                        'properties': {
+                            'name': places[place].name,
+                            'icon': markerIconMapping[places[place].categoryID],
+                            'id': places[place].id
+                        }
+                    };
+
+                    renderPoi(places[place].feature, false);
+
+                    map.on('click', places[place].id, function() {
+                        renderPoi(places[place].feature, true);
+                        elements.placeSelector.setValue('Child (' + places[place].name + ')');
+                    });
+                }
+            });
+        }
+
+        function renderPoi(feature, isSelected) {
+            if (isSelected && map.getLayer('selected')) {
+                map.removeLayer('selected');
+                map.removeSource('selected');
+                map.flyTo({ center: feature.geometry.coordinates });
+            }
+
+            map.addLayer({
+                'id': isSelected ? 'selected' : feature.properties.id,
+                'source': {
+                    'type': 'geojson',
+                    'data': {
+                        'type': 'Feature',
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': feature.geometry.coordinates
+                        }
+                    }
+                },
+                'type': 'symbol',
+                'paint': {
+                    'text-color': 'rgba(0, 0, 0, 1)',
+                    'text-halo-color': 'rgba(255, 255, 255, 1)',
+                    'text-halo-width': 1
+                },
+                'layout': {
+                    'text-field': feature.properties.name || feature.properties.description,
+                    'icon-image': isSelected ? `${feature.properties.icon}_pin` : `${feature.properties.icon}`,
+                    'icon-anchor': 'bottom',
+                    'text-letter-spacing': 0.1,
+                    'icon-padding': 5,
+                    'icon-offset': [0, 0],
+                    'text-max-width': 10,
+                    'text-variable-anchor': ['top'],
+                    'text-font': ['Noto-Bold'],
+                    'text-size': 14,
+                    'text-radial-offset': 0.2
+                }
+            });
+
+            if (!isSelected) {
+                map.on('mouseenter', feature.properties.id, function() {
+                    map.getCanvas().style.cursor = 'pointer';
+                });
+
+                map.on('mouseleave', feature.properties.id, function() {
+                    map.getCanvas().style.cursor = '';
+                });
+            }
+        }
+
+        function displayPlaceInfo(result) {
+            elements.resultCard.innerHTML =
+                '<div class="tt-icon-' + categoryMapping[result.categoryID] + '_white result-icon" ' +
+                    'style="background-color:' + colorMapping[result.categoryID] + '"></div>' +
+                '<div class="poi-name">' + result.name + '</div>' +
+                '<div class="poi-category">' + result.categoryName + '</div>' +
+                '<div class="poi-address">' + result.address + '</div>';
+        }
+
+        function createParentResultElement(result) {
+            displayPlaceInfo(result);
+
+            elements.resultCard.innerHTML +=
+                '<div class="separator"></div>' +
+                '<div class="children-list-header">POIs inside</div>';
+
+            Object.keys(places).forEach(function(place) {
+                if (place.includes('Child')) {
+                    elements.resultCard.innerHTML +=
+                    '<div id="' + places[place].name + '"class="children-list-element">' +
+                        '<div class="tt-icon-' + categoryMapping[places[place].categoryID] + ' reference-icon"></div>' +
+                        '<div class="child-name">' + places[place].name + '</div>' +
+                    '<div>';
+                }
+            });
+
+            document.querySelectorAll('.children-list-element').forEach(function(element) {
+                element.addEventListener('click', function() {
+                    elements.placeSelector.setValue('Child (' + element.id + ')');
+                });
+            });
+        }
+
+        function createChildResultElement(result) {
+            displayPlaceInfo(result);
+
+            if (!isRequesting) {
+                isRequesting = true;
+
+                //search for parent
+                tt.services.fuzzySearch({
+                    query: result.name + ' ' + result.address,
+                    key: '${api.key.search}',
+                    relatedPois: 'parent'
+                }).then(function(response) {
+                    var parentID = response.results[0].relatedPois[0].id;
+
+                    tt.services.placeById({
+                        entityId: parentID,
+                        key: '${api.key.search}'
+                    }).then(function(response) {
+                        elements.resultCard.innerHTML += '<div class="parent-reference-item">' +
+                            '<div class="parent-reference-label">Located in: </div>' +
+                                '<div class="tt-icon-' + categoryMapping[places['Parent (Weller Court)'].categoryID] +
+                                ' reference-icon"></div>' +
+                                '<div class="parent-reference-name">' + response.results[0].poi.name + '</div>' +
+                            '</div>';
+
+                        document.querySelector('.parent-reference-item').addEventListener('click', function() {
+                            elements.placeSelector.setValue('Parent (Weller Court)');
+                        });
+
+                        isRequesting = false;
+                    });
+                }).catch(function(error) {
+                    elements.errorHint.setMessage(error.message);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
