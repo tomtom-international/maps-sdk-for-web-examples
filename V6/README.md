@@ -3,9 +3,9 @@
 ## Resources
 
 Please refer to:
-* [Functional examples](https://developer.tomtom.com/maps-sdk-web-js-v6/functional-examples) - live version of examples included in this repository.
-* [Documentation](https://developer.tomtom.com/maps-sdk-web-js-v6/documentation) - detailed SDK API reference.
-* [Downloads](https://developer.tomtom.com/maps-sdk-web-js-v6/downloads) - the latest version of the SDK.
+* [Functional examples](https://developer.tomtom.com/maps-sdk-web-js/functional-examples) - live version of examples included in this repository.
+* [Documentation](https://developer.tomtom.com/maps-sdk-web-js/documentation) - detailed SDK API reference.
+* [Downloads](https://developer.tomtom.com/maps-sdk-web-js/downloads) - the latest version of the SDK.
 
 ## Getting started
 
