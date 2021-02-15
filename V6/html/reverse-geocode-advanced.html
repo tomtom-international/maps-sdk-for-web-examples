@@ -8,6 +8,7 @@
     <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css' />
     <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css' />
     <link rel='stylesheet' type='text/css' href='../assets/ui-library/icons-css/poi.css'/>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/icons-css/heading.css'/>
 </head>
 <body>
     <style>
@@ -24,8 +25,10 @@
             padding-right: 15px;
         }
         .tt-buttons-group__button {
+            background-position: center;
+            background-size: 30px;
             margin-right: 9px;
-            padding: 7px;
+            padding: 20px;
         }
         details:not([open]) {
             cursor: pointer;
@@ -74,10 +77,10 @@
                             </label>
                             <div class='tt-form-label'>Heading
                                 <div id="heading-dir" class='tt-buttons-group'>
-                                    <img src='../assets/svg/west.svg' class='tt-buttons-group__button' data-id='w' direction='270'>
-                                    <img src='../assets/svg/north.svg' class='tt-buttons-group__button' data-id='n' direction='0'>
-                                    <img src='../assets/svg/south.svg' class='tt-buttons-group__button' data-id='s' direction='180'>
-                                    <img src='../assets/svg/east.svg' class='tt-buttons-group__button' data-id='e' direction='90'>
+                                    <div class='tt-buttons-group__button tt-icon-west' data-id='w' direction='270'></div>
+                                    <div class='tt-buttons-group__button tt-icon-north' data-id='n' direction='0'></div>
+                                    <div class='tt-buttons-group__button tt-icon-south' data-id='s' direction='180'></div>
+                                    <div class='tt-buttons-group__button tt-icon-east' data-id='e' direction='90'></div>
                                 </div>
                             </div>
                             <label class='tt-form-label'>Preferred use of the road data

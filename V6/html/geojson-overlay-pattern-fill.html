@@ -25,7 +25,7 @@
         map.addControl(new tt.NavigationControl());
 
         map.on('load', function() {
-            map.loadImage('../assets/images/pattern_arrows.png', function(error, image) {
+            map.loadImage('https://api.tomtom.com/maps-sdk-for-web/cdn/static/pattern_arrows.png', function(error, image) {
                 // Throw an error if something went wrong
                 if (error) {
                     throw new Error(error);

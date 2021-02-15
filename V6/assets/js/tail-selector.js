@@ -135,6 +135,22 @@ var TailSelector = (function() {
         return selectedOptions[0];
     };
 
+    TailSelector.prototype.getSelectedOptionsKeys = function() {
+        var selectElem = this.selectorElem;
+        var selectedOptions = [];
+        for (var i = 0; i < selectElem.length; i++) {
+            if (selectElem.options[i].getAttribute('selected') !== null) {
+                selectedOptions.push(selectElem.options[i].value);
+            }
+        }
+
+        if (this.options.multiple === true) {
+            return selectedOptions;
+        }
+
+        return selectedOptions[0];
+    };
+
     TailSelector.prototype.replaceOptions = function(newSelectOptions) {
         this.selectOptions = newSelectOptions;
 

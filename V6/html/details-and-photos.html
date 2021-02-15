@@ -10,7 +10,7 @@
     <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
     <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
     <link rel='stylesheet' type='text/css' href='../assets/ui-library/icons-css/poi.css'/>
-
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/icons-css/social-media.css'/>
     <style>
         .tt-side-panel__header {
             box-shadow: 0 4px 16px rgba(0,0,0,.1);
@@ -102,7 +102,10 @@
             margin-top: 5px;
         }
         .social-media-icon {
+            background-size: 14px;
+            float: left;
             height: 16px;
+            margin-top: 2px;
             padding-top: 3px;
             width: 16px;
         }
@@ -224,9 +227,9 @@
         };
 
         var iconsMappings = {
-            'facebook': '../assets/svg/facebook.svg',
-            'twitter': '../assets/svg/twitter.svg',
-            'instagram': '../assets/svg/instagram.svg'
+            'facebook': 'tt-icon-facebook',
+            'twitter': 'tt-icon-twitter',
+            'instagram': 'tt-icon-instagram'
         };
 
         function renderSearchResult(fuzzyResult, poiResult) {
@@ -316,7 +319,7 @@
                 var websiteElement = document.createElement('div');
                 websiteElement.classList.add('website-item');
 
-                websiteElement.innerHTML = '<img class="social-media-icon" src="' + iconsMappings[website.name] + '" />' +
+                websiteElement.innerHTML = '<div class="social-media-icon ' + iconsMappings[website.name] + '"></div>' +
                     '<a class="website-link" href="' + website.url + '" target="_blank">' + website.url + '</a>';
 
                 elements.websitesContainer.appendChild(websiteElement);

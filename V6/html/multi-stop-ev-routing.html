@@ -9,6 +9,7 @@
         <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
         <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
         <link rel='stylesheet' type='text/css' href='../assets/ui-library/icons-css/routing.css'/>
+        <link rel='stylesheet' type='text/css' href='../assets/ui-library/icons-css/ev-routing.css'/>
         <style>
             .tt-results-list {
                 background: #ffffff;
@@ -19,8 +20,7 @@
                 width: 30px;
             }
             .map-view .tt-icon.-finish {
-                height: 16px;
-                width: 16px;
+                background-size: 14px !important;
             }
             .map-view .icon-spacing {
                 float: left;
@@ -181,11 +181,9 @@
                 padding-top: 16px;
             }
             .start-icon {
-                background-image: url("../assets/svg/ev/cars/tesla_white.svg");
                 padding: 16px;
             }
             .finish-icon {
-                background-image: url("../assets/svg/finish_white.svg");
                 background-position: center;
                 background-repeat: no-repeat;
                 padding: 16px;
@@ -200,15 +198,16 @@
             }
             .icon-container__small {
                 background-color: #3f9cd9;
+                background-position: center;
+                background-size: 26px;
                 border-radius: 50%;
                 float: left;
                 margin-left: -16px;
-                padding: 2px;
+                padding: 15px;
                 width: 29px;
                 z-index: 2;
             }
             .-start {
-                background-image: url("../assets/svg/ev/cars/tesla_white.svg") !important;
                 background-size: 24px;
             }
             .ev-station-marker {
@@ -242,6 +241,11 @@
             .ev-marker-icon {
                 float: left;
                 margin-top: -7px;
+                padding: 16px;
+            }
+            .route-marker-icon {
+                background-position: center;
+                background-size: 25px;
             }
             .params-info {
                 background-color: rgba(0, 0, 0, .35);
@@ -260,15 +264,9 @@
                 margin-right: 8px;
                 width: 32px;
             }
-            .tesla-icon {
-                background-color: rgba(0, 0, 0, .35);
-                -webkit-mask-image: url("../assets/svg/ev/cars/tesla.svg");
-                mask-image: url("../assets/svg/ev/cars/tesla.svg");
-            }
+            .tesla-icon,
             .bmw-icon {
                 background-color: rgba(0, 0, 0, .35);
-                -webkit-mask-image: url("../assets/svg/ev/cars/bmwi3.svg");
-                mask-image: url("../assets/svg/ev/cars/bmwi3.svg");
             }
             .leg-data-row {
                 color: rgb(122, 126, 128);
@@ -276,11 +274,6 @@
                 font-size: 13px;
                 font-weight: bold;
                 margin: 7px 0 0 35px;
-            }
-            .leg-data-row > img {
-                float: left;
-                margin: auto;
-                margin-right: 4px;
             }
             .leg-data-row > div {
                 padding-top: 3px;
@@ -304,6 +297,11 @@
             .ev-hovered .ev-marker-tip-external .ev-marker-tip-internal {
                 border-top-color: #002c5e;
             }
+            .parameter-icon {
+                background-position: center;
+                float: left;
+                padding: 12px;
+            }
         </style>
     </head>
     <body>
@@ -319,7 +317,7 @@
                     </div>
                     <div class='car-option-container'>
                         <div class='car-option' id='tesla'>
-                            <div class='car-icon tesla-icon'></div>
+                            <div class='car-icon tt-icon-tesla_mask tesla-icon'></div>
                             <div>
                                 <div>Tesla Model S<span class='params-info' id='tesla-info'>i</span>
                                 </div>
@@ -327,7 +325,7 @@
                             </div>
                         </div>
                         <div class='car-option bmw' id='bmw'>
-                            <div class='car-icon bmw-icon'></div>
+                            <div class='car-icon tt-icon-bmwi3_mask bmw-icon'></div>
                             <div>
                                 <div>BMW i3<span class='params-info' id='bmw-info'>i</span>
                                 </div>
@@ -703,6 +701,8 @@
                 var notPickedOption = id === 'tesla' ? 'bmw' : 'tesla';
                 document.getElementById(id).classList.add('-chosen');
                 document.getElementById(notPickedOption).classList.remove('-chosen');
+                document.getElementById(notPickedOption).classList.remove('-chosen');
+
             }
 
             function carScenarioToggle(enable) {
@@ -734,9 +734,10 @@
             function createMarkerElement(type) {
                 var element = document.createElement('div');
                 var innerElement = document.createElement('div');
+                var iconName = type === 'start' ? '-tesla_white' : ' -white -finish';
 
                 element.className = 'route-marker';
-                innerElement.className = 'icon tt-icon -white -' + type;
+                innerElement.className = 'icon tt-icon' + iconName + ' route-marker-icon';
                 element.appendChild(innerElement);
 
                 return element;
@@ -766,7 +767,7 @@
                 evMarkerContainer.addEventListener('click', scrollToElement);
 
                 evMarkerContainer.innerHTML =
-                    '<img src="../assets/svg/ev/ev_station.svg" class="ev-marker-icon"/>' +
+                    '<div class="tt-icon-ev_station ev-marker-icon"></div>' +
                         Formatters.formatToShortDurationTimeString(chargingTime) +
                     '<div class="ev-marker-tip-external"><div class="ev-marker-tip-internal"></div></div>';
 
@@ -781,10 +782,10 @@
 
                 //creating first item
                 evListContainer.innerHTML += '<div class="route-stage" id="list-0">' +
-                    '<div class="icon-container" id="icon-0"><div class="start-icon"></div></div>' +
+                    '<div class="icon-container" id="icon-0"><div class="tt-icon-tesla_white start-icon"></div></div>' +
                     '<div class="route-addresses" id="address-0">Amsterdam, Netherlands</div>' +
-                    '<div class="leg-data-row"><img src="../assets/svg/ev/battery_levels/' +
-                        getCurrentBatteryLevelIcon(100) + '"/><div>100%</div></div>' +
+                    '<div class="leg-data-row"><div class="tt-icon-' +
+                        getCurrentBatteryLevelIcon(100) + ' parameter-icon"></div><div>100%</div></div>' +
                     '<div class="leg-time-distance">' +
                         Formatters.formatToShortDurationTimeString(legs[0].summary.travelTimeInSeconds) + ' - ' +
                         Formatters.formatAsMetricDistance(legs[0].summary.lengthInMeters) +
@@ -811,10 +812,10 @@
 
                 //creating last item
                 evListContainer.innerHTML += '<div class="route-stage last-stage" id="list-' + legs.length + '">' +
-                    '<div class="icon-container" id="icon-' + legs.length + '"/><div class="finish-icon"></div></div>' +
-                    '<div class="route-addresses" id="address-' + legs.length + '">Verona, Italy</div>' +
-                    '<div class="leg-data-row"><img src="../assets/svg/ev/battery_levels/' +
-                        getCurrentBatteryLevelIcon(batteryLeftPercentage) + '"/><div>' +
+                    '<div class="icon-container" id="icon-' + legs.length + '"/><div class="icon tt-icon -white -finish finish-icon">' +
+                    '</div></div><div class="route-addresses" id="address-' + legs.length + '">Verona, Italy</div>' +
+                    '<div class="leg-data-row"><div class="tt-icon-' +
+                        getCurrentBatteryLevelIcon(batteryLeftPercentage) + ' parameter-icon"></div><div>' +
                         batteryLeftPercentage +
                     '%</div></div></div>';
 
@@ -828,16 +829,16 @@
                 routeStage.setAttribute('id', 'list-' + id);
 
                 routeStage.innerHTML =
-                    '<img class="icon-container__small" src="../assets/svg/ev/ev_station.svg" id="icon-' + id + '"/>' +
+                    '<div class="tt-icon-ev_station icon-container__small" id="icon-' + id + '"></div>' +
                     '<div class="route-addresses" id="address-' + id + '"></div>' +
                     '<div class="leg-charging-level leg-data-row">' +
-                        '<img src="../assets/svg/ev/battery_charging.svg"/><div>' +
+                        '<div class="tt-icon-battery_charging parameter-icon"></div><div>' +
                         getChargingLevels(
                             currentSegment.summary.remainingChargeAtArrivalInkWh,
                             chargeInfo.targetChargeInkWh
                         ) + '</div></div>' +
                     '<div class="leg-charging-time leg-data-row">' +
-                        '<img src="../assets/svg/ev/charging_time.svg"/><div>' +
+                        '<div class="tt-icon-charging_time parameter-icon"/></div><div>' +
                         Formatters.formatToShortDurationTimeString(chargeInfo.chargingTimeInSeconds) +
                     '</div></div>' +
                     '<div class="leg-time-distance">' +
@@ -866,16 +867,16 @@
 
             function getCurrentBatteryLevelIcon(batteryLevel) {
                 if (batteryLevel >= 85) {
-                    return 'battery_85_100.svg';
+                    return 'battery_85_100';
                 } else if (batteryLevel >= 60) {
-                    return 'battery_60_85.svg';
+                    return 'battery_60_85';
                 } else if (batteryLevel >= 40) {
-                    return 'battery_40_60.svg';
+                    return 'battery_40_60';
                 } else if (batteryLevel >= 20) {
-                    return 'battery_20_40.svg';
+                    return 'battery_20_40';
                 }
 
-                return 'battery_0_20.svg';
+                return 'battery_0_20';
             }
 
             function getAddressesWithReverseGeocode(evPoints) {

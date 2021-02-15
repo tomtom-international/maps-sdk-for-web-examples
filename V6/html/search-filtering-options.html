@@ -74,6 +74,7 @@
     <script data-showable type='text/javascript' src='../assets/js/search-markers/search-marker.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/search-markers/search-markers-manager.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
 
     <script>
         tt.setProductInfo('${productInfo.name}', '${productInfo.version}');
@@ -95,8 +96,14 @@
                 center: [-0.130033, 51.510363],
                 query: 'EV stations',
                 type: 'connectorSet',
-                filters: ['Tesla', 'StandardHouseholdCountrySpecific', 'IEC62196Type1',
-                    'IEC62196Type2CableAttached', 'IEC62196Type2Outlet', 'IEC62196Type2CCS']
+                filters: {
+                    'Tesla': 'Tesla', 
+                    'StandardHouseholdCountrySpecific': 'StandardHouseholdCountrySpecific',
+                    'IEC62196Type1': 'IEC62196Type1',
+                    'IEC62196Type2CableAttached': 'IEC62196Type2CableAttached',
+                    'IEC62196Type2Outlet': 'IEC62196Type2Outlet',
+                    'IEC62196Type2CCS': 'IEC62196Type2CCS'
+                }
             },
             'Gas stations': {
                 locationName: 'London',
@@ -104,8 +111,18 @@
                 center: [-0.130033, 51.510363],
                 query: 'Gas station',
                 type: 'fuelSet',
-                filters: ['Petrol', 'LPG', 'Diesel', 'Biodiesel', 'DieselForCommercialVehicles',
-                    'E85', 'LNG', 'CNG', 'Hydrogen', 'AdBlue']
+                filters: {
+                    'Petrol': 'Petrol',
+                    'LPG': 'LPG',
+                    'Diesel': 'Diesel',
+                    'Biodiesel': 'Biodiesel',
+                    'DieselForCommercialVehicles': 'DieselForCommercialVehicles',
+                    'E85': 'E85',
+                    'LNG': 'LNG',
+                    'CNG': 'CNG',
+                    'Hydrogen': 'Hydrogen',
+                    'AdBlue': 'AdBlue'
+                }
             },
             'Brand name (automotive dealers)': {
                 locationName: 'London',
@@ -113,7 +130,13 @@
                 center: [-0.130033, 51.510363],
                 query: 'car dealer',
                 type: 'brandSet',
-                filters: ['Toyota', 'BMW', 'Peugeot', 'Renault', 'Honda']
+                filters: {
+                    'Toyota': 'Toyota',
+                    'BMW': 'BMW',
+                    'Peugeot': 'Peugeot',
+                    'Renault': 'Renault',
+                    'Honda': 'Honda'
+                }
             },
             'Category (places to visit)': {
                 locationName: 'London',
@@ -121,14 +144,37 @@
                 center: [-0.130033, 51.510363],
                 query: 'London',
                 type: 'categorySet',
-                filters: [7374, 7317, 7342, 9902 ],
-                filtersName: ['Stadium', 'Museum', 'Movie Theather', 'Amusement Park']
+                filters: {
+                    '7374': 'Stadium',
+                    '7317': 'Museum',
+                    '7342': 'Movie Theather',
+                    '9902': 'Amusement Park'
+                }
+            },
+            'Entity Type (Geography Entity Types)': {
+                locationName: 'United Kingdom and Iceland',
+                locationQuery: 'Geography entities',
+                query: 'Island',
+                type: 'entityTypeSet',
+                countrySet: 'GB,IS',
+                minFuzzyLevel: 3,
+                maxFuzzyLevel: 4,
+                filters: {
+                    'CountrySubdivision': 'CountrySubdivision',
+                    'Country': 'Country',
+                    'CountrySecondarySubdivision': 'CountrySecondarySubdivision',
+                    'Municipality': 'Municipality',
+                    'MunicipalitySubdivision': 'MunicipalitySubdivision',
+                    'Neighbourhood': 'Neighbourhood'
+                }
             }
         };
         var state = {
             selectedScenario: 'Connector type (EV stations)',
             results: undefined
         };
+
+        var errorHint = new InfoHint('error', 'top-center', 5000).addTo(document.getElementById('map'));
 
         var searchMarkersManager = new SearchMarkersManager(map);
         var resultsManager = new ResultsManager();
@@ -178,14 +224,22 @@
             return [btmRight, topLeft];
         }
 
-        function fitToViewport(markerData) {
-            var bounds = new tt.LngLatBounds();
+        function fitViewportToMarkers(markerData) {
+            if (markerData.length === 1) {
+                var marker = markerData[0];
+                map.flyTo({
+                    center: [marker.position.lng, marker.position.lat],
+                    zoom: 5
+                });
+            } else {
+                var bounds = new tt.LngLatBounds();
 
-            markerData.forEach(function(marker) {
-                bounds.extend(getBounds(marker));
-            });
+                markerData.forEach(function(marker) {
+                    bounds.extend(getBounds(marker));
+                });
 
-            map.fitBounds(bounds, { padding: 50, linear: true });
+                map.fitBounds(bounds, { padding: 50, linear: true });
+            }
         }
 
         function renderSearchResults(results) {
@@ -234,38 +288,37 @@
 
                 resultsManager.append(resultList);
                 state.results = newResults;
-                fitToViewport(results);
+                
+                fitViewportToMarkers(results);
             }
         }
 
         function performSearch() {
             resultsManager.loading();
             var scenario = scenarios[state.selectedScenario];
-            var parameters = ['connectorSet', 'brandSet', 'fuelSet'];
             var searchOptions = {
                 key: '${api.key.search}',
                 query: scenario.query,
-                center: scenario.center,
                 limit: 20,
                 language: 'en-GB'
             };
-
-            if (scenario.type === 'categorySet') {
-                var categoryIds = [];
-                filtersSelector.getSelectedOptions().forEach(function(filterName) {
-                    categoryIds.push(scenario.filters[scenario.filtersName.indexOf(filterName)]);
+            ['center', 'countrySet', 'minFuzzyLevel', 'maxFuzzyLevel']
+                .forEach(function(additionalParam) {
+                    if (scenario.hasOwnProperty(additionalParam)) {
+                        searchOptions[additionalParam] = scenario[additionalParam];
+                    }
                 });
 
-                searchOptions.categorySet = categoryIds.join(',');
-            }
+            searchOptions[scenario.type] = filtersSelector.getSelectedOptionsKeys().join(',');
 
-            if (parameters.indexOf(scenario.type) !== -1) {
-                searchOptions[scenario.type] = filtersSelector.getSelectedOptions().join(',');
-            }
-
-            tt.services.fuzzySearch(searchOptions).then(function(response) {
-                renderSearchResults(response.results);
-            });
+            tt.services.fuzzySearch(searchOptions)
+                .then(function(response) {
+                    renderSearchResults(response.results);
+                })
+                .catch(function(reason) {
+                    resultsManager.resultsNotFound();
+                    errorHint.setMessage(reason);
+                });
         }
 
         function disableFilters(flag) {
@@ -298,16 +351,7 @@
         scenarioSelector.getElement().on('change', function(e) {
             state.selectedScenario = e.value;
             var scenario = scenarios[state.selectedScenario];
-            var filters;
-
-            if (scenario.type === 'categorySet') {
-                filters = scenario.filtersName;
-            } else {
-                filters = scenario.filters;
-            }
-
-            filtersSelector.replaceOptions(filters);
-
+            filtersSelector.replaceOptions(scenario.filters);
             init();
         });
 

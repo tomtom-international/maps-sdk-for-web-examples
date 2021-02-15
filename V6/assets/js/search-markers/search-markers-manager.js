@@ -89,6 +89,11 @@ SearchMarkersManager.prototype.draw = function(poiList) {
             entryPoints: poi.entryPoints
         };
 
+        if (poiOpts.name === undefined && poi.type === 'Geography') {
+            poiOpts.name = poi.address.freeformAddress;
+            poiOpts.address = poi.address.country;
+        }
+
         var marker = new SearchMarker(poiOpts, this._options);
         marker.onClick(function(clickedMarker) {
             if (this._lastClickedMarker && this._lastClickedMarker !== clickedMarker) {

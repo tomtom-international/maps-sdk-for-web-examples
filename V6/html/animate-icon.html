@@ -72,7 +72,6 @@
         };
 
         FlightRoute.prototype.mapOnLoad = function() {
-            console.log(map.getBounds());
             var lineDistance = turf.lineDistance(this.route.features[0], { units: this.units });
             var arc = [];
 
