@@ -162,11 +162,11 @@ body {
 .tt-popup .mapboxgl-popup-close-button:focus,
     .tt-popup .tt-button:focus {
         border: 1px solid #94b106;
-        outline: none;
     }
 
 .tt-popup .mapboxgl-popup-close-button::-moz-focus-inner {
         border: 0;
+        outline: none;
     }
 
 .tt-popup .mapboxgl-popup-tip {
@@ -280,6 +280,11 @@ body {
         margin-top: 8px;
     }
 
+.tt-pop-up-container {
+    align-items: flex-start;
+    display: flex;
+}
+
 .tt-pop-up-container .pop-up-icon > div {
         background-size: contain;
         height: 30px;
@@ -288,6 +293,7 @@ body {
 
 .tt-pop-up-container .pop-up-content {
         align-items: baseline;
+        display: flex;
         font-family: Verdana, sans-serif;
         font-size: 13px;
         padding: 6px 6px 1px;

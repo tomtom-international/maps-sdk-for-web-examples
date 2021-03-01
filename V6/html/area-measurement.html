@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Area measurement</title>
+    <meta name='viewport' content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no' />
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css' />
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-plugin-drawingtools/DrawingTools.css'/>
+
+    <style>
+        .tt-info-hint.-info {
+            background-color: #000000 !important;
+            font-size: 1.2rem;
+            padding: 16px 20px;
+        }
+        .tt-info-hint.-info::before {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id='map' class='full-map'></div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script src='/cdn.web-sdk-plugin-drawingtools/DrawingTools-web.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/Turf.js/5.1.5/turf.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
+    
+    <script>
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            center: [19.45773, 51.76217],
+            zoom: 12
+        });
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        var ttDrawingTools = new tt.plugins.DrawingTools({
+            ttMapsSdk: tt,
+            controls: {
+                line: false,
+                polygon: false
+            }
+        });
+        map.addControl(ttDrawingTools, 'top-left');
+
+        var infoHint = new InfoHint('info', 'bottom-center').addTo(document.getElementById('map'));
+
+        var shapes = [];
+
+        map.on('load', function() {
+            ttDrawingTools.on('tomtom.drawingtools.created', function(event) {
+                addFeatures(event.data.features);
+            });
+
+            ttDrawingTools.on('tomtom.drawingtools.deleted', function(event) {
+                deleteFeatures(event.data.features);
+            });
+
+            ttDrawingTools.on('tomtom.drawingtools.changed', function(event) {
+                updateFeatures(event.data.features);
+            });
+
+            ttDrawingTools.on('tomtom.drawingtools.dragged', function(event) {
+                // area also needs to be updated because it changes while dragging
+                // the reason is the way how spherical earth is reproduced on flat surface
+                updateFeatures(event.data.features);
+            });
+        });
+
+        // features add, delete and update handlers
+
+        function addFeatures(features) {
+            features.forEach(function(feature) {
+                shapes.push(new Shape(
+                    feature.id,
+                    feature.geometry.coordinates[0]
+                ));
+            });
+            updateAndShowTotalArea();
+        }
+
+        function deleteFeatures(features) {
+            features.forEach(function(feature) {
+                shapes = shapes.filter(function(shape) {
+                    if (feature.id === shape.id) {
+                        shape.popup.remove();
+                        return false;
+                    } else {
+                        return true;
+                    }
+                });
+            });
+            updateAndShowTotalArea();
+        }
+
+        function updateFeatures(features) {
+            features.forEach(function(feature) {
+                for (var i = 0; i < shapes.length; i++) {
+                    if (shapes[i].id === feature.id) {
+                        shapes[i].update(feature.geometry.coordinates[0]);
+                        break;
+                    }
+                }
+            });
+            updateAndShowTotalArea();
+        }
+
+        function Shape(id, coordinates) {
+            this.id = id;
+            this.area = calcAreaFromCoordinates(coordinates);
+            this.popup = new tt.Popup({
+                closeButton: false,
+                closeOnClick: false,
+                className: 'tt-popup -black',
+                anchor: 'top'
+            })
+                .setLngLat(calculatePopupPosition(coordinates))
+                .setHTML('Area: ' + areaToString(this.area))
+                .addTo(map);
+
+            this.update = function(coordinates) {
+                this.area = calcAreaFromCoordinates(coordinates);
+                this.popup.setLngLat(calculatePopupPosition(coordinates));
+                this.popup.setHTML('Area: ' + areaToString(this.area));
+            };
+        }
+
+        function calculatePopupPosition(coordinates) {
+            var features = turf.points(coordinates);
+            var center = turf.center(features);
+            var bottom = coordinates.reduce(function(acc, current) {
+                if (acc[1] < current[1]) {
+                    return acc;
+                } else {
+                    return current;
+                }
+            });
+            return [center.geometry.coordinates[0], bottom[1]];
+        }
+
+        function updateAndShowTotalArea() {
+            var total = 0;
+            shapes.forEach(function(shape) {
+                total += shape.area;
+            });
+            if (total === 0) {
+                infoHint.hide();
+            } else {
+                infoHint.setMessage('Total area of all shapes equals ' + areaToString(total) + '.');
+            }
+        }
+
+        function calcAreaFromCoordinates(coordinates) {
+            var polygon = turf.polygon([coordinates]);
+            return turf.area(polygon);
+        }
+
+        function areaToString(area) {
+            if (area < 500000) {
+                return area.toFixed(0) + ' sq meters';
+            } else {
+                return (area / 1000000).toFixed(2) + ' sq km';
+            }
+        }
+    </script>
+</body>
+
+</html>
