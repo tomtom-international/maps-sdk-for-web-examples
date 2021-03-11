@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html class='use-all-space'>
+<head>
+    <meta http-equiv='X-UA-Compatible' content='IE=Edge' />
+    <meta charset='UTF-8'>
+    <title>Maps SDK for Web - Hover effect</title>
+    <meta name='viewport'
+          content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
+    <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+    <link rel='stylesheet' type='text/css' href='../assets/ui-library/icons-css/traffic-incidents.css'/>
+    
+</head>
+<body>
+    <style>
+        .tt-traffic-icon {
+            float: left;
+            margin-bottom: 5px;
+            margin-right: 5px;
+        }
+        h4 {
+            clear: both;
+        }
+    </style>
+    <div id='map' class='map'></div>
+    <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/Turf.js/5.1.5/turf.min.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
+    <script>
+        var map = tt.map({
+            key: '${api.key.maps}',
+            container: 'map',
+            stylesVisibility: {
+                trafficIncidents: true
+            },
+            center: [-0.12634, 51.50276],
+            zoom: 14,
+            dragPan: !isMobileOrTablet(),
+            // This transformRequest property is used to add the `tags` parameter to the Vector Incident Tiles urls.
+            // The `id` is an on-demand tag which in this example is needed to compare features.
+            // https://developer.tomtom.com/traffic-api/traffic-api-documentation-traffic-incidents/vector-incident-tiles
+            transformRequest: function(url, resourceType) {
+                if (resourceType === 'Tile' && url.indexOf('incidents') > -1) {
+                    return {
+                        url: url + '&tags=[id,icon_category,description,delay,road_type,left_hand_traffic,' +
+                             'magnitude,traffic_road_coverage,clustered,probability_of_occurrence,' +
+                             'number_of_reports,last_report_time,end_date]'
+                    };
+                }
+            }
+        });
+
+        map.addControl(new tt.FullscreenControl());
+        map.addControl(new tt.NavigationControl());
+
+        var currentIncidentFeature;
+        var popup;
+
+        map.once('load', function() {
+            map.getCanvas().style.cursor = 'pointer';
+
+            map.on('mousemove', function(event) {
+                var bBoxSize = 10;
+                var trafficFeatures = map.queryRenderedFeatures([
+                    [event.point.x - bBoxSize, event.point.y - bBoxSize],
+                    [event.point.x + bBoxSize, event.point.y + bBoxSize]
+                ], {
+                    layers: getTrafficIncidentLayers()
+                });
+
+                var newTrafficIncident = trafficFeatures.length === 0 ? null : trafficFeatures[0];
+                var hoveredIncidentChanged =
+                    currentIncidentFeature && !newTrafficIncident ||
+                    !currentIncidentFeature && newTrafficIncident ||
+                    !compareIncidentFeatures(currentIncidentFeature, trafficFeatures[0]);
+
+                if (hoveredIncidentChanged) {
+                    removeHoverSigns();
+                    currentIncidentFeature = null;
+
+                    if (newTrafficIncident) {
+                        currentIncidentFeature = newTrafficIncident;
+                        showHoverSigns(newTrafficIncident, event.lngLat);
+                    }
+                }
+            });
+        });
+
+        function getTrafficIncidentLayers() {
+            return map.getStyle().layers
+                .filter(function(layer) {
+                    return layer.source === 'vectorTilesIncidents';
+                })
+                .map(function(layer) {
+                    return layer.id;
+                });
+        }
+
+        function showHoverSigns(newTrafficIncident, mousePointer) {
+            if (newTrafficIncident.layer['source-layer'] === 'Traffic incident flow') {
+                showPopup(mousePointer, preparePopupMessage(newTrafficIncident));
+                highlightIncident(newTrafficIncident.geometry.coordinates);
+            } else {
+                showPopup(
+                    getNearestMarker([mousePointer.lng, mousePointer.lat], newTrafficIncident.geometry.coordinates),
+                    preparePopupMessage(newTrafficIncident),
+                    { markerOffset: true }
+                );
+            }
+        }
+
+        function removeHoverSigns() {
+            removePopup();
+            removeHighlight();
+        }
+
+        function showPopup(coords, info, options) {
+            var offset = 20;
+            if (options && options.markerOffset) {
+                offset = {
+                    top: [0, 0],
+                    bottom: [0, -40]
+                };
+            }
+            popup = new tt.Popup({
+                closeButton: false,
+                offset: offset
+            })
+                .setLngLat(coords)
+                .setHTML(info)
+                .addTo(map);
+        }
+
+        function removePopup() {
+            if (popup) {
+                popup.remove();
+            }
+        }
+
+        function preparePopupMessage(feature) {
+            var incidentSeverity = {
+                3: 'major',
+                2: 'moderate',
+                1: 'minor'
+            };
+            var roadCoverage = {
+                'full': 'Full',
+                'one_side': 'One Side'
+            };
+            var iconsMapping = {
+                0: 'danger',
+                1: 'accident',
+                2: 'fog',
+                3: 'danger',
+                4: 'rain',
+                5: 'ice',
+                6: 'incident',
+                7: 'laneclosed',
+                8: 'roadclosed',
+                9: 'roadworks',
+                10: 'wind',
+                11: 'flooding',
+                12: 'detour',
+                13: '',
+                14: 'brokendownvehicle'
+            };
+            var probabilityOfOccurrence = feature.properties.probability_of_occurrence ?
+                feature.properties.probability_of_occurrence.split('_').join(' ') :
+                undefined;
+
+            var hasDelay = feature.properties.delay !== 0;
+            var knownMagnitude = feature.properties.magnitude &&
+                feature.properties.magnitude !== 0 &&
+                feature.properties.magnitude !== 4;
+
+            return `
+            <div class="popup-icons">
+            ${Object.keys(feature.properties)
+                .filter(function(key) {
+                    return key.indexOf('icon_category_') === 0;
+                })
+                .reduce(function(accumulator, value) {
+                    return accumulator + `
+                        <div class="tt-traffic-icon">
+                            <div class="tt-icon-circle-${incidentSeverity[feature.properties.magnitude]} -small">
+                                <div class="tt-icon-${iconsMapping[feature.properties[value]]}"></div>
+                            </div>
+                        </div>
+                    `;
+                }, '')}
+            </div>
+            <h4>${feature.properties.road_type} incident</h4>
+            ${Object.keys(feature.properties)
+                .filter(function(key) {
+                    return key.indexOf('description_') === 0;
+                })
+                .reduce(function(accumulator, value) {
+                    return accumulator + `
+                        <b>Description</b> ${feature.properties[value]}<br>
+                    `;
+                }, '')}
+            <b>Road type</b> ${feature.properties.road_type}<br>
+            <b>Traffic Road Coverage</b> ${roadCoverage[feature.properties.traffic_road_coverage]}<br>
+            ${knownMagnitude ? `<b>Magnitude</b> ${incidentSeverity[feature.properties.magnitude]}<br>` : ''}
+            ${hasDelay ?
+                `<b>Delay</b> ${Math.floor(feature.properties.delay / 60)} m ${feature.properties.delay % 60} s<br>` :
+                ''}
+            ${feature.properties.end_date ?
+                `<b>End date</b> ${(new Date(feature.properties.end_date)).toLocaleString()}<br>` :
+                ''}
+            ${feature.properties.last_report_time ?
+                `<b>Last report time</b> ${(new Date(feature.properties.last_report_time)).toLocaleString()}<br>` :
+                ''}
+            ${probabilityOfOccurrence ? `<b>Probability of occurrence</b> ${probabilityOfOccurrence}` : ''}
+            `;
+        }
+
+        function getNearestMarker(basePoint, testPoints) {
+            if (typeof testPoints[0] === 'number') {
+                return testPoints;
+            } else {
+                var closestDist = null;
+                var closestPoint = null;
+                var from = turf.point(basePoint);
+                testPoints.forEach(function(point) {
+                    var to = turf.point(point);
+                    var dist = turf.distance(from, to);
+                    if (closestDist === null || closestDist > dist) {
+                        closestDist = dist;
+                        closestPoint = point;
+                    }
+                });
+                return closestPoint;
+            }
+        }
+
+        var layerAndSourceID = 'hoverEffect';
+
+        function highlightIncident(coordinates) {
+            var lines;
+            if (typeof coordinates[0][0] === 'number') {
+                lines = [coordinates];
+            } else {
+                lines = coordinates;
+            }
+            map.addSource(layerAndSourceID, {
+                type: 'geojson',
+                data: {
+                    type: 'FeatureCollection',
+                    features: lines.map(function(line) {
+                        return {
+                            type: 'Feature',
+                            geometry: {
+                                type: 'LineString',
+                                coordinates: line
+                            }
+                        };
+                    })
+                }
+            });
+            map.addLayer({
+                'id': layerAndSourceID,
+                'type': 'line',
+                'source': layerAndSourceID,
+                'layout': {},
+                'paint': {
+                    'line-color': '#FF0000',
+                    'line-width': 10,
+                    'line-opacity': 0.5
+                }
+            });
+        }
+
+        function removeHighlight() {
+            if (map.getLayer(layerAndSourceID) !== undefined) {
+                map.removeLayer(layerAndSourceID);
+                map.removeSource(layerAndSourceID);
+            }
+        }
+
+        function compareIncidentFeatures(featureA, featureB) {
+            if (!featureA || !featureB) {
+                return false;
+            } else {
+                // before using id you need to request it using transformRequest
+                return featureA.properties.id === featureB.properties.id;
+            }
+        }
+
+    </script>
+</body>
+</html>
