@@ -191,7 +191,6 @@
         }).catch(function(error) {
             clearPopup();
             if (error.message) {
-                console.log(error);
                 errorHint.setMessage(error.message);
             }
         });

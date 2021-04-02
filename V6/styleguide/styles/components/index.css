@@ -1431,6 +1431,7 @@ body {
             font-size: 13px;
             font-weight: normal;
             height: 32px;
+            z-index: 9;
             transition: border-color .2s ease;
         }
 

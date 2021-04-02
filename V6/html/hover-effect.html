@@ -206,10 +206,10 @@
                 `<b>Delay</b> ${Math.floor(feature.properties.delay / 60)} m ${feature.properties.delay % 60} s<br>` :
                 ''}
             ${feature.properties.end_date ?
-                `<b>End date</b> ${(new Date(feature.properties.end_date)).toLocaleString()}<br>` :
+                `<b>End date</b> ${new Date(feature.properties.end_date).toLocaleString()}<br>` :
                 ''}
             ${feature.properties.last_report_time ?
-                `<b>Last report time</b> ${(new Date(feature.properties.last_report_time)).toLocaleString()}<br>` :
+                `<b>Last report time</b> ${new Date(feature.properties.last_report_time).toLocaleString()}<br>` :
                 ''}
             ${probabilityOfOccurrence ? `<b>Probability of occurrence</b> ${probabilityOfOccurrence}` : ''}
             `;
