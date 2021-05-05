@@ -8,54 +8,108 @@
           content='width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no'/>
     <link rel='stylesheet' type='text/css' href='/cdn.web-sdk-maps/maps.css'>
     <link rel='stylesheet' type='text/css' href='../assets/ui-library/index.css'/>
+    <style>
+        .flex {
+            display: flex;
+        }
+        .map-container {
+            height: 100vh;
+            position: relative;
+            width: 50%;
+        }
+    </style>
 </head>
 <body>
-    <div id='map' class='map'>
-        <div class='tt-overlay-panel -left-top'>
-            <div class='tt-form-label'>
-                Show buildings
-                <div id='showBuildings' class='tt-buttons-group'>
-                    <button class='tt-buttons-group__button -active' data-id='on' value='On'>On</button>
-                    <button class='tt-buttons-group__button' data-id='off' value='Off'>Off</button>
+    <div class='flex'>
+        <div id='firstMap' class='map-container'>
+            <div class='tt-overlay-panel -left-top'>
+                <div class='tt-form-label'>
+                    Show buildings
+                    <div id='showBuildings' class='tt-buttons-group'>
+                        <button class='tt-buttons-group__button -active' data-id='on' value='On'>On</button>
+                        <button class='tt-buttons-group__button' data-id='off' value='Off'>Off</button>
+                    </div>
                 </div>
             </div>
         </div>
+        <div id='secondMap' class='map-container'></div>
     </div>
     <script src='/cdn.web-sdk-maps/maps-web.min.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
     <script data-showable type='text/javascript' src='../assets/js/buttons-group.js'></script>
+    <script data-showable type='text/javascript' src='../assets/js/info-hint.js'></script>
     <script>
         var buildingsVisible = 'On';
-        var map = tt.map({
+        var firstMap = tt.map({
             key: '${api.key.maps}',
-            container: 'map',
+            container: 'firstMap',
             dragPan: !isMobileOrTablet(),
             zoom: 16,
-            center: [4.909278601432334, 52.37693362901979],
+            center: [4.909278, 52.376933],
             pitch: 60
         });
-        map.addControl(new tt.FullscreenControl());
-        map.addControl(new tt.NavigationControl());
-        var showBuildingsGroup = new ButtonsGroup(document.getElementById('showBuildings'));
+        var secondMap = tt.map({
+            key: '${api.key.maps}',
+            container: 'secondMap',
+            dragPan: !isMobileOrTablet(),
+            zoom: 16,
+            center: [4.909278, 52.376933],
+            pitch: 60
+        });
+        
+        firstMap.addControl(new tt.FullscreenControl());
+        firstMap.addControl(new tt.NavigationControl());
 
-        showBuildingsGroup.onSelect(function(element) {
-            var selectedValue = element.innerText;
-            if (buildingsVisible === selectedValue) {
-                return;
-            }
-            buildingsVisible = selectedValue;
-            var opacity = buildingsVisible === 'On' ? 1 : 0;
-            var layers = map.getStyle().layers.filter(function(layer) {
-                return layer.type === 'fill-extrusion';
-            });
-            layers.forEach(function(layer) {
-                map.setPaintProperty(layer.id, 'fill-extrusion-opacity-transition', {
-                    delay: 0,
-                    duration: 2000
-                });
-                map.setPaintProperty(layer.id, 'fill-extrusion-opacity', opacity);
+        secondMap.addControl(new tt.FullscreenControl());
+        secondMap.addControl(new tt.NavigationControl());
+
+        var showBuildingsGroup = new ButtonsGroup(document.getElementById('showBuildings'));
+        var infoHint = new InfoHint('info', 'bottom-center', 10000)
+            .addTo(document.getElementById('secondMap'));
+        infoHint.setMessage('Pitch the map to change buildings visibility.');
+
+        firstMap.on('load', function() {
+            var extrusionLayers = getExtrussionLayers(firstMap);
+            showBuildingsGroup.onSelect(function(element) {
+                var selectedValue = element.innerText;
+                if (buildingsVisible === selectedValue) {
+                    return;
+                }
+                buildingsVisible = selectedValue;
+                var opacity = buildingsVisible === 'On' ? 1 : 0;
+                switchExtrusionVisibility(firstMap, extrusionLayers, opacity);
             });
         });
+
+        secondMap.on('load', function() {
+            var extrusionLayers = getExtrussionLayers(secondMap);
+            var pitchAngle = 30;
+            secondMap.on('pitchend', function(event) {
+                var opacity = event.target.getPitch() >= pitchAngle ? 1 : 0;
+                switchExtrusionVisibility(secondMap, extrusionLayers, opacity);
+            });
+        });
+
+        function getExtrussionLayers(map) {
+            return map.getStyle().layers.filter(function(layer) {
+                var hasExtrusion = layer.type === 'fill-extrusion';
+                var has3dArea = layer.metadata === 'group:area_3d';
+                if (has3dArea || hasExtrusion) {
+                    map.setLayoutProperty(layer.id, 'visibility', 'visible');
+                    map.setPaintProperty(layer.id, 'fill-extrusion-opacity-transition', {
+                        delay: 0,
+                        duration: 2000
+                    });
+                }
+                return has3dArea || hasExtrusion;
+            });
+        }
+
+        function switchExtrusionVisibility(map, layers, opacity) {
+            layers.forEach(function(layer) {
+                map.setPaintProperty(layer.id, 'fill-extrusion-opacity', opacity);
+            });
+        }
     </script>
 </body>
 </html>
