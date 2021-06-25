@@ -129,10 +129,8 @@
             });
 
             performIncidentDetailsRequest().then(function(incidentDetailsResponse) {
-                var detailsFeatures = incidentDetailsResponse.toGeoJson().features;
-
-                if (detailsFeatures.length) {
-                    var feature = detailsFeatures[0];
+                if (incidentDetailsResponse.length) {
+                    var feature = incidentDetailsResponse[0];
                     map.setCenter(feature.geometry.coordinates);
                     map.setZoom(15);
                 }
@@ -173,8 +171,7 @@
             map.panTo(feature.geometry.coordinates, {duration: 200});
 
             performIncidentDetailsRequest().then(function(incidentDetailsResponse) {
-                var detailsFeatures = incidentDetailsResponse.toGeoJson().features;
-                addPopup(feature, detailsFeatures);
+                addPopup(feature, incidentDetailsResponse);
                 state.popupIncidentLayer = map.getLayer(layerId);
             }).catch(function(error) {
                 errorHint.setMessage(error);
@@ -184,13 +181,42 @@
         }
 
         function performIncidentDetailsRequest() {
-            return tt.services.incidentDetails({
+            return tt.services.incidentDetailsV5({
                 key: '${api.key.trafficIncidents}',
                 boundingBox: map.getBounds(),
-                style: 's0',
-                zoomLevel: Math.round(map.getZoom()),
-                trafficModelID: '-1',
-                expandCluster: true
+                fields: `{
+                    incidents {
+                        type,
+                        geometry {
+                            type,
+                            coordinates
+                        },
+                        properties {
+                            id,
+                            iconCategory,
+                            magnitudeOfDelay,
+                            events {
+                                description,
+                                code,
+                                iconCategory
+                            },
+                            from,
+                            to,
+                            length,
+                            delay,
+                            roadNumbers
+                        }
+                    }
+                }`
+            }).then(data => {
+                return data.incidents.map(el => ({
+                    geometry: {
+                        coordinates: el.geometry.coordinates[0],
+                        type: 'Point'
+                    },
+                    properties: el.properties,
+                    type: el.type
+                }));
             });
         }
 
@@ -214,25 +240,28 @@
             }
 
             closePopup();
-            state.popup = new tt.Popup({
-                offset: [0, -20], className: 'tt-popup'
-            })
-                .setLngLat(feature.geometry.coordinates)
-                .setHTML(createCustomPopupHTML(feature.properties, details))
-                .addTo(map);
+            if (details) {
+                state.popup = new tt.Popup({
+                    offset: [0, -20], className: 'tt-popup'
+                })
+                    .setLngLat(feature.geometry.coordinates)
+                    .setHTML(createCustomPopupHTML(feature.properties, details))
+                    .addTo(map);
+            }
         }
 
         function createCustomPopupHTML(properties, details) {
             var photo = photosMapping[properties.description_0] || photosMapping.default;
 
-            var description = details.description || properties.description_0;
+            var description = details.events[0].description || properties.description_0;
             return (
                 '<div class="tt-traffic-details -column">' +
                     '<div class="details-header">' +
                         '<img class="custom-img -' +
                         details.incidentSeverity + '" src="../assets/images/custom-incident-markers/' + photo + '">' +
                         '<div>' +
-                            (details.roadNumber ? '<div class="tt-road-shield">' + details.roadNumber + '</div>' : '') +
+                            (details.roadNumbers.length ?
+                                '<div class="tt-road-shield">' + details.roadNumbers + '</div>' : '') +
                         '</div>' +
                     '</div>' +
                     '<div class="tt-traffic-description">' +
@@ -251,13 +280,13 @@
             return (
                 '<div class="details-content">' +
                     '<div>' +
-                        (details.delaySeconds ?
+                        (details.delay ?
                             '<div><label>Delay:</label> ' +
-                                Formatters.formatToDurationTimeString(details.delaySeconds) + '</div>' :
+                                Formatters.formatToDurationTimeString(details.delay) + '</div>' :
                             '') +
                         '<div>' +
                             '<label>Traffic length:</label> ' +
-                            Formatters.formatAsMetricDistance(details.lengthMeters) +
+                            Formatters.formatAsMetricDistance(details.length) +
                         '</div>' +
                     '</div>' +
                     '<div><label>From:</label> ' + details.from + '</div>' +

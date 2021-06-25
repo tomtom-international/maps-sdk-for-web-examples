@@ -43,7 +43,7 @@
                     trafficIncidents: true
                 },
                 center: [19.457216, 51.759445],
-                zoom: 10,
+                zoom: 12,
                 dragPan: !isMobileOrTablet()
             });
 
@@ -52,23 +52,28 @@
             var displayedIncidentsData = [],
                 formatters = Formatters;
             var iconsMapping = {
-                'Unknown': 'danger',
-                'Accident': 'accident',
-                'Fog': 'fog',
-                'Dangerous Conditions': 'danger',
-                'Rain': 'rain',
-                'Ice': 'ice',
-                'Jam': 'incident',
-                'Lane Closed': 'laneclosed',
-                'Road Closed': 'roadclosed',
-                'Road Works': 'roadworks',
-                'Wind': 'wind',
-                'Flooding': 'flooding',
-                'Detour': 'detour',
-                'Cluster': '',
-                'Broken down vehicle': 'brokendownvehicle'
+                '0': 'danger',
+                '1': 'accident',
+                '2': 'fog',
+                '3': 'danger',
+                '4': 'rain',
+                '5': 'ice',
+                '6': 'incident',
+                '7': 'laneclosed',
+                '8': 'roadclosed',
+                '9': 'roadworks',
+                '10': 'wind',
+                '11': 'flooding',
+                '14': 'brokendownvehicle'
             };
 
+            var incidentSeverity = {
+                '0': 'unknown',
+                '1': 'minor',
+                '2': 'moderate',
+                '3': 'major',
+                '4': 'undefined'
+            };
             var incidentsData = {};
 
             var incidentsMarkers = null,
@@ -86,6 +91,7 @@
                     incidentMarkerFactory: function() {
                         return new IncidentMarker({
                             iconsMapping: iconsMapping,
+                            incidentSeverity: incidentSeverity,
                             onSelected: makeResultItemSelected
                         });
                     },
@@ -101,19 +107,6 @@
                 });
             });
 
-            function calculateClusteredIncidentsDelay(clusterIncidentData) {
-                var featureDelay,
-                    features = clusterIncidentData.features,
-                    finalDelay = 0,
-                    length = features.length;
-
-                for (var i = 0; i < length; i++) {
-                    featureDelay = features[i].properties.delaySeconds || 0;
-                    finalDelay += featureDelay;
-                }
-                return finalDelay;
-            }
-
             function compareIncidentCategory(a, b) {
                 var firstValue = a.properties[sortedByValue],
                     secondValue = b.properties[sortedByValue],
@@ -126,9 +119,10 @@
             }
 
             function convertToGeoJson(data) {
-                return data.toGeoJson().features.reduce(function(result, feature) {
+                return data.incidents.reduce(function(result, feature) {
                     var current = {};
-
+                    feature.geometry.type = 'Point';
+                    feature.geometry.coordinates = feature.geometry.coordinates[0];
                     current[feature.properties.id] = feature;
                     return Object.assign(result, current);
                 }, {});
@@ -141,13 +135,8 @@
                     var incident = incidentsData[incidentId],
                         properties = incident.properties;
 
-                    if (isDescribedAsCluster(properties)) {
-                        properties.from = properties.features[0].properties.from;
-                        properties.to = properties.features[0].properties.to;
-                        properties.delaySeconds = calculateClusteredIncidentsDelay(properties);
-                    }
-                    if (!properties.delaySeconds) {
-                        properties.delaySeconds = 0;
+                    if (!properties.delay) {
+                        properties.delay = 0;
                     }
                     array.push(incident);
                 }
@@ -163,20 +152,21 @@
                 incidentDetailsElement.innerHTML =
                     '<div class="tt-incidents-details">' +
                         '<div class="tt-traffic-icon -details">' +
-                            '<div class="tt-icon-circle-' + properties.incidentSeverity + ' -small">' +
-                                (isDescribedAsCluster(properties) ?
-                                    '<div class="tt-icon-number">' +
-                                    (properties.clusterSize > 99 ? '99+' : properties.clusterSize) :
-                                    '<div class="tt-icon-' + iconsMapping[properties.incidentCategory] + '">') + '</div>' +
+                            '<div class="tt-icon-circle-' + incidentSeverity[properties.magnitudeOfDelay] + ' -small">' +
+                                '<div class="tt-icon-' + iconsMapping[properties.iconCategory] + '"></div>' +
                             '</div>' +
                         '</div>' +
                         '<div>' +
-                            (properties.roadNumber ? '<b>' + properties.roadNumber + '</b>' : '') +
+                            (properties.roadNumbers ? '<b>' + separateRoadNumbers(properties.roadNumbers) + '</b>' : '') +
                             '<div>' + properties.from + '</div>' +
                             '<div>' + properties.to + '</div>' +
                         '<div>' +
                     '</div>';
                 return incidentDetailsElement;
+            }
+
+            function separateRoadNumbers(roadNumbers) {
+                return roadNumbers.length > 1 ? roadNumbers.join(' - ') : roadNumbers;
             }
 
             function createIncidentHeader() {
@@ -187,11 +177,11 @@
                         },
                         {
                             text: 'Delay',
-                            attribute: 'delaySeconds'
+                            attribute: 'delay'
                         },
                         {
                             text: 'Length',
-                            attribute: 'lengthMeters'
+                            attribute: 'length'
                         }
                     ],
                     incidentHeader = document.querySelector('.tt-side-panel__header');
@@ -220,8 +210,8 @@
 
             function createIncidentItemRow(markerData) {
                 var properties = markerData.properties,
-                    delaySeconds = properties.delaySeconds,
-                    lengthMeters = properties.lengthMeters;
+                    delaySeconds = properties.delay,
+                    lengthMeters = properties.length;
 
                 var incidentDelay = DomHelpers.elementFactory('div', '', formatters.formatToDurationTimeString(delaySeconds)),
                     incidentLength = DomHelpers.elementFactory('div', '', formatters.formatAsMetricDistance(lengthMeters)),
@@ -317,10 +307,6 @@
                     document.querySelector('div[data-id="' + markerId + '"]').classList.remove(selectedClass);
                     selectedIncidentId = '';
                 });
-            }
-
-            function isDescribedAsCluster(features) {
-                return Boolean(features.features && features.clusterSize);
             }
 
             function makeResultItemSelected(markerId) {

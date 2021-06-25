@@ -43,8 +43,10 @@ IncidentDetailsMarkersManager.prototype._addMarker = function(feature) {
 };
 
 IncidentDetailsMarkersManager.prototype._mapResponseToFeaturesDictionary = function(response) {
-    return response.toGeoJson().features.reduce(function(result, feature) {
+    return response.incidents.reduce(function(result, feature) {
         var current = {};
+        feature.geometry.type = 'Point';
+        feature.geometry.coordinates = feature.geometry.coordinates[0];
         current[feature.properties.id] = feature;
         return Object.assign(result, current);
     }, Object.create(null));
@@ -78,13 +80,40 @@ IncidentsDetailsManager.prototype._fetchIncidentDetails = function() {
     var requestOptions = {
         key: this.options.key,
         boundingBox: this.map.getBounds(),
-        zoomLevel: Math.floor(this.map.getZoom()),
-        style: this.options.style,
-        preserveCluster: true,
-        expandCluster: true
+        fields: `{
+            incidents {
+                type,
+                geometry {
+                    type,
+                    coordinates
+                },
+                properties {
+                    id,
+                    iconCategory,
+                    magnitudeOfDelay,
+                    events {
+                        description,
+                        code,
+                        iconCategory
+                    },
+                    startTime,
+                    endTime,
+                    from,
+                    to,
+                    length,
+                    delay,
+                    roadNumbers,
+                    aci {
+                        probabilityOfOccurrence,
+                        numberOfReports,
+                        lastReportTime
+                    }
+                }
+            }
+        }`
     };
 
-    return this.services.incidentDetails(requestOptions);
+    return this.services.incidentDetailsV5(requestOptions);
 };
 
 IncidentsDetailsManager.prototype._registerEvents = function() {
@@ -100,14 +129,17 @@ IncidentsDetailsManager.prototype._registerEvents = function() {
 };
 
 IncidentsDetailsManager.prototype._updateIncidentMarkers = function() {
-    this._fetchIncidentDetails()
-        .then(function(incidentDetails) {
-            this.incidentsMarkerManager.addMarkers(incidentDetails);
-            this.onDetailsUpdated({
-                trafficIncidents: incidentDetails,
-                markers: this.incidentsMarkerManager.getMarkers()
-            });
-        }.bind(this));
+    const currentZoom = this.map.getZoom();
+    if (currentZoom > 9) {
+        this._fetchIncidentDetails()
+            .then(function(incidentDetails) {
+                this.incidentsMarkerManager.addMarkers(incidentDetails);
+                this.onDetailsUpdated({
+                    trafficIncidents: incidentDetails,
+                    markers: this.incidentsMarkerManager.getMarkers()
+                });
+            }.bind(this));
+    }
 };
 
 window.IncidentsDetailsManager = window.IncidentsDetailsManager || IncidentsDetailsManager;

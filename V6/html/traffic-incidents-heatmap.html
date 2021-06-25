@@ -19,37 +19,25 @@
             key: '${api.key.maps}',
             container: 'map',
             dragPan: !isMobileOrTablet(),
-            zoom: 5,
-            center: [-8.413585, 40.197530]
+            zoom: 10,
+            center: [-9.190732, 38.670901]
         });
         map.addControl(new tt.FullscreenControl());
         map.addControl(new tt.NavigationControl());
         map.on('load', handleServiceRequest);
 
         function handleServiceRequest() {
-            tt.services.incidentDetails({
+            tt.services.incidentDetailsV5({
                 key: '${api.key.trafficIncidents}',
-                boundingBox: map.getBounds(),
-                style: 's3',
-                zoomLevel: 10,
-                trafficModelID: '-1',
-                expandCluster: true
+                boundingBox: map.getBounds()
             })
-
                 .then(function(response) {
                     var points = [];
-
-                    response.tm.poi.forEach(function(poi) {
-                        if (poi.id.indexOf('CLUSTER') > -1) {
-                            poi.cpoi.forEach(function(cpoi) {
-                                points.push([cpoi.p.lng, cpoi.p.lat]);
-                            });
-                        } else {
-                            points.push([poi.p.lng, poi.p.lat]);
-                        }
+                    response.incidents.forEach(function(poi) {
+                        points.push(...poi.geometry.coordinates);
                     });
                     map.addLayer(createHeatmapLayer(pointsToGeoJson(points)));
-                    map.setZoom(6);
+                    map.setZoom(9);
                 });
         }
 
