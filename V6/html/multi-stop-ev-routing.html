@@ -367,7 +367,7 @@
 
             var points = {
                 startPoint: [4.897070, 52.377956],
-                finishPoint: [10.886712, 44.650232]
+                finishPoint: [10.99171, 45.43835]
             };
 
             map.addControl(new tt.FullscreenControl({ container: document.querySelector('body') }));
@@ -1000,7 +1000,7 @@
                 return tt.services.longDistanceEVRouting({
                     key: '${api.key.routing}',
                     traffic: false,
-                    locations: '4.897070,52.377956:10.886712,44.650232',
+                    locations: '4.888721,52.374898:10.99171,45.43835',
                     vehicleEngineType: 'electric',
                     chargingModes: scenario.chargingModes,
                     constantSpeedConsumptionInkWhPerHundredkm: scenario.constantSpeedConsumption,

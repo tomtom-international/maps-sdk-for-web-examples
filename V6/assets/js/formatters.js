@@ -15,10 +15,31 @@ function convertToSpeedFormat(speedValue, unit) {
 
 // Takes number of seconds as a parameter and returns a formatted time
 function formatToDurationTimeString(secondsValue) {
+
+    function getNumberOfDays(secondsValue) {
+        var days = Math.floor(secondsValue / (3600 * 24));
+        var rest = secondsValue % (3600 * 24);
+
+        return {
+            days: days,
+            rest: rest
+        };
+    }
+
+    function getProperDaysLabel(days) {
+        return days === 1 ? ' day ' : ' days ';
+    }
+
     var miliseconds = moment.utc(secondsValue * 1000);
 
     if (secondsValue > 3600 * 24) {
-        return miliseconds.format('d [day] h [h] m [m]');
+        var numberOfDays = getNumberOfDays(secondsValue);
+
+        var daysString = numberOfDays.days + getProperDaysLabel(numberOfDays.days);
+        var hoursAndMinutes = moment.utc(numberOfDays.rest * 1000);
+        var hoursAndMinutesString = hoursAndMinutes.format('h [h] m [m]');
+
+        return daysString + hoursAndMinutesString;
     } else if (secondsValue > 3600) {
         return miliseconds.format('H [h] m [m] s [s]');
     } else if (secondsValue > 60) {
