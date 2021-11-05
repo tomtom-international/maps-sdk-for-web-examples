@@ -357,7 +357,7 @@
                 container: 'map',
                 dragPan: !isMobileOrTablet(),
                 zoom: 5.02,
-                center: [7.89189, 48.66192]
+                center: [9.814841, 52.428779]
             });
 
             var errorHint = new InfoHint('error', 'bottom-center', 5000).addTo(document.getElementById('map'));
@@ -366,8 +366,8 @@
             var evMarkers = {}, currentScenario = {};
 
             var points = {
-                startPoint: [4.897070, 52.377956],
-                finishPoint: [10.99171, 45.43835]
+                startPoint: [13.414334,52.528546],
+                finishPoint: [4.921125,52.357790]
             };
 
             map.addControl(new tt.FullscreenControl({ container: document.querySelector('body') }));
@@ -408,23 +408,23 @@
                                 },
                                 {
                                     facilityType: 'Charge_50_to_500V_Direct_Current_at_62A_25kW',
-                                    plugType: 'SAE_J1772'
+                                    plugType: 'IEC_62196_Type_2_Outlet'
                                 },
                                 {
                                     facilityType: 'Charge_50_to_500V_Direct_Current_at_125A_50kW',
-                                    plugType: 'SAE_J1772'
+                                    plugType: 'IEC_62196_Type_2_Outlet'
                                 },
                                 {
                                     facilityType: 'Charge_380_to_480V_3_Phase_at_63A',
-                                    plugType: 'SAE_J1772'
+                                    plugType: 'IEC_62196_Type_2_Outlet'
                                 },
                                 {
                                     facilityType: 'Charge_380_to_480V_3_Phase_at_32A',
-                                    plugType: 'SAE_J1772'
+                                    plugType: 'IEC_62196_Type_2_Outlet'
                                 },
                                 {
                                     facilityType: 'Charge_380_to_480V_3_Phase_at_16A',
-                                    plugType: 'SAE_J1772'
+                                    plugType: 'IEC_62196_Type_2_Outlet'
                                 }
                             ],
                             chargingCurve: [
@@ -463,30 +463,6 @@
                                 {
                                     facilityType: 'Charge_200_to_240V_3_Phase_at_32A',
                                     plugType: 'Tesla_Connector'
-                                },
-                                {
-                                    facilityType: 'Charge_200_to_240V_1_Phase_at_12A',
-                                    plugType: 'SAE_J1772'
-                                },
-                                {
-                                    facilityType: 'Charge_200_to_240V_1_Phase_at_32A',
-                                    plugType: 'SAE_J1772'
-                                },
-                                {
-                                    facilityType: 'Charge_200_to_240V_1_Phase_at_10A',
-                                    plugType: 'SAE_J1772'
-                                },
-                                {
-                                    facilityType: 'Charge_200_to_240V_3_Phase_at_32A',
-                                    plugType: 'SAE_J1772'
-                                },
-                                {
-                                    facilityType: 'Charge_200_to_240V_1_Phase_at_16A',
-                                    plugType: 'SAE_J1772'
-                                },
-                                {
-                                    facilityType: 'Charge_100_to_120V_1_Phase_at_16A',
-                                    plugType: 'SAE_J1772'
                                 }
                             ],
                             chargingCurve: [
@@ -783,7 +759,7 @@
                 //creating first item
                 evListContainer.innerHTML += '<div class="route-stage" id="list-0">' +
                     '<div class="icon-container" id="icon-0"><div class="tt-icon-tesla_white start-icon"></div></div>' +
-                    '<div class="route-addresses" id="address-0">Amsterdam, Netherlands</div>' +
+                    '<div class="route-addresses" id="address-0">Berlin, Germany</div>' +
                     '<div class="leg-data-row"><div class="tt-icon-' +
                         getCurrentBatteryLevelIcon(100) + ' parameter-icon"></div><div>100%</div></div>' +
                     '<div class="leg-time-distance">' +
@@ -812,9 +788,8 @@
 
                 //creating last item
                 evListContainer.innerHTML += '<div class="route-stage last-stage" id="list-' + legs.length + '">' +
-                    '<div class="icon-container" id="icon-' + legs.length + '"/>' +
-                    '<div class="icon tt-icon -white -finish finish-icon">' +
-                    '</div></div><div class="route-addresses" id="address-' + legs.length + '">Verona, Italy</div>' +
+                    '<div class="icon-container" id="icon-' + legs.length + '"/><div class="icon tt-icon -white -finish finish-icon">' +
+                    '</div></div><div class="route-addresses" id="address-' + legs.length + '">Amsterdam, Netherlands</div>' +
                     '<div class="leg-data-row"><div class="tt-icon-' +
                         getCurrentBatteryLevelIcon(batteryLeftPercentage) + ' parameter-icon"></div><div>' +
                         batteryLeftPercentage +
@@ -999,8 +974,7 @@
             function performEVRoutingRequest(scenario) {
                 return tt.services.longDistanceEVRouting({
                     key: '${api.key.routing}',
-                    traffic: false,
-                    locations: '4.888721,52.374898:10.99171,45.43835',
+                    locations: '13.414334,52.528546:4.921125,52.357790',
                     vehicleEngineType: 'electric',
                     chargingModes: scenario.chargingModes,
                     constantSpeedConsumptionInkWhPerHundredkm: scenario.constantSpeedConsumption,

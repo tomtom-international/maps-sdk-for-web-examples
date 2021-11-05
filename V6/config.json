@@ -8,8 +8,8 @@
         "extendedSearch": "<your extended search key>"
     },
     "cdn": {
-        "web-sdk-maps": "https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.15.0/maps",
-        "web-sdk-services": "https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.15.0/services",
+        "web-sdk-maps": "https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.16.0/maps",
+        "web-sdk-services": "https://api.tomtom.com/maps-sdk-for-web/cdn/6.x/6.16.0/services",
         "web-sdk-plugin-searchbox": "https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/SearchBox/3.1.11/",
         "web-sdk-plugin-pancontrols": "https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/PanControls/2.1.6/",
         "web-sdk-plugin-zoomcontrols": "https://api.tomtom.com/maps-sdk-for-web/cdn/plugins/ZoomControls/2.1.6/",
