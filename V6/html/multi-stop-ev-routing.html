@@ -876,6 +876,7 @@
 
             function createRouteSummary(summary) {
                 var summaryPanel = document.querySelector('.route-summary-panel');
+                var numberOfStops = Object.keys(evMarkers).length - 2; // we exclude origin and destination
 
                 summaryPanel.innerHTML = '<div class="summary-container">' +
                         '<div class="trip-time"><div class="route-info-label">Total trip time</div>' +
@@ -887,7 +888,7 @@
                         '<div class="distance"><div class="route-info-label">Distance</div>' +
                             '<div class="route-info-value">' +
                                 Formatters.formatAsMetricDistance(summary.lengthInMeters) + '</div></div></div>' +
-                    '<div class="number-of-stops">' + Object.keys(evMarkers).length + ' charging stops</div>';
+                    '<div class="number-of-stops">' + numberOfStops + ' charging stops</div>';
             }
 
             function clearMap() {
