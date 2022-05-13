@@ -184,13 +184,13 @@
         }
 
         function getBounds(data) {
-            var btmRight;
-            var topLeft;
+            var southWest;
+            var northEast;
             if (data.viewport) {
-                btmRight = [data.viewport.btmRightPoint.lng, data.viewport.btmRightPoint.lat];
-                topLeft = [data.viewport.topLeftPoint.lng, data.viewport.topLeftPoint.lat];
+                southWest = [data.viewport.topLeftPoint.lng, data.viewport.btmRightPoint.lat];
+                northEast = [data.viewport.btmRightPoint.lng, data.viewport.topLeftPoint.lat];
             }
-            return [btmRight, topLeft];
+            return [southWest, northEast];
         }
 
         function fitToViewport(markerData) {

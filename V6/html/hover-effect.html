@@ -36,15 +36,48 @@
             center: [-0.12634, 51.50276],
             zoom: 14,
             dragPan: !isMobileOrTablet(),
-            // This transformRequest property is used to add the `tags` parameter to the Vector Incident Tiles urls.
-            // The `id` is an on-demand tag which in this example is needed to compare features.
+            // transformRequest property is used to modify the `tags` parameter of the Vector Incident Tiles urls.
+            // We are adding custom tags to include more data in traffic tiles.
+            // Later we will display this data in the incidents popups on the map.
+            // See API documentation for more details on using tags:
             // https://developer.tomtom.com/traffic-api/traffic-api-documentation-traffic-incidents/vector-incident-tiles
             transformRequest: function(url, resourceType) {
                 if (resourceType === 'Tile' && url.indexOf('incidents') > -1) {
+                    var additionalTags = [
+                        // The `id` is an on-demand tag which in this example is needed to compare features.
+                        'id',
+                        'icon_category',
+                        'description',
+                        'delay',
+                        'road_type',
+                        'left_hand_traffic',
+                        'magnitude',
+                        'traffic_road_coverage',
+                        'clustered',
+                        'probability_of_occurrence',
+                        'number_of_reports',
+                        'last_report_time',
+                        'end_date'
+                    ];
+
+                    var urlObject = new URL(url);
+                    var searchParams = new URLSearchParams(urlObject.search);
+                    var tagsString = searchParams.get('tags');
+                    var tags = tagsString !== null ?
+                        tagsString
+                            .substring(1, tagsString.length - 1)
+                            .split(',')
+                            .map(tag => tag.trim()) :
+                        [];
+                    var tagsSet = new Set(tags);
+
+                    for (var tag of additionalTags) {
+                        tagsSet.add(tag);
+                    }
+
+                    searchParams.set('tags', `[${Array.from(tagsSet).join(',')}]`);
                     return {
-                        url: url + '&tags=[id,icon_category,description,delay,road_type,left_hand_traffic,' +
-                             'magnitude,traffic_road_coverage,clustered,probability_of_occurrence,' +
-                             'number_of_reports,last_report_time,end_date]'
+                        url: `${urlObject.origin}${urlObject.pathname}?${searchParams.toString()}`
                     };
                 }
             }
