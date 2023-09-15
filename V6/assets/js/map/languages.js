@@ -29,5 +29,6 @@ window.mapLanguages = window.mapLanguages || {
     'th-TH': 'Thai',
     'tr-TR': 'Turkish',
     'pt-BR': 'Portuguese (BR)',
-    'pt-PT': 'Portuguese'
+    'pt-PT': 'Portuguese',
+    'ja-JP': 'Japanese'
 };

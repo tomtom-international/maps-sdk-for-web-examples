@@ -42,7 +42,13 @@ const values = {
     hostedStylesVersion: config.hostedStylesVersion
 };
 
+function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 (async () => {
+    await sleep(2000); // race condition in webpack config, files get copied after this
+
     const placeholdersToReplace = [];
     const valuesForReplacement = [];
 
@@ -53,7 +59,7 @@ const values = {
 
     await replaceInFile({
         files: [
-            path.resolve(__dirname, '../', 'dist/**/*.html')
+            path.resolve(__dirname, '../dist/*.html')
         ],
         from: placeholdersToReplace,
         to: valuesForReplacement

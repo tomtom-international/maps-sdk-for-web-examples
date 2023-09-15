@@ -35,7 +35,7 @@
         var firstMap = tt.map({
             key: '${api.key.maps}',
             container: 'firstMap',
-            style: 'https://api.tomtom.com/style/1/style/${hostedStylesVersion}?map=basic_main&poi=poi_main',
+            style: 'https://api.tomtom.com/style/1/style/${hostedStylesVersion}?map=2/basic_street-light&poi=2/poi_light',
             dragPan: !isMobileOrTablet(),
             center: [17, -34]
         });
@@ -43,7 +43,7 @@
         var secondMap = tt.map({
             key: '${api.key.maps}',
             container: 'secondMap',
-            style: 'https://api.tomtom.com/style/1/style/${hostedStylesVersion}?map=basic_night&poi=poi_main',
+            style: 'https://api.tomtom.com/style/1/style/${hostedStylesVersion}?map=2/basic_street-dark&poi=2/poi_dark',
             dragPan: !isMobileOrTablet(),
             center: [4.899431, 52.379189],
             zoom: 12
@@ -52,11 +52,6 @@
         secondMap.addControl(new tt.FullscreenControl({ container: document.querySelector('body') }));
         firstMap.addControl(new tt.NavigationControl());
         secondMap.addControl(new tt.NavigationControl());
-
-        secondMap.on('load', function() {
-            secondMap.setPaintProperty('POI', 'text-halo-color', '#000000');
-            secondMap.setPaintProperty('POI', 'text-color', '#ffffff');
-        });
 
         new tt.Marker().setLngLat([25.856667, -17.924444]).addTo(firstMap);
         new tt.Marker().setLngLat([23.623112, -19.130979]).addTo(firstMap);

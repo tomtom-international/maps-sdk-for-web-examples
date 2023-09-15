@@ -17,10 +17,12 @@
                 <label class='tt-form-label tt-spacing-top-24'>
                     Traffic incidents style
                     <select class='js-style-select tt-select'>
-                        <option value='day' selected>day</option>
-                        <option value='dark'>dark</option>
-                        <option value='s0'>s0</option>
-                        <option value='s0-dark'>s0-dark</option>
+                        <option value='2/incidents_light' selected>2/incidents_light</option>
+                        <option value='2/incidents_dark'>2/incidents_dark</option>
+                        <option value='incidents_day'>incidents_day</option>
+                        <option value='incidents_dark'>incidents_dark</option>
+                        <option value='incidents_s0'>incidents_s0</option>
+                        <option value='incidents_s0-dark'>incidents_s0-dark</option>
                     </select>
                 </label>
             </div>
@@ -31,7 +33,7 @@
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
     <script>
         var state = {
-            style: 'day'
+            style: '2/incidents_light'
         };
         var map = tt.map({
             key: '${api.key.maps}',
@@ -55,9 +57,9 @@
         });
 
         function getCurrentStyleUrl() {
-            return 'https://api.tomtom.com/style/1/style/${hostedStylesVersion}?map=basic_main' +
-                      '&traffic_incidents=incidents_' + state.style +
-                      '&poi=poi_main&key=${api.key.maps}';
+            return 'https://api.tomtom.com/style/1/style/${hostedStylesVersion}?map=2/basic_street-light' +
+                      '&traffic_incidents=' + state.style +
+                      '&poi=2/poi_light&key=${api.key.maps}';
         }
 
         map.once('load', function() {

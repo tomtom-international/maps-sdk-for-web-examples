@@ -17,8 +17,10 @@
                 <label class='tt-form-label tt-spacing-top-24'>
                     Traffic flow style
                     <select class='js-style-select tt-select'>
-                        <option value='relative0' selected>relative0</option>
-                        <option value='relative0-dark'>relative0-dark</option>
+                        <option value='2/flow_relative-light' selected>2/flow_relative-light</option>
+                        <option value='2/flow_relative-dark'>2/flow_relative-dark</option>
+                        <option value='flow_relative0'>flow_relative0</option>
+                        <option value='flow_relative0-dark'>flow_relative0-dark</option>
                     </select>
                 </label>
             </div>
@@ -29,7 +31,7 @@
     <script data-showable type='text/javascript' src='../assets/js/mobile-or-tablet.js'></script>
     <script>
         var state = {
-            style: 'relative0'
+            style: '2/flow_relative-light'
         };
         var map = tt.map({
             key: '${api.key.maps}',
@@ -59,8 +61,8 @@
         });
 
         function getCurrentStyleUrl() {
-            return 'https://api.tomtom.com/style/1/style/${hostedStylesVersion}?map=basic_main' +
-                      '&traffic_flow=flow_' + state.style + '&poi=poi_main&key=${api.key.maps}';
+            return 'https://api.tomtom.com/style/1/style/${hostedStylesVersion}?map=2/basic_street-light' +
+                      '&traffic_flow=' + state.style + '&poi=2/poi_light&key=${api.key.maps}';
         }
     </script>
 </body>

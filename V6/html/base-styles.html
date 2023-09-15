@@ -33,11 +33,11 @@
     <script data-showable type='text/javascript' src='../assets/js/foldable.js'></script>
     <script>
         var styles = {
-            main: 'main',
-            night: 'night'
+            light: 'light',
+            dark: 'dark'
         };
         var styleOptions = {
-            style: styles.main,
+            style: styles.light,
             layerType: 'basic'
         };
 
@@ -51,17 +51,10 @@
         map.addControl(new tt.FullscreenControl({container: document.querySelector('body')}));
         map.addControl(new tt.NavigationControl());
 
-        var styleSelector = new TailSelector(styles, '.js-style-select', 'main').getElement();
+        var styleSelector = new TailSelector(styles, '.js-style-select', 'light').getElement();
         styleSelector.on('change', function(e) {
             styleOptions.style = e.key;
             map.setStyle(getCurrentStyleUrl());
-        });
-
-        map.on('style.load', function() {
-            if (styleOptions.style === 'night') {
-                map.setPaintProperty('POI', 'text-halo-color', '#000000');
-                map.setPaintProperty('POI', 'text-color', '#ffffff');
-            }
         });
 
         function buttonsGroupChange(element) {
@@ -75,8 +68,8 @@
 
         function getCurrentStyleUrl() {
             return 'https://api.tomtom.com/style/1/style/${hostedStylesVersion}/' +
-                '?map=' + styleOptions.layerType + '_' + styleOptions.style +
-                '&poi=poi_main';
+                '?map=2/' + styleOptions.layerType + '_street-' + styleOptions.style +
+                '&poi=2/poi_' + styleOptions.style;
         }
 
         new Foldable('.js-foldable', 'top-right');
