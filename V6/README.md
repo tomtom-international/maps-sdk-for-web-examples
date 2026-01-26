@@ -1,13 +1,20 @@
-# Maps SDK for Web Examples
+# Deprecation Warning
 
-## Resources
+Both V5 and V6 versions of the SDK are deprecated.
+
+Please use the new **Maps SDK for JavaScript** instead.
+For more information and documentation, visit: https://docs.tomtom.com/maps-sdk-js/introduction/overview.
+
+## Maps SDK for Web Examples
+
+### Resources
 
 Please refer to:
 * [Functional examples](https://developer.tomtom.com/maps-sdk-web-js/functional-examples) - live version of examples included in this repository.
 * [Documentation](https://developer.tomtom.com/maps-sdk-web-js/documentation) - detailed SDK API reference.
 * [Downloads](https://developer.tomtom.com/maps-sdk-web-js/downloads) - the latest version of the SDK.
 
-## Getting started
+### Getting started
 
 To run examples on your local machine you need to install [node.js](https://nodejs.org).
 Use the latest LTS version available in the download section.
